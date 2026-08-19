@@ -1,0 +1,39 @@
+{
+  "name": "figma-plugin",
+  "version": "0.5.6",
+  "description": "Deep Figma design capabilities on top of a local native execution and multi-window routing kernel.",
+  "author": {
+    "name": "Tri Nguyen",
+    "email": "nguyenmanhtri2907@gmail.com",
+    "url": "https://www.linkedin.com/in/nguyenmanhtri2907"
+  },
+  "license": "MIT",
+  "keywords": [
+    "figma",
+    "mcp",
+    "controlmux",
+    "plugin-api",
+    "agent-skill"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Figma Plugin",
+    "shortDescription": "Deep Figma design + native runtime",
+    "longDescription": "Connect agents to local Figma Design, FigJam, or Slides windows through a native execution + typed export kernel, then apply deep Figma Skills for design craft, reusable components/prototypes, design systems, cross-file design reuse/migration, verification, and design/code translation.",
+    "developerName": "Tri Nguyen",
+    "category": "Productivity",
+    "capabilities": [
+      "Figma",
+      "MCP",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Set up or diagnose the local Figma Plugin connection and tell me the exact next action.",
+      "Design or revise this Figma screen using the appropriate deep Figma capabilities and reuse the existing system.",
+      "Audit this fixed Figma artifact with evidence-backed verification, or improve the owning design-system domain when repair is requested.",
+      "Translate between this Figma design system and the production codebase without duplicating existing design truth.",
+      "Reuse, migrate, fork, or synchronize this Figma design/library into another Figma file without losing the intended update path."
+    ]
+  }
+}

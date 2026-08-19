@@ -1,0 +1,3 @@
+interface:
+  display_name: "Figma Components"
+  short_description: "Components, variants, slots, properties, and reuse"

@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "status": "SELF_REVIEWED_NOT_BEHAVIORALLY_RUN",
+  "principle": {
+    "qualityRule": "No example is better than a mediocre example that models can cargo-cult.",
+    "teachingSequence": [
+      "product-truth",
+      "mediocre-default",
+      "expert-observation",
+      "decision-variables",
+      "plausible-alternatives",
+      "selection-rationale",
+      "figma-construction",
+      "render-critique",
+      "causal-correction",
+      "final-rationale",
+      "anti-copy-transfer"
+    ],
+    "literalValuesAre": "specimen evidence, not reusable truth unless the same product/system constraints justify them"
+  },
+  "projectEvidence": {
+    "productTruth": "design/direction-approved.md",
+    "specimens": [
+      "design/exemplars/controlmux-observability-golden.html",
+      "design/exemplars/controlmux-request-sheet-golden.html"
+    ],
+    "renders": [
+      "design/exemplars/renders/controlmux-observability-golden.png",
+      "design/exemplars/renders/controlmux-request-sheet-golden.png"
+    ],
+    "selfReview": "PASS",
+    "independentExpertReview": "NOT_RUN",
+    "behavioralSkillAB": "NOT_RUN"
+  },
+  "craftCoreSkills": [
+    {
+      "owner": "figma-design-authoring",
+      "reference": "skills/figma-design-authoring/references/golden-teaching-cases.md",
+      "proofMarkers": [
+        "Expert diagnosis",
+        "Plausible alternatives",
+        "Native Figma compilation",
+        "First render critique",
+        "Causal correction",
+        "Anti-copy rule"
+      ],
+      "teachingJob": "task hierarchy -> scene hierarchy -> native Figma structure -> rendered craft -> reusable truth"
+    },
+    {
+      "owner": "figma-layout",
+      "reference": "skills/figma-layout/references/golden-teaching-cases.md",
+      "proofMarkers": [
+        "Expert relation model",
+        "Concrete specimen",
+        "Pressure test",
+        "Figma construction order",
+        "Failure/re-entry",
+        "Anti-copy rule"
+      ],
+      "teachingJob": "semantic field pressure -> layout owner -> sizing contract -> stress -> re-entry"
+    },
+    {
+      "owner": "figma-scene",
+      "reference": "skills/figma-scene/references/golden-teaching-cases.md",
+      "proofMarkers": [
+        "Expert plane model",
+        "Alternative plane forms",
+        "Concrete scene construction",
+        "First render critique",
+        "Failure/re-entry",
+        "Anti-copy rule"
+      ],
+      "teachingJob": "semantic relation -> plane/input relation -> silhouette/cue economy -> prototype handoff"
+    },
+    {
+      "owner": "figma-visual-system",
+      "reference": "skills/figma-visual-system/references/golden-teaching-cases.md",
+      "proofMarkers": [
+        "Expert system/perception split",
+        "Surface hierarchy",
+        "First render comparison",
+        "System mapping in Figma",
+        "Failure/re-entry",
+        "Anti-copy rule"
+      ],
+      "teachingJob": "system role -> occupied area/repetition/backdrop -> perceptual composition -> reusable mapping"
+    },
+    {
+      "owner": "figma-typography",
+      "reference": "skills/figma-typography/references/golden-teaching-cases.md",
+      "proofMarkers": [
+        "Expert role map",
+        "Pressure test",
+        "Figma system mapping",
+        "First render critique",
+        "Failure/re-entry",
+        "Anti-copy rule"
+      ],
+      "teachingJob": "information role -> type mass/metrics -> text-slot pressure -> geometry -> rendered hierarchy"
+    }
+  ],
+  "behavioralCases": [
+    {
+      "owner": "figma-design-authoring",
+      "status": "NOT_RUN",
+      "prompt": "Polish a compact observability companion where Connection, Requests, Activity, Diagnostics, and a live log are currently presented as equally weighted cards. Product behavior is already approved; do not invent features.",
+      "expectedDelta": [
+        "reconstruct task hierarchy before styling",
+        "avoid equal-card inventory treatment",
+        "choose bounded detail drill-down instead of permanent diagnostics region",
+        "render/critique whole-scene craft rather than stop at valid structure",
+        "preserve native reusable Figma ownership"
+      ],
+      "failureSignal": "Returns a cleaner card dashboard without changing the causal scene hierarchy or without rendered critique."
+    },
+    {
+      "owner": "figma-layout",
+      "status": "NOT_RUN",
+      "prompt": "Repair a request log that looks correct at 420px but loses latency/status with long Vietnamese labels and shows only two rows on a short viewport.",
+      "expectedDelta": [
+        "assign bounded/flexible field ownership from scan semantics",
+        "preserve log as the vertical FILL working region",
+        "stress long labels, numeric width, narrow width, and short height",
+        "avoid global font shrinking or stack-everything fallback"
+      ],
+      "failureSignal": "Tweaks spacing/font size locally without naming the row/viewport invariant or pressure owner."
+    },
+    {
+      "owner": "figma-scene",
+      "status": "NOT_RUN",
+      "prompt": "Add request drill-down to a compact companion while preserving the user’s place in a live log. A permanent diagnostics panel and an inline-expanded row are both possible.",
+      "expectedDelta": [
+        "separate semantic containment from plane/input priority",
+        "compare inline, persistent inspector, navigation, and transient overlay forms",
+        "use minimum sufficient scrim/overlap/silhouette/elevation cues",
+        "define dismissal/focus recovery when prototype behavior is material"
+      ],
+      "failureSignal": "Chooses bottom sheet by pattern memory without explaining why the compact focus/persistence relation earns it, or only changes z-order/shadow."
+    },
+    {
+      "owner": "figma-visual-system",
+      "status": "NOT_RUN",
+      "prompt": "A token-correct operational UI uses green, blue, amber, and purple fills across most cards/rows and feels noisy. Improve it without deleting semantic distinctions.",
+      "expectedDelta": [
+        "separate semantic role from occupied chroma/repetition/backdrop",
+        "reduce normal-state chroma mass while keeping category/exception scan cues",
+        "solve base surface hierarchy before adding shadows/new tokens",
+        "verify the composition at real occupied area"
+      ],
+      "failureSignal": "Mints more color tokens or merely desaturates every value without reasoning about area, repetition, and plane role."
+    },
+    {
+      "owner": "figma-typography",
+      "status": "NOT_RUN",
+      "prompt": "A dense operational screen is readable and spacing-compliant but still feels crowded because nearly every heading, row label, status, and metric is semibold. Improve hierarchy without simply adding whitespace.",
+      "expectedDelta": [
+        "diagnose whole-scene repeated type mass",
+        "map information roles before changing metrics",
+        "use weight/size/spacing/color together rather than weight alone",
+        "stress numeric alignment, Vietnamese labels, and font metrics"
+      ],
+      "failureSignal": "Adds padding or shrinks type globally without tracing information role -> style -> slot -> layout pressure."
+    },
+    {
+      "owner": "figma-components",
+      "status": "NOT_RUN",
+      "prompt": "Build a reusable Toggle with Off/On/Disabled state vocabulary, then add one consumer that needs product-specific same-trigger behavior and a Card Actions Slot constrained to at most two approved actions.",
+      "expectedDelta": [
+        "separate component state vocabulary from prototype transition graph",
+        "preserve full component-property API keys instead of reconstructing visible labels",
+        "use SlotSettings/limitViolations for bounded flexible content rather than variant explosion",
+        "prove representative instances and propagation without detach"
+      ],
+      "failureSignal": "Produces visually correct components but duplicates screen wiring, reconstructs property keys, ignores Slot violations, or calls a detached/local copy reusable proof."
+    },
+    {
+      "owner": "figma-prototype",
+      "status": "NOT_RUN",
+      "prompt": "Wire an interactive Toggle whose variants inherit click Change-to behavior, then add a single instance click that opens confirmation; also trace cancel/recovery and state result.",
+      "expectedDelta": [
+        "model same-trigger inherited-vs-instance precedence explicitly",
+        "trace primary and cancel/recovery paths from exact source IDs",
+        "keep product-specific confirmation outside the reusable component behavior",
+        "avoid claiming production accessibility/keyboard/AT proof from Figma prototype evidence"
+      ],
+      "failureSignal": "Assumes both same-trigger reactions compose, duplicates the reusable graph locally, omits recovery, or upgrades prototype interaction evidence into production accessibility PASS."
+    }
+  ],
+  "behavioralCoreEvidence": {
+    "methodReview": "PASS",
+    "figmaExecution": "NOT_RUN",
+    "independentExpertReview": "NOT_RUN",
+    "rule": "Behavioral-component teaching cases may guide the agent after method review, but they do not prove Figma runtime behavior until representative executions are run."
+  },
+  "behavioralCoreSkills": [
+    {
+      "owner": "figma-components",
+      "reference": "skills/figma-components/references/golden-teaching-cases.md",
+      "proofMarkers": [
+        "Mediocre default",
+        "Expert diagnosis",
+        "Decision variables",
+        "Figma construction",
+        "Proof",
+        "Anti-copy rule"
+      ],
+      "teachingJob": "semantic job -> anatomy/property/slot/state API -> representative consumers -> propagation/migration proof",
+      "figmaExecution": "NOT_RUN"
+    },
+    {
+      "owner": "figma-prototype",
+      "reference": "skills/figma-prototype/references/golden-teaching-cases.md",
+      "proofMarkers": [
+        "Mediocre default",
+        "Expert diagnosis",
+        "Decision space",
+        "Figma construction",
+        "Proof",
+        "Anti-copy rule"
+      ],
+      "teachingJob": "approved state truth -> trigger/action/condition/context/recovery -> precedence/readback proof",
+      "figmaExecution": "NOT_RUN"
+    }
+  ]
+}

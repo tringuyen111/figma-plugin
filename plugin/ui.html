@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f2f2f7;
+    --surface: #ffffff;
+    --surface-2: #f5f5f8;
+    --line: rgba(60, 60, 67, .16);
+    --text: #101014;
+    --muted: #73737c;
+    --blue: #3178c6;
+    --amber: #a76615;
+    --purple: #7853aa;
+    --green: #25815a;
+    --red: #be4448;
+    --warning: #a66d14;
+    --focus: #3178c6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000;
+      --surface: #1c1c1e;
+      --surface-2: #2c2c2e;
+      --line: rgba(84, 84, 88, .58);
+      --text: #f5f5f7;
+      --muted: #98989f;
+      --blue: #69a8f3;
+      --amber: #e0a55a;
+      --purple: #aa8ddd;
+      --green: #5dce95;
+      --red: #f0787b;
+      --warning: #e5af52;
+      --focus: #69a8f3;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); }
+  html, body, button { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  body { overflow: hidden; font-size: 12px; line-height: 1.35; }
+  button { color: inherit; }
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  svg { display: block; }
+  [hidden] { display: none !important; }
+
+  .app {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 15px 11px 12px;
+    gap: 10px;
+    background: var(--bg);
+  }
+
+  .topbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 1px 3px 2px;
+  }
+  .brand { min-width: 0; flex: 1; }
+  .brand-title { font-size: 21px; line-height: 1.05; font-weight: 760; letter-spacing: -.042em; }
+  .brand-context { margin-top: 5px; color: var(--muted); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; }
+  .live-pill {
+    height: 34px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 9.5px;
+    font-weight: 760;
+    letter-spacing: .06em;
+  }
+  .live-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 13%, transparent); }
+  .live-pill.connecting .live-dot { background: var(--warning); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 13%, transparent); }
+  .live-pill.offline .live-dot { background: var(--red); box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 13%, transparent); }
+  .icon-button, .tool-button, .sheet-close {
+    border: 0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .icon-button { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+  .icon-button svg, .tool-button svg, .sheet-close svg, .kind-icon svg, .connection-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .section { flex: 0 0 auto; min-width: 0; }
+  .section-label { padding: 0 4px 6px; color: var(--muted); font-size: 9.5px; font-weight: 700; letter-spacing: .055em; text-transform: uppercase; }
+  .group { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+
+  .connection-main {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 13px 14px 12px;
+    display: grid;
+    grid-template-columns: 39px minmax(0, 1fr) auto;
+    gap: 11px;
+    align-items: center;
+    cursor: pointer;
+  }
+  .connection-icon { width: 39px; height: 39px; border-radius: 12px; display: grid; place-items: center; color: var(--green); background: color-mix(in srgb, var(--green) 13%, var(--surface-2)); }
+  .connection-icon.connecting { color: var(--warning); background: color-mix(in srgb, var(--warning) 13%, var(--surface-2)); }
+  .connection-icon.offline { color: var(--red); background: color-mix(in srgb, var(--red) 12%, var(--surface-2)); }
+  .connection-copy { min-width: 0; }
+  .connection-title { font-size: 16px; font-weight: 730; letter-spacing: -.022em; }
+  .connection-note { margin-top: 3px; color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .connection-note:empty { display: none; }
+  .chevron { color: var(--muted); font-size: 18px; }
+  .connection-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+  .fact { min-width: 0; padding: 9px 11px 10px; }
+  .fact + .fact { border-left: 1px solid var(--line); }
+  .fact-label { color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: .055em; }
+  .fact-value { margin-top: 3px; font-size: 10.5px; font-weight: 680; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  .recovery { display: none; align-items: center; gap: 8px; padding: 9px 11px 10px; border-top: 1px solid var(--line); }
+  .recovery.show { display: flex; }
+  .recovery-copy { min-width: 0; flex: 1; color: var(--muted); font-size: 9.5px; }
+  .retry-button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--text); color: var(--bg); font-size: 10px; font-weight: 700; cursor: pointer; }
+
+  .requests { padding: 13px 14px 12px; }
+  .request-primary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .request-total strong { display: block; font-size: 28px; line-height: .95; font-weight: 790; letter-spacing: -.052em; font-variant-numeric: tabular-nums; }
+  .request-total span { display: block; margin-top: 5px; color: var(--muted); font-size: 9.5px; }
+  .current-load { text-align: right; }
+  .current-load strong { display: block; font-size: 11.5px; font-weight: 690; font-variant-numeric: tabular-nums; }
+  .current-load strong.active { color: var(--warning); }
+  .current-load strong.active::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 5px 1px 0; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 15%, transparent); animation: activity-pulse 1.6s ease-in-out infinite; }
+  .current-load span { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+  .quality-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 12px; }
+  .quality { min-width: 0; padding: 10px 11px; border-radius: 12px; background: var(--surface-2); }
+  .quality-label { color: var(--muted); font-size: 8.5px; }
+  .quality-value { margin-top: 3px; font-size: 15px; font-weight: 740; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .quality-note { margin-top: 3px; color: var(--muted); font-size: 8.5px; line-height: 1.35; }
+  .request-mix { margin-top: 11px; }
+  .mix-bar { height: 7px; display: flex; gap: 2px; }
+  .mix-segment { min-width: 0; height: 100%; border-radius: 3px; }
+  .mix-read { background: var(--blue); }
+  .mix-write { background: var(--amber); }
+  .mix-export { background: var(--purple); }
+  .mix-other { background: var(--muted); }
+  .mix-labels { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 7px; color: var(--muted); font-size: 9px; }
+  .mix-label { display: inline-flex; align-items: center; gap: 4px; }
+  .mix-label i { width: 6px; height: 6px; border-radius: 999px; }
+  .mix-label b { color: var(--text); font-weight: 640; }
+
+  .log-section { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .log-group { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .log-toolbar { flex: 0 0 auto; min-height: 50px; padding: 5px 7px 5px 13px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--line); }
+  .log-title { min-width: 0; flex: 1; }
+  .log-title strong { display: block; font-size: 12px; font-weight: 680; }
+  .log-title span { display: block; margin-top: 2px; color: var(--muted); font-size: 8.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-title span:empty { display: none; }
+  .tool-button { width: 38px; height: 38px; border-radius: 999px; background: transparent; color: var(--muted); }
+  .tool-button.active { color: var(--text); background: var(--surface-2); }
+  .tool-button.danger { color: var(--red); }
+  .tool-button:disabled { opacity: .4; cursor: default; }
+  .filter-tray { flex: 0 0 auto; display: flex; gap: 6px; overflow-x: auto; padding: 7px 10px; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+  .filter-tray::-webkit-scrollbar { display: none; }
+  .filter-button { height: 29px; padding: 0 9px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font-size: 9px; white-space: nowrap; cursor: pointer; }
+  .filter-button[aria-pressed="true"] { border-color: var(--text); background: var(--text); color: var(--bg); }
+  .log-wrap { flex: 1 1 auto; min-height: 0; position: relative; }
+  .new-button { position: absolute; z-index: 3; top: 7px; left: 50%; transform: translateX(-50%); min-height: 29px; padding: 0 10px; border: 0; border-radius: 999px; background: var(--text); color: var(--bg); font-size: 9px; font-weight: 680; cursor: pointer; box-shadow: 0 5px 18px rgba(0,0,0,.18); }
+  .log-scroll { width: 100%; height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent; }
+  .request-row { width: 100%; border: 0; background: transparent; padding: 0; text-align: left; cursor: pointer; }
+  .request-row + .request-row { border-top: 1px solid var(--line); }
+  .request-inner { min-height: 47px; padding: 6px 10px; display: grid; grid-template-columns: 51px 29px minmax(0, 1fr) 52px; gap: 6px; align-items: center; }
+  .request-time { color: var(--muted); font-size: 8.5px; font-variant-numeric: tabular-nums; }
+  .kind-icon { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; }
+  .kind-icon.read { color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, transparent); }
+  .kind-icon.write { color: var(--amber); background: color-mix(in srgb, var(--amber) 13%, transparent); }
+  .kind-icon.export { color: var(--purple); background: color-mix(in srgb, var(--purple) 13%, transparent); }
+  .kind-icon.other { color: var(--muted); background: var(--surface-2); }
+  .request-main { min-width: 0; display: block; }
+  .request-meta-line { min-width: 0; display: flex; align-items: center; gap: 5px; }
+  .request-kind { font-size: 8.5px; font-weight: 790; letter-spacing: .045em; }
+  .request-kind.read { color: var(--blue); }
+  .request-kind.write { color: var(--amber); }
+  .request-kind.export { color: var(--purple); }
+  .request-kind.other { color: var(--muted); }
+  .request-status { font-size: 8.5px; font-weight: 680; }
+  .request-status.success { color: var(--green); }
+  .request-status.failed, .request-status.timeout { color: var(--red); }
+  .request-status.running, .request-status.queued { color: var(--warning); }
+  .request-status.cancelled { color: var(--muted); }
+  .request-source { min-width: 0; max-width: 132px; color: var(--muted); font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .request-label { display: block; margin-top: 2px; font-size: 10.5px; font-weight: 620; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .request-duration { text-align: right; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .empty-log { height: 100%; min-height: 120px; display: grid; place-items: center; padding: 20px; color: var(--muted); font-size: 10px; text-align: center; }
+  .load-older { width: calc(100% - 24px); margin: 8px 12px 12px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--muted); font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+  .load-older:hover { color: var(--text); }
+
+  dialog.sheet { width: min(calc(100% - 18px), 372px); max-width: 372px; margin: auto auto 9px; padding: 0; border: 0; border-radius: 22px; background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.30); }
+  dialog.sheet::backdrop { background: rgba(0,0,0,.30); backdrop-filter: blur(2px); }
+  .sheet-handle { width: 36px; height: 4px; margin: 7px auto 2px; border-radius: 999px; background: var(--line); }
+  .sheet-header { min-height: 48px; padding: 7px 12px 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .sheet-header strong { font-size: 14px; font-weight: 720; letter-spacing: -.018em; }
+  .sheet-close { width: 34px; height: 34px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+  .sheet-body { padding: 0 12px 13px; }
+  .sheet-list { overflow: hidden; border-radius: 13px; background: var(--surface-2); }
+  .sheet-row { min-height: 38px; padding: 9px 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .sheet-row + .sheet-row { border-top: 1px solid var(--line); }
+  .sheet-row span { color: var(--muted); font-size: 9px; }
+  .sheet-row strong { max-width: 62%; font-size: 10px; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sheet-note { margin: 9px 2px 0; color: var(--muted); font-size: 9px; line-height: 1.45; }
+  .sheet-actions { display: flex; gap: 7px; margin-top: 11px; }
+  .sheet-action { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: var(--surface-2); font-size: 10px; font-weight: 680; cursor: pointer; }
+  .sheet-action.danger { color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
+  .detail-hero { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .detail-hero .kind-icon { width: 36px; height: 36px; border-radius: 11px; }
+  .detail-copy { min-width: 0; }
+  .detail-copy strong { display: block; font-size: 12px; }
+  .detail-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 8.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .detail-cell { min-width: 0; padding: 9px; border-radius: 11px; background: var(--surface-2); }
+  .detail-cell span { display: block; color: var(--muted); font-size: 7.5px; text-transform: uppercase; letter-spacing: .055em; }
+  .detail-cell strong { display: block; margin-top: 3px; font-size: 10.5px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .detail-section { margin-top: 10px; }
+  .detail-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 6px; }
+  .detail-section-title strong { font-size: 9.5px; }
+  .detail-section-title span { color: var(--muted); font-size: 8px; text-align: right; }
+  .postcondition-list { margin: 0; padding: 9px 10px 9px 25px; border-radius: 11px; background: var(--surface-2); color: var(--text); font-size: 9px; }
+  .postcondition-list li + li { margin-top: 5px; }
+  .attempt-list { overflow: hidden; border-radius: 11px; background: var(--surface-2); }
+  .attempt-row { min-height: 43px; padding: 7px 9px; display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; gap: 7px; align-items: center; }
+  .attempt-row + .attempt-row { border-top: 1px solid var(--line); }
+  .attempt-index { color: var(--muted); font-size: 8.5px; font-weight: 700; }
+  .attempt-copy { min-width: 0; }
+  .attempt-copy strong { display: block; font-size: 9.5px; }
+  .attempt-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 7.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .attempt-bytes { color: var(--muted); font-size: 8px; font-variant-numeric: tabular-nums; }
+  .error-note { margin-top: 8px; padding: 9px 10px; border-radius: 11px; background: color-mix(in srgb, var(--red) 10%, var(--surface)); color: var(--red); font-size: 9px; }
+
+  @keyframes activity-pulse { 0%, 100% { opacity: .55; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.15); } }
+  @media (prefers-reduced-motion: reduce) { .current-load strong.active::before { animation: none; } }
+
+  @media (hover: hover) and (pointer: fine) {
+    .icon-button:hover, .tool-button:hover, .sheet-close:hover, .request-row:hover .request-inner, .connection-main:hover { background: var(--surface-2); }
+    .filter-button:hover { border-color: color-mix(in srgb, var(--line) 40%, var(--text)); }
+  }
+  @media (max-width: 360px) {
+    .app { padding-left: 8px; padding-right: 8px; }
+    .brand-title { font-size: 19px; }
+    .request-inner { grid-template-columns: 47px 27px minmax(0, 1fr) 48px; gap: 5px; padding-left: 7px; padding-right: 7px; }
+  }
+  @media (max-height: 660px) {
+    .app { padding-top: 10px; padding-bottom: 8px; gap: 7px; }
+    .topbar { padding-bottom: 0; }
+    .brand-title { font-size: 19px; }
+    .brand-context { margin-top: 3px; }
+    .section-label { padding-bottom: 4px; }
+    .connection-main { padding-top: 9px; padding-bottom: 8px; }
+    .connection-icon { width: 35px; height: 35px; }
+    .connection-facts .fact { padding-top: 6px; padding-bottom: 7px; }
+    .requests { padding-top: 9px; padding-bottom: 9px; }
+    .request-total strong { font-size: 25px; }
+    .quality-grid { margin-top: 8px; }
+    .quality { padding-top: 7px; padding-bottom: 7px; }
+    .request-mix { margin-top: 7px; }
+    .mix-labels { margin-top: 5px; }
+    .log-toolbar { min-height: 44px; }
+    .tool-button { width: 34px; height: 34px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M9 15l6-6"/><path d="M7.5 12.5l-1.8 1.8a3.5 3.5 0 104.9 4.9l1.8-1.8"/><path d="M16.5 11.5l1.8-1.8a3.5 3.5 0 10-4.9-4.9l-1.8 1.8"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v6"/><path d="M12 7h.01"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5z"/><circle cx="12" cy="12" r="2.2"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20l4.2-1 10-10a2.1 2.1 0 00-3-3l-10 10L4 20z"/><path d="M13.8 7.2l3 3"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v11"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6h14v-6"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M14 5l-4 14"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 6v12"/><path d="M16 6v12"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7V5z"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V4h6v3"/><path d="M8 10v7"/><path d="M12 10v7"/><path d="M16 10v7"/><path d="M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-title">Figma Plugin</div>
+      <div class="brand-context" id="fileContext">Waiting for Figma…</div>
+    </div>
+    <div class="top-actions">
+      <div class="live-pill connecting" id="livePill"><span class="live-dot"></span><span id="liveText">LINKING</span></div>
+      <button class="icon-button" id="systemButton" type="button" title="System" aria-label="System details"><svg><use href="#i-info"></use></svg></button>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="section-label">Connection</div>
+    <div class="group">
+      <button class="connection-main" id="connectionButton" type="button" aria-label="Open connection details">
+        <span class="connection-icon connecting" id="connectionIcon"><svg><use href="#i-link"></use></svg></span>
+        <span class="connection-copy">
+          <span class="connection-title" id="connectionTitle">Connecting…</span>
+          <span class="connection-note" id="connectionNote">Finding bridge…</span>
+        </span>
+        <span class="chevron">›</span>
+      </button>
+      <div class="connection-facts">
+        <div class="fact"><div class="fact-label">Signal</div><div class="fact-value" id="lastSignal">—</div></div>
+        <div class="fact"><div class="fact-label">Uptime</div><div class="fact-value" id="connectedFor">—</div></div>
+        <div class="fact"><div class="fact-label">Agents</div><div class="fact-value" id="agentPresence">—</div></div>
+      </div>
+      <div class="recovery" id="recovery">
+        <div class="recovery-copy">Bridge unavailable.</div>
+        <button class="retry-button" id="retryButton" type="button">Reconnect</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Requests</div>
+    <div class="group requests">
+      <div class="request-primary">
+        <div class="request-total"><strong id="requestTotal">0</strong></div>
+        <div class="current-load"><strong id="currentLoad">Idle</strong><span id="currentLoadNote">0 queued</span></div>
+      </div>
+      <div class="quality-grid">
+        <div class="quality">
+          <div class="quality-label">Success</div>
+          <div class="quality-value" id="reliabilityValue">—</div>
+          <div class="quality-note" id="reliabilityNote">No data</div>
+        </div>
+        <div class="quality">
+          <div class="quality-label">Latency</div>
+          <div class="quality-value" id="speedValue">—</div>
+          <div class="quality-note" id="speedNote">Waiting</div>
+        </div>
+      </div>
+      <div class="request-mix" id="requestMix">
+        <div class="mix-bar">
+          <span class="mix-segment mix-read" id="mixRead" style="width:0%"></span>
+          <span class="mix-segment mix-write" id="mixWrite" style="width:0%"></span>
+          <span class="mix-segment mix-export" id="mixExport" style="width:0%"></span>
+          <span class="mix-segment mix-other" id="mixOther" style="width:100%"></span>
+        </div>
+        <div class="mix-labels" id="mixLabels"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section log-section">
+    <div class="section-label">Operation log</div>
+    <div class="log-group">
+      <div class="log-toolbar">
+        <div class="log-title"><strong id="logCount">0 operations · 0 requests</strong><span id="logState"></span></div>
+        <button class="tool-button" id="pauseButton" type="button" title="Pause live log" aria-label="Pause live log" aria-pressed="false"><svg><use id="pauseIcon" href="#i-pause"></use></svg></button>
+        <button class="tool-button" id="filterButton" type="button" title="Filter operation log" aria-label="Filter operation log" aria-expanded="false"><svg><use href="#i-filter"></use></svg></button>
+        <button class="tool-button danger" id="clearButton" type="button" title="Clear operation log" aria-label="Clear operation log"><svg><use href="#i-trash"></use></svg></button>
+      </div>
+      <div class="filter-tray" id="filterTray" hidden>
+        <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button>
+        <button class="filter-button" type="button" data-filter="read" aria-pressed="false">Read</button>
+        <button class="filter-button" type="button" data-filter="write" aria-pressed="false">Write</button>
+        <button class="filter-button" type="button" data-filter="export" aria-pressed="false">Export</button>
+        <button class="filter-button" type="button" data-filter="other" aria-pressed="false">Other</button>
+        <button class="filter-button" type="button" data-filter="failed" aria-pressed="false">Problems</button>
+      </div>
+      <div class="log-wrap">
+        <button class="new-button" id="newButton" type="button" hidden>1 new ↑</button>
+        <div class="log-scroll" id="logScroll"><div id="requestList"></div></div>
+      </div>
+      
+    </div>
+  </section>
+</div>
+
+<dialog class="sheet" id="connectionSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>Connection</strong><button class="sheet-close" type="button" data-close="connectionSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body">
+    <div class="sheet-list">
+      <div class="sheet-row"><span>Status</span><strong id="detailConnectionStatus">Connecting</strong></div>
+      <div class="sheet-row"><span>Signal</span><strong id="detailLastSignal">—</strong></div>
+      <div class="sheet-row"><span>Uptime</span><strong id="detailConnectedFor">—</strong></div>
+      <div class="sheet-row"><span>Agents</span><strong id="detailAgents">—</strong></div>
+      <div class="sheet-row"><span>Reconnects</span><strong id="detailReconnects">0</strong></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="systemSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>System</strong><button class="sheet-close" type="button" data-close="systemSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body">
+    <div class="sheet-list">
+      <div class="sheet-row"><span>Endpoint</span><strong id="detailEndpoint">—</strong></div>
+      <div class="sheet-row"><span>Transport</span><strong>WebSocket</strong></div>
+      <div class="sheet-row"><span>Plugin</span><strong id="detailVersion">—</strong></div>
+      <div class="sheet-row"><span>Protocol</span><strong id="detailProtocol">—</strong></div>
+      <div class="sheet-row"><span>Bundle</span><strong id="detailBundleRevision">—</strong></div>
+      <div class="sheet-row"><span>Runtime SDK</span><strong id="detailRuntimeSdk">—</strong></div>
+      <div class="sheet-row"><span>Queue cap</span><strong>20</strong></div>
+      <div class="sheet-row"><span>Log</span><strong id="detailRetention">100 recent</strong></div>
+      <div class="sheet-row"><span>Traffic</span><strong id="detailTraffic">—</strong></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="requestSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>Operation</strong><button class="sheet-close" type="button" data-close="requestSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body" id="requestDetailBody"></div>
+</dialog>
+
+<dialog class="sheet" id="clearSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>Clear log?</strong><button class="sheet-close" type="button" data-close="clearSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body">
+    <p class="sheet-note" style="margin-top:0">Clears recent log only. Totals stay.</p>
+    <div class="sheet-actions"><button class="sheet-action" type="button" data-close="clearSheet">Cancel</button><button class="sheet-action danger" type="button" id="confirmClear">Clear log</button></div>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+  var DEFAULT_PORT = 38470;
+  var PORT_RANGE = 10;
+  var HEARTBEAT_INTERVAL_MS = 10000;
+  var HEARTBEAT_DEAD_MS = 30000;
+  var BACKOFF_MIN = 350;
+  var BACKOFF_MAX = 4000;
+  var LOG_RENDER_BATCH = 24;
+  var LOG_RENDER_DEBOUNCE_MS = 80;
+  var TELEMETRY_RENDER_DEBOUNCE_MS = 32;
+
+  var state = {
+    phase: "searching",
+    ws: null,
+    portIndex: 0,
+    connectedPort: null,
+    reconnectTimer: null,
+    heartbeatTimer: null,
+    lastHeartbeatAt: 0,
+    connectedAt: null,
+    everConnected: false,
+    reconnects: 0,
+    backoff: BACKOFF_MIN,
+    generation: 0,
+    handshake: null,
+    hello: null,
+    selfInstanceId: null,
+    snapshot: null,
+    telemetry: null,
+    telemetrySeq: null,
+    telemetryResyncPending: false,
+    telemetryRenderTimer: null,
+    logRenderTimer: null,
+    logRenderLimit: LOG_RENDER_BATCH,
+    paused: false,
+    filter: "all",
+    displayedOperations: [],
+    displayedRequests: [],
+    pendingNew: 0
+  };
+
+  var el = {};
+  [
+    "fileContext", "livePill", "liveText", "systemButton", "connectionButton", "connectionIcon", "connectionTitle", "connectionNote",
+    "lastSignal", "connectedFor", "agentPresence", "recovery", "retryButton", "requestTotal", "currentLoad", "currentLoadNote",
+    "reliabilityValue", "reliabilityNote", "speedValue", "speedNote", "mixRead", "mixWrite", "mixExport", "mixOther", "mixLabels",
+    "logState", "pauseButton", "pauseIcon", "filterButton", "filterTray", "clearButton", "newButton", "logScroll", "requestList", "logCount",
+    "connectionSheet", "systemSheet", "requestSheet", "clearSheet", "detailConnectionStatus", "detailLastSignal", "detailConnectedFor",
+    "detailAgents", "detailReconnects", "detailEndpoint", "detailVersion", "detailProtocol", "detailBundleRevision", "detailRuntimeSdk", "detailRetention", "detailTraffic", "requestDetailBody",
+    "confirmClear"
+  ].forEach(function (id) { el[id] = document.getElementById(id); });
+
+  function toMain(message) { parent.postMessage({ pluginMessage: message }, "*"); }
+  function currentPort() { return DEFAULT_PORT + (state.portIndex % PORT_RANGE); }
+  function selfSnapshot() {
+    if (!state.snapshot || !Array.isArray(state.snapshot.instances)) return null;
+    return state.snapshot.instances.find(function (item) { return item.instanceId === state.selfInstanceId; }) || null;
+  }
+  function sessions() { return state.snapshot && Array.isArray(state.snapshot.sessions) ? state.snapshot.sessions : []; }
+  function metrics() {
+    if (state.telemetry && state.telemetry.metrics) return state.telemetry.metrics;
+    var self = selfSnapshot();
+    return self && self.metrics ? self.metrics : null;
+  }
+  function requestLog() { return state.telemetry && Array.isArray(state.telemetry.requests) ? state.telemetry.requests : []; }
+  function operationLog() {
+    if (state.telemetry && Array.isArray(state.telemetry.operations)) return state.telemetry.operations;
+    return requestLog().map(function (item) {
+      return {
+        id: item.traceId || item.id,
+        label: item.label,
+        kind: item.kind,
+        status: item.status,
+        startedAt: item.enqueuedAt,
+        finishedAt: item.finishedAt,
+        totalMs: item.totalMs,
+        requestCount: 1,
+        attemptCount: item.attempt || 1,
+        requestIds: [item.id],
+        capability: item.capability,
+        phase: item.operationPhase,
+        planId: item.operationPlanId,
+        stepId: item.operationStepId,
+        representation: item.operationRepresentation,
+        target: item.operationTarget,
+        postconditions: item.postconditions,
+        errorCode: item.errorCode
+      };
+    });
+  }
+  function fmtMs(value) {
+    if (typeof value !== "number" || !isFinite(value)) return "—";
+    if (value >= 1000) return (value / 1000).toFixed(value >= 10000 ? 0 : 1) + " s";
+    return Math.max(0, Math.round(value)) + " ms";
+  }
+  function fmtBytes(value) {
+    if (typeof value !== "number" || !isFinite(value)) return "—";
+    if (value < 1024) return Math.round(value) + " B";
+    if (value < 1024 * 1024) return (value / 1024).toFixed(value < 10 * 1024 ? 1 : 0) + " KB";
+    return (value / (1024 * 1024)).toFixed(value < 10 * 1024 * 1024 ? 1 : 0) + " MB";
+  }
+  function fmtDuration(value) {
+    if (typeof value !== "number" || !isFinite(value) || value < 0) return "—";
+    var seconds = Math.floor(value / 1000);
+    if (seconds < 60) return seconds + "s";
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + "m " + (seconds % 60) + "s";
+    var hours = Math.floor(minutes / 60);
+    return hours + "h " + (minutes % 60) + "m";
+  }
+  function fmtAgo(ms) {
+    if (typeof ms !== "number" || !isFinite(ms)) return "—";
+    if (ms < 1500) return "Just now";
+    if (ms < 60000) return Math.max(1, Math.round(ms / 1000)) + "s ago";
+    return Math.max(1, Math.round(ms / 60000)) + "m ago";
+  }
+  function fmtClock(epoch) {
+    if (typeof epoch !== "number" || !isFinite(epoch)) return "—";
+    var date = new Date(epoch);
+    return [date.getHours(), date.getMinutes(), date.getSeconds()].map(function (n) { return String(n).padStart(2, "0"); }).join(":");
+  }
+  function shortSession(id) {
+    if (!id) return "—";
+    return id.length <= 18 ? id : id.slice(0, 8) + "…" + id.slice(-5);
+  }
+  function shortTrace(id) {
+    if (!id) return "—";
+    return id.length <= 24 ? id : id.slice(0, 12) + "…" + id.slice(-7);
+  }
+  function sourceLabel(item) {
+    return item && item.capability ? item.capability : "unattributed";
+  }
+  function kindLabel(kind) {
+    if (kind === "read") return "READ";
+    if (kind === "write") return "WRITE";
+    if (kind === "export") return "EXPORT";
+    return "OTHER";
+  }
+  function kindIcon(kind) {
+    if (kind === "read") return "#i-eye";
+    if (kind === "write") return "#i-edit";
+    if (kind === "export") return "#i-export";
+    return "#i-code";
+  }
+  function statusLabel(status) {
+    if (status === "success") return "✓ Success";
+    if (status === "failed") return "× Failed";
+    if (status === "timeout") return "× Timed out";
+    if (status === "cancelled") return "— Cancelled";
+    if (status === "running") return "● Running";
+    return "… Queued";
+  }
+  function statusGlyph(status) {
+    if (status === "success") return "✓";
+    if (status === "failed") return "×";
+    if (status === "timeout") return "⏱";
+    if (status === "running") return "●";
+    if (status === "cancelled") return "—";
+    return "…";
+  }
+  function isProblem(item) { return item.status === "failed" || item.status === "timeout"; }
+  function renderContext() {
+    var hello = state.hello;
+    if (!hello) { el.fileContext.textContent = "Waiting for Figma…"; return; }
+    var file = hello.fileName || "Untitled";
+    var page = hello.pageName || "No page";
+    el.fileContext.textContent = file + " · " + page;
+    el.fileContext.title = file + " · " + page;
+  }
+
+  function renderConnection() {
+    var self = selfSnapshot();
+    var phase = state.phase;
+    var ready = phase === "ready";
+    var connecting = phase === "searching" || phase === "handshake";
+    var sdkReady = Boolean(self && Array.isArray(self.runtimeSdks) && self.runtimeSdks.indexOf("v2") >= 0);
+    el.livePill.className = "live-pill " + (ready ? "" : connecting ? "connecting" : "offline");
+    el.liveText.textContent = ready ? "LIVE" : connecting ? "LINKING" : "OFFLINE";
+    el.connectionIcon.className = "connection-icon " + (ready ? "" : connecting ? "connecting" : "offline");
+    el.connectionTitle.textContent = ready ? "Connected" : connecting ? "Connecting…" : "Disconnected";
+    el.connectionNote.textContent = ready ? (sdkReady ? "" : "SDK update — reload plugin") : connecting ? "Finding bridge…" : "";
+    var heartbeatMs = self && typeof self.lastHeartbeatMs === "number" ? self.lastHeartbeatMs : (state.lastHeartbeatAt ? Date.now() - state.lastHeartbeatAt : null);
+    var uptime = ready && state.connectedAt ? Date.now() - state.connectedAt : null;
+    var agentCount = ready ? sessions().length : null;
+    el.lastSignal.textContent = ready ? fmtAgo(heartbeatMs) : "—";
+    el.connectedFor.textContent = ready ? fmtDuration(uptime) : "—";
+    el.agentPresence.textContent = ready ? String(agentCount) : "—";
+    el.recovery.className = "recovery" + (phase === "disconnected" ? " show" : "");
+
+    el.detailConnectionStatus.textContent = ready ? "Connected" : connecting ? "Connecting" : "Disconnected";
+    el.detailLastSignal.textContent = ready ? fmtAgo(heartbeatMs) : "—";
+    el.detailConnectedFor.textContent = ready ? fmtDuration(uptime) : "—";
+    el.detailAgents.textContent = ready ? String(agentCount) : "Unavailable";
+    el.detailReconnects.textContent = String(state.reconnects);
+    el.detailEndpoint.textContent = state.connectedPort ? "localhost:" + state.connectedPort : "Searching 38470–38479";
+    el.detailVersion.textContent = state.handshake && state.handshake.pluginVersion ? "v" + state.handshake.pluginVersion : "—";
+    el.detailProtocol.textContent = state.handshake && state.handshake.protocolVersion ? String(state.handshake.protocolVersion) : "—";
+    el.detailBundleRevision.textContent = ready && self && self.bundleRevision ? self.bundleRevision : "—";
+    el.detailRuntimeSdk.textContent = ready ? (sdkReady ? "v2 ready" : "Reload required") : "—";
+  }
+
+  function renderRequests() {
+    var self = selfSnapshot();
+    var m = metrics();
+    var total = m && typeof m.totalCount === "number" ? m.totalCount : 0;
+    var success = m && typeof m.successCount === "number" ? m.successCount : 0;
+    var failed = m && typeof m.failureCount === "number" ? m.failureCount : 0;
+    var timeouts = m && typeof m.timeoutCount === "number" ? m.timeoutCount : 0;
+    var completed = success + failed + timeouts;
+    var running = self && typeof self.inFlight === "number" ? self.inFlight : 0;
+    var waiting = self && typeof self.queueLength === "number" ? self.queueLength : 0;
+    el.requestTotal.textContent = String(total);
+    var active = running > 0 || waiting > 0;
+    el.currentLoad.classList.toggle("active", active);
+    el.currentLoad.textContent = running ? (running + " running") : (waiting ? "Queued" : "Idle");
+    el.currentLoadNote.textContent = active ? (running + " running · " + waiting + " queued") : "0 queued";
+    if (completed > 0) {
+      el.reliabilityValue.textContent = (success / completed * 100).toFixed(1) + "%";
+      el.reliabilityNote.textContent = success + " ok · " + failed + " fail · " + timeouts + " timeout";
+    } else {
+      el.reliabilityValue.textContent = "—";
+      el.reliabilityNote.textContent = "No data";
+    }
+    if (m && typeof m.lastTotalMs === "number") {
+      el.speedValue.textContent = fmtMs(m.lastTotalMs);
+      el.speedNote.textContent = typeof m.p95TotalMs === "number" ? "p95 " + fmtMs(m.p95TotalMs) : "Collecting";
+    } else {
+      el.speedValue.textContent = "—";
+      el.speedNote.textContent = "Waiting";
+    }
+
+    var counts = m && m.requestKinds ? m.requestKinds : { read: 0, write: 0, export: 0, other: 0 };
+    var kindTotal = Math.max(0, counts.read + counts.write + counts.export + counts.other);
+    var readPct = kindTotal ? Math.round(counts.read / kindTotal * 100) : 0;
+    var writePct = kindTotal ? Math.round(counts.write / kindTotal * 100) : 0;
+    var exportPct = kindTotal ? Math.round(counts.export / kindTotal * 100) : 0;
+    var otherPct = Math.max(0, 100 - readPct - writePct - exportPct);
+    el.mixRead.style.width = readPct + "%";
+    el.mixWrite.style.width = writePct + "%";
+    el.mixExport.style.width = exportPct + "%";
+    el.mixOther.style.width = otherPct + "%";
+    el.mixLabels.innerHTML = "";
+    [["read", readPct, "mix-read"], ["write", writePct, "mix-write"], ["export", exportPct, "mix-export"], ["other", otherPct, "mix-other"]].forEach(function (entry) {
+      if (!entry[1] && kindTotal) return;
+      var span = document.createElement("span");
+      span.className = "mix-label";
+      span.innerHTML = '<i class="' + entry[2] + '"></i><b>' + entry[0].charAt(0).toUpperCase() + entry[0].slice(1) + " " + entry[1] + "%</b>";
+      el.mixLabels.appendChild(span);
+    });
+    if (!kindTotal) {
+      el.mixLabels.innerHTML = '<span class="mix-label"><b>No mix yet</b></span>';
+      el.mixOther.style.width = "100%";
+    }
+    el.detailRetention.textContent = (state.telemetry && state.telemetry.historyLimit ? state.telemetry.historyLimit : 100) + " recent";
+    el.detailTraffic.textContent = m ? (fmtBytes(m.requestBytes) + " ↑ · " + fmtBytes(m.responseBytes) + " ↓") : "—";
+  }
+
+  function filteredOperations() {
+    return state.displayedOperations.filter(function (item) {
+      if (state.filter === "all") return true;
+      if (state.filter === "failed") return isProblem(item);
+      return item.kind === state.filter;
+    });
+  }
+
+  function requestDuration(item) {
+    if (typeof item.totalMs === "number") return item.totalMs;
+    return Math.max(0, Date.now() - item.enqueuedAt);
+  }
+
+  function operationDuration(item) {
+    if (typeof item.totalMs === "number") return item.totalMs;
+    return Math.max(0, Date.now() - item.startedAt);
+  }
+
+  function operationContext(item) {
+    var parts = [sourceLabel(item)];
+    if (item.stepId) parts.push(item.stepId);
+    if (item.representation) parts.push(item.representation);
+    if (item.phase) parts.push(item.phase);
+    if (item.attemptCount > 1) parts.push(item.attemptCount + " attempts");
+    else if (item.requestCount > 1) parts.push(item.requestCount + " calls");
+    return parts.join(" · ");
+  }
+
+  function scheduleLogRender() {
+    if (state.logRenderTimer) return;
+    state.logRenderTimer = setTimeout(function () {
+      state.logRenderTimer = null;
+      renderLog();
+    }, LOG_RENDER_DEBOUNCE_MS);
+  }
+
+  function renderLog() {
+    var filtered = filteredOperations();
+    var items = filtered.slice(0, state.logRenderLimit);
+    el.requestList.innerHTML = "";
+    if (!items.length) {
+      var empty = document.createElement("div");
+      empty.className = "empty-log";
+      empty.textContent = state.displayedOperations.length ? "No matches." : state.phase === "disconnected" ? "Waiting for bridge activity." : "No operations yet.";
+      el.requestList.appendChild(empty);
+    } else {
+      items.forEach(function (item) {
+        var row = document.createElement("button");
+        row.type = "button";
+        row.className = "request-row";
+        row.setAttribute("aria-label", kindLabel(item.kind) + " operation " + (item.label || "Unlabeled figma_exec") + ", " + statusLabel(item.status) + ", " + operationContext(item) + ", " + fmtMs(operationDuration(item)));
+        row.innerHTML = '<span class="request-inner">' +
+          '<span class="request-time">' + fmtClock(item.startedAt) + '</span>' +
+          '<span class="kind-icon ' + item.kind + '"><svg><use href="' + kindIcon(item.kind) + '"></use></svg></span>' +
+          '<span class="request-main"><span class="request-meta-line"><span class="request-kind ' + item.kind + '">' + kindLabel(item.kind) + '</span><span class="request-status ' + item.status + '">' + statusGlyph(item.status) + '</span><span class="request-source">' + escapeHtml(operationContext(item)) + '</span></span><span class="request-label">' + escapeHtml(item.label || "Unlabeled figma_exec") + '</span></span>' +
+          '<span class="request-duration">' + fmtMs(operationDuration(item)) + '</span>' +
+          '</span>';
+        row.onclick = function () { openOperation(item); };
+        el.requestList.appendChild(row);
+      });
+      if (filtered.length > items.length) {
+        var older = document.createElement("button");
+        older.type = "button";
+        older.className = "load-older";
+        older.textContent = "Show " + Math.min(LOG_RENDER_BATCH, filtered.length - items.length) + " older operations";
+        older.onclick = function () {
+          state.logRenderLimit += LOG_RENDER_BATCH;
+          renderLog();
+        };
+        el.requestList.appendChild(older);
+      }
+    }
+    el.logCount.textContent = (items.length < filtered.length ? items.length + "/" : "") + filtered.length + " operations · " + state.displayedRequests.length + " requests";
+    el.logState.textContent = state.paused ? "Paused" : state.phase === "disconnected" ? "Offline" : (state.filter === "all" ? "" : "Filtered");
+    el.newButton.hidden = state.pendingNew <= 0;
+    if (state.pendingNew > 0) el.newButton.textContent = state.pendingNew + (state.pendingNew === 1 ? " update ↑" : " updates ↑");
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, function (char) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]; });
+  }
+
+  function openOperation(item) {
+    var status = statusLabel(item.status).replace(/^.[ ]?/, "");
+    var requestIds = Object.create(null);
+    (item.requestIds || []).forEach(function (id) { requestIds[id] = true; });
+    var attempts = state.displayedRequests.filter(function (request) { return requestIds[request.id]; }).sort(function (a, b) {
+      return (a.attempt || 1) - (b.attempt || 1) || a.enqueuedAt - b.enqueuedAt;
+    });
+    var body = '<div class="detail-hero"><span class="kind-icon ' + item.kind + '"><svg><use href="' + kindIcon(item.kind) + '"></use></svg></span><span class="detail-copy"><strong>' + kindLabel(item.kind) + " · " + status + '</strong><span>' + fmtClock(item.startedAt) + " · " + escapeHtml(item.label || "Unlabeled figma_exec") + '</span></span></div>' +
+      '<div class="detail-grid">' +
+      detailCell("Capability", escapeHtml(sourceLabel(item))) +
+      detailCell("Trace", escapeHtml(shortTrace(item.id))) +
+      detailCell("Plan", escapeHtml(shortTrace(item.planId))) +
+      detailCell("Step", escapeHtml(item.stepId || "—")) +
+      detailCell("Representation", escapeHtml(item.representation || "—")) +
+      detailCell("Phase", escapeHtml(item.phase || "—")) +
+      detailCell("Target", escapeHtml(item.target || "—")) +
+      detailCell("Attempts", String(item.attemptCount || 1)) +
+      detailCell("Calls", String(item.requestCount || attempts.length || 1)) +
+      detailCell("Started", fmtClock(item.startedAt)) +
+      detailCell("Total", fmtMs(operationDuration(item))) +
+      detailCell("Result", status) +
+      '</div>' +
+      renderPostconditions(item.postconditions) +
+      renderAttempts(attempts) +
+      (item.errorCode ? '<div class="error-note">' + escapeHtml(item.errorCode) + '</div>' : "");
+    el.requestDetailBody.innerHTML = body;
+    el.requestSheet.showModal();
+  }
+  function detailCell(label, value) { return '<div class="detail-cell"><span>' + label + '</span><strong>' + value + '</strong></div>'; }
+
+  function renderPostconditions(postconditions) {
+    if (!Array.isArray(postconditions) || !postconditions.length) return "";
+    return '<div class="detail-section"><div class="detail-section-title"><strong>Expected postconditions</strong><span>Not automatically verified</span></div><ul class="postcondition-list">' + postconditions.map(function (value) {
+      return '<li>' + escapeHtml(value) + '</li>';
+    }).join("") + '</ul></div>';
+  }
+
+  function renderAttempts(attempts) {
+    if (!attempts.length) return "";
+    return '<div class="detail-section"><div class="detail-section-title"><strong>Request attempts</strong><span>Low-level runtime evidence</span></div><div class="attempt-list">' + attempts.map(function (request) {
+      var attempt = request.attempt || 1;
+      var result = statusLabel(request.status).replace(/^.[ ]?/, "");
+      return '<div class="attempt-row"><span class="attempt-index">#' + attempt + '</span><span class="attempt-copy"><strong>' + escapeHtml(result) + '</strong><span>' + fmtMs(request.queueMs) + ' queue · ' + fmtMs(request.executionMs) + ' run · ' + escapeHtml(shortTrace(request.id)) + '</span></span><span class="attempt-bytes">' + fmtBytes(request.responseBytes) + '</span></div>';
+    }).join("") + '</div></div>';
+  }
+
+  function refreshTelemetryView() {
+    var nextRequests = requestLog();
+    var nextOperations = operationLog();
+    var readingOlder = el.logScroll.scrollTop > 24;
+    if (!state.paused && !readingOlder) {
+      state.displayedOperations = nextOperations.slice();
+      state.displayedRequests = nextRequests.slice();
+      state.pendingNew = 0;
+    } else {
+      var visibleVersions = Object.create(null);
+      state.displayedOperations.forEach(function (item) { visibleVersions[item.id] = operationVersion(item); });
+      state.pendingNew = nextOperations.reduce(function (count, item) { return count + (visibleVersions[item.id] === operationVersion(item) ? 0 : 1); }, 0);
+      if (!state.displayedOperations.length && !nextOperations.length) state.pendingNew = 0;
+    }
+    renderRequests();
+    scheduleLogRender();
+  }
+
+  function scheduleTelemetryView() {
+    if (state.telemetryRenderTimer) return;
+    state.telemetryRenderTimer = setTimeout(function () {
+      state.telemetryRenderTimer = null;
+      refreshTelemetryView();
+    }, TELEMETRY_RENDER_DEBOUNCE_MS);
+  }
+
+  function applyTelemetry(update, seq) {
+    if (state.telemetryRenderTimer) clearTimeout(state.telemetryRenderTimer);
+    state.telemetryRenderTimer = null;
+    state.telemetry = update || null;
+    state.telemetrySeq = typeof seq === "number" ? seq : null;
+    state.telemetryResyncPending = false;
+    refreshTelemetryView();
+  }
+
+  function removeTelemetryItems(items, ids) {
+    if (!Array.isArray(ids) || !ids.length) return items;
+    var remove = Object.create(null);
+    ids.forEach(function (id) { remove[id] = true; });
+    return items.filter(function (item) { return !remove[item.id]; });
+  }
+
+  function upsertTelemetryItems(items, updates) {
+    if (!Array.isArray(updates) || !updates.length) return items;
+    // Delta arrays use newest-first order, so insert older records first.
+    for (var i = updates.length - 1; i >= 0; i--) {
+      var update = updates[i];
+      var index = items.findIndex(function (item) { return item.id === update.id; });
+      if (index >= 0) items[index] = update;
+      else items.unshift(update);
+    }
+    return items;
+  }
+
+  function applyTelemetryDelta(delta) {
+    if (!delta || typeof delta.seq !== "number" || !state.telemetry || typeof state.telemetrySeq !== "number" || delta.seq !== state.telemetrySeq + 1) {
+      requestTelemetryResync();
+      return;
+    }
+    var current = state.telemetry;
+    if (delta.clearHistory) {
+      current.requests = [];
+      current.operations = [];
+    }
+    current.requests = removeTelemetryItems(Array.isArray(current.requests) ? current.requests : [], delta.requestIdsRemoved);
+    current.operations = removeTelemetryItems(Array.isArray(current.operations) ? current.operations : [], delta.operationIdsRemoved);
+    current.requests = upsertTelemetryItems(current.requests, delta.requests);
+    current.operations = upsertTelemetryItems(current.operations, delta.operations);
+    if (delta.metrics) current.metrics = delta.metrics;
+    if (typeof delta.historyLimit === "number") current.historyLimit = delta.historyLimit;
+    var self = selfSnapshot();
+    if (self && delta.runtime) {
+      self.queueLength = delta.runtime.queueLength;
+      self.pendingCount = delta.runtime.pendingCount;
+      self.inFlight = delta.runtime.inFlight;
+    }
+    state.telemetrySeq = delta.seq;
+    state.telemetryResyncPending = false;
+    scheduleTelemetryView();
+  }
+
+  function operationVersion(item) {
+    return [item.requestCount || 0, item.attemptCount || 0, item.status || "", item.finishedAt || 0].join(":");
+  }
+
+  function flushNew() {
+    state.displayedOperations = operationLog().slice();
+    state.displayedRequests = requestLog().slice();
+    state.pendingNew = 0;
+    state.logRenderLimit = LOG_RENDER_BATCH;
+    renderLog();
+    el.logScroll.scrollTop = 0;
+  }
+  function setPhase(phase) {
+    state.phase = phase;
+    renderConnection();
+    renderRequests();
+  }
+
+  function sendHello() {
+    if (!state.ws || state.ws.readyState !== 1 || !state.hello) return;
+    state.ws.send(JSON.stringify({
+      type: "hello",
+      protocolVersion: state.handshake && state.handshake.protocolVersion || state.hello.protocolVersion || 1,
+      pluginVersion: state.handshake && state.handshake.pluginVersion || state.hello.pluginVersion || "0.0.0",
+      bundleRevision: state.hello.bundleRevision || "unknown",
+      runtimeSdks: Array.isArray(state.hello.runtimeSdks) ? state.hello.runtimeSdks : [],
+      instanceId: state.hello.instanceId,
+      clientId: state.hello.clientId,
+      fileKey: state.hello.fileKey == null ? null : state.hello.fileKey,
+      fileName: state.hello.fileName || "",
+      pageId: state.hello.pageId || "",
+      pageName: state.hello.pageName || "",
+      pages: state.hello.pages || [],
+      editorType: state.hello.editorType || "figma"
+    }));
+  }
+
+  function requestTelemetryResync() {
+    if (state.telemetryResyncPending || !state.ws || state.ws.readyState !== 1) return;
+    state.telemetryResyncPending = true;
+    state.ws.send(JSON.stringify({ type: "telemetry_resync" }));
+  }
+
+  function sendBinary(message) {
+    if (!state.ws || state.ws.readyState !== 1) return;
+    var bytes = message.bytes instanceof Uint8Array ? message.bytes : new Uint8Array(message.bytes);
+    var header = { type: "binary_response", id: message.id, ok: true, format: message.format, byteLength: bytes.byteLength, metadata: message.metadata || {} };
+    if (message.warnings && message.warnings.length) header.warnings = message.warnings;
+    var headerBytes = new TextEncoder().encode(JSON.stringify(header));
+    var frame = new Uint8Array(4 + headerBytes.byteLength + bytes.byteLength);
+    new DataView(frame.buffer).setUint32(0, headerBytes.byteLength, false);
+    frame.set(headerBytes, 4);
+    frame.set(bytes, 4 + headerBytes.byteLength);
+    state.ws.send(frame.buffer);
+  }
+
+  function startHeartbeat() {
+    stopHeartbeat();
+    state.heartbeatTimer = setInterval(function () {
+      if (!state.ws || state.ws.readyState !== 1) return;
+      if (Date.now() - state.lastHeartbeatAt > HEARTBEAT_DEAD_MS) {
+        try { state.ws.close(); } catch (_) {}
+        return;
+      }
+      state.ws.send(JSON.stringify({ type: "ping", at: Date.now() }));
+    }, HEARTBEAT_INTERVAL_MS);
+  }
+  function stopHeartbeat() { if (state.heartbeatTimer) clearInterval(state.heartbeatTimer); state.heartbeatTimer = null; }
+  function scheduleReconnect() {
+    if (state.reconnectTimer) return;
+    state.portIndex = (state.portIndex + 1) % PORT_RANGE;
+    var wait = state.backoff;
+    state.backoff = Math.min(state.backoff * 2, BACKOFF_MAX);
+    state.reconnectTimer = setTimeout(connect, wait);
+  }
+  function markDisconnected() {
+    state.connectedPort = null;
+    state.selfInstanceId = null;
+    state.snapshot = null;
+    state.telemetry = null;
+    state.telemetrySeq = null;
+    state.telemetryResyncPending = false;
+    if (state.telemetryRenderTimer) clearTimeout(state.telemetryRenderTimer);
+    state.telemetryRenderTimer = null;
+    setPhase("disconnected");
+  }
+  function connect() {
+    if (state.reconnectTimer) clearTimeout(state.reconnectTimer);
+    state.reconnectTimer = null;
+    state.generation++;
+    var mine = state.generation;
+    var port = currentPort();
+    setPhase("searching");
+    try { state.ws = new WebSocket("ws://localhost:" + port + "/ws"); }
+    catch (_) { markDisconnected(); scheduleReconnect(); return; }
+    state.ws.binaryType = "arraybuffer";
+    state.ws.onopen = function () {
+      if (state.generation !== mine) return;
+      state.connectedPort = port;
+      state.backoff = BACKOFF_MIN;
+      state.lastHeartbeatAt = Date.now();
+      setPhase("handshake");
+      sendHello();
+      startHeartbeat();
+    };
+    state.ws.onmessage = function (event) {
+      if (state.generation !== mine || typeof event.data !== "string") return;
+      var data;
+      try { data = JSON.parse(event.data); } catch (_) { return; }
+      if (data.type === "ping") { state.lastHeartbeatAt = Date.now(); state.ws.send(JSON.stringify({ type: "pong", at: Date.now() })); renderConnection(); return; }
+      if (data.type === "pong") { state.lastHeartbeatAt = Date.now(); renderConnection(); return; }
+      if (data.type === "request" && data.payload) { toMain({ kind: "request", payload: data.payload }); return; }
+      if (data.type === "assigned" && data.instanceId) {
+        state.selfInstanceId = data.instanceId;
+        if (state.everConnected) state.reconnects++;
+        state.everConnected = true;
+        state.connectedAt = Date.now();
+        setPhase("ready");
+        return;
+      }
+      if (data.type === "instances") {
+        state.snapshot = data;
+        state.lastHeartbeatAt = Date.now();
+        if (data.telemetry) applyTelemetry(data.telemetry, data.telemetrySeq);
+        else if (!state.telemetry || (typeof data.telemetrySeq === "number" && data.telemetrySeq !== state.telemetrySeq)) requestTelemetryResync();
+        renderConnection();
+      }
+      if (data.type === "telemetry_delta") {
+        state.lastHeartbeatAt = Date.now();
+        applyTelemetryDelta(data);
+        renderConnection();
+      }
+    };
+    state.ws.onerror = function () {};
+    state.ws.onclose = function () {
+      if (state.generation !== mine) return;
+      stopHeartbeat();
+      state.ws = null;
+      markDisconnected();
+      scheduleReconnect();
+    };
+  }
+  function reconnectNow() {
+    state.backoff = BACKOFF_MIN;
+    state.portIndex = 0;
+    if (state.ws) { try { state.ws.close(); } catch (_) {} }
+    if (state.reconnectTimer) clearTimeout(state.reconnectTimer);
+    state.reconnectTimer = null;
+    connect();
+  }
+  window.onmessage = function (event) {
+    var message = event.data && event.data.pluginMessage;
+    if (!message || typeof message !== "object") return;
+    if (message.kind === "handshake") {
+      state.handshake = message;
+      renderConnection();
+      return;
+    }
+    if (message.kind === "hello") {
+      state.hello = message.hello;
+      renderContext();
+      if (state.ws && state.ws.readyState === 1) sendHello();
+      return;
+    }
+    if (message.kind === "response") {
+      if (state.ws && state.ws.readyState === 1) state.ws.send(JSON.stringify({ type: "response", payload: message.payload }));
+      return;
+    }
+    if (message.kind === "binary-response") {
+      sendBinary(message);
+    }
+  };
+
+  el.connectionButton.onclick = function () { el.connectionSheet.showModal(); };
+  el.systemButton.onclick = function () { el.systemSheet.showModal(); };
+  el.retryButton.onclick = reconnectNow;
+  el.pauseButton.onclick = function () {
+    state.paused = !state.paused;
+    el.pauseButton.classList.toggle("active", state.paused);
+    el.pauseButton.setAttribute("aria-pressed", String(state.paused));
+    el.pauseButton.setAttribute("aria-label", state.paused ? "Resume live log" : "Pause live log");
+    el.pauseButton.title = state.paused ? "Resume live log" : "Pause live log";
+    el.pauseIcon.setAttribute("href", state.paused ? "#i-play" : "#i-pause");
+    if (!state.paused) flushNew(); else renderLog();
+  };
+  el.filterButton.onclick = function () {
+    el.filterTray.hidden = !el.filterTray.hidden;
+    el.filterButton.classList.toggle("active", !el.filterTray.hidden);
+    el.filterButton.setAttribute("aria-expanded", String(!el.filterTray.hidden));
+  };
+  document.querySelectorAll("[data-filter]").forEach(function (button) {
+    button.onclick = function () {
+      state.filter = button.getAttribute("data-filter") || "all";
+      state.logRenderLimit = LOG_RENDER_BATCH;
+      document.querySelectorAll("[data-filter]").forEach(function (other) { other.setAttribute("aria-pressed", String(other === button)); });
+      renderLog();
+    };
+  });
+  el.clearButton.onclick = function () { el.clearSheet.showModal(); };
+  el.confirmClear.onclick = function () {
+    state.displayedOperations = [];
+    state.displayedRequests = [];
+    state.pendingNew = 0;
+    state.logRenderLimit = LOG_RENDER_BATCH;
+    if (state.ws && state.ws.readyState === 1) state.ws.send(JSON.stringify({ type: "clear_request_log" }));
+    renderLog();
+    el.clearSheet.close();
+  };
+  el.newButton.onclick = flushNew;
+  el.logScroll.addEventListener("scroll", function () {
+    if (!state.paused && el.logScroll.scrollTop <= 24 && state.pendingNew > 0) flushNew();
+  });
+  document.querySelectorAll("[data-close]").forEach(function (button) {
+    button.onclick = function () {
+      var dialog = document.getElementById(button.getAttribute("data-close"));
+      if (dialog && dialog.open) dialog.close();
+    };
+  });
+  document.querySelectorAll("dialog").forEach(function (dialog) {
+    dialog.addEventListener("click", function (event) { if (event.target === dialog) dialog.close(); });
+  });
+
+  setInterval(function () {
+    renderConnection();
+    if (!state.paused && state.displayedOperations.some(function (item) { return item.status === "running" || item.status === "queued"; })) scheduleLogRender();
+  }, 1000);
+  toMain({ kind: "handshake" });
+  toMain({ kind: "resize", height: 720 });
+  renderContext();
+  renderConnection();
+  renderRequests();
+  renderLog();
+  connect();
+})();
+</script>
+</body>
+</html>

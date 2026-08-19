@@ -1,0 +1,3 @@
+interface:
+  display_name: "Figma Motion"
+  short_description: "Timelines, keyframes, timing, easing, and animated components"

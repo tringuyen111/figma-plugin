@@ -1,0 +1,472 @@
+{
+  "schemaVersion": 1,
+  "status": "FROZEN_NOT_RUN",
+  "principle": {
+    "ordering": [
+      "capability-quality",
+      "proof-correctness",
+      "io-fitness"
+    ],
+    "rule": "I/O efficiency may break ties or improve a non-regressing capability, but must never compensate for weaker decisions, artifacts, recovery, or proof.",
+    "skillContextSize": "diagnostic-only",
+    "optimize": "task evidence/tool input-output, retries, payloads, and latency after capability quality is preserved"
+  },
+  "comparisonArms": [
+    {
+      "id": "BASE_SAME_TOOLS",
+      "description": "Base agent with the same tool/provider availability, without ControlMux Figma domain Skills."
+    },
+    {
+      "id": "OFFICIAL_FIGMA_SAME_TOOLS",
+      "description": "Current official/installed Figma Skill guidance with the same tool/provider availability."
+    },
+    {
+      "id": "CONTROLMUX_SAME_TOOLS",
+      "description": "ControlMux Figma Skill with the same tool/provider availability; isolates ControlMux decision-method value."
+    },
+    {
+      "id": "CONTROLMUX_HYBRID",
+      "description": "ControlMux Figma Skill with live structured Figma provider delegation plus local ControlMux execution where appropriate; target production posture."
+    }
+  ],
+  "capabilityMetrics": [
+    "primary-owner-correctness",
+    "decision-correctness",
+    "near-miss-discrimination",
+    "failure-diagnosis-and-reentry",
+    "artifact-or-verdict-quality",
+    "proof-dimension-correctness",
+    "false-pass-rate",
+    "unresolved-truth-honesty"
+  ],
+  "ioMetrics": [
+    "evidence-input-tokens",
+    "result-output-tokens",
+    "tool-call-count",
+    "provider-call-count",
+    "local-figma-exec-count",
+    "retry-count",
+    "evidence-escalation-count",
+    "bridge-request-bytes",
+    "bridge-response-bytes",
+    "queue-ms",
+    "execution-ms",
+    "total-ms"
+  ],
+  "diagnosticOnlyMetrics": [
+    "activated-skill-context-tokens",
+    "loaded-reference-context-tokens"
+  ],
+  "cases": [
+    {
+      "owner": "figma-native",
+      "decisionDelta": "Resolve exact runtime/editor/page/API boundary and return bounded native evidence rather than treating arbitrary JavaScript execution as the capability.",
+      "minimumInputs": [
+        "target/runtime identity",
+        "bounded native operation",
+        "expected postcondition"
+      ],
+      "escalateWhen": [
+        "target ambiguous",
+        "API/editor support uncertain",
+        "visible/binary proof required"
+      ],
+      "outputPacket": [
+        "target",
+        "result-or-error",
+        "affected-ids",
+        "warnings",
+        "proof"
+      ],
+      "ioFocus": [
+        "bounded return projection",
+        "maxOutputChars",
+        "retry attribution",
+        "queue-vs-execution latency"
+      ]
+    },
+    {
+      "owner": "figma-scene",
+      "decisionDelta": "Separate semantic nesting, structural ownership, silhouette, clipping, and 2.5D plane relations to fix the causal owner rather than the visible symptom.",
+      "minimumInputs": [
+        "exact region",
+        "local parent-child bounds",
+        "material plane/clipping relations"
+      ],
+      "escalateWhen": [
+        "owner lies outside local subtree",
+        "perceptual depth/occlusion claim needs render"
+      ],
+      "outputPacket": [
+        "selected owner/representation",
+        "causal relation",
+        "affected-ids",
+        "structure proof",
+        "visual proof when material"
+      ],
+      "ioFocus": [
+        "local subtree first",
+        "render only at relevant scale"
+      ]
+    },
+    {
+      "owner": "figma-layout",
+      "decisionDelta": "Choose layout relation and invariant under pressure before selecting Auto Layout/Grid/sizing properties.",
+      "minimumInputs": [
+        "layout owner",
+        "representative children/content",
+        "current layout/sizing properties",
+        "pressure condition"
+      ],
+      "escalateWhen": [
+        "parent sizing context required",
+        "component/token contract affects geometry",
+        "rendered pressure proof required"
+      ],
+      "outputPacket": [
+        "relation",
+        "sizing/adaptation rule",
+        "affected-ids/properties",
+        "pressure proof"
+      ],
+      "ioFocus": [
+        "targeted geometry",
+        "avoid unrelated style/file inventory"
+      ]
+    },
+    {
+      "owner": "figma-tokens",
+      "decisionDelta": "Classify token identity by semantic role, modes, aliases, scopes, consumers, and propagation rather than repeated raw values.",
+      "minimumInputs": [
+        "material collections/modes/variables",
+        "representative consumers",
+        "naming/code authority when needed"
+      ],
+      "escalateWhen": [
+        "alias lineage unclear",
+        "mode/scope behavior unclear",
+        "consumer blast radius unclear"
+      ],
+      "outputPacket": [
+        "token roles/identities",
+        "collection/mode/alias/scope decisions",
+        "consumer/migration impact",
+        "system proof"
+      ],
+      "ioFocus": [
+        "filter variable subsets",
+        "load all modes only when decision spans them"
+      ]
+    },
+    {
+      "owner": "figma-typography",
+      "decisionDelta": "Treat typography as information role plus geometry, including font/fallback metrics, measure, numeric behavior, localization, and text pressure.",
+      "minimumInputs": [
+        "information role",
+        "representative real strings",
+        "current style/font/bindings",
+        "material pressure"
+      ],
+      "escalateWhen": [
+        "font availability/fallback uncertain",
+        "whole-scene hierarchy interaction material"
+      ],
+      "outputPacket": [
+        "role/style decision",
+        "metrics/bindings",
+        "affected text slots",
+        "pressure proof"
+      ],
+      "ioFocus": [
+        "font/style subset only",
+        "representative consumer before full inventory"
+      ]
+    },
+    {
+      "owner": "figma-visual-system",
+      "decisionDelta": "Separate semantic visual roles from contextual perception across area, repetition, backdrop, hue/lightness/chroma, material, and depth cues.",
+      "minimumInputs": [
+        "exact rendered region/state",
+        "feeding tokens/styles/effects",
+        "backdrop context"
+      ],
+      "escalateWhen": [
+        "systemic role suspected",
+        "alternate mode/theme material",
+        "accessibility obligation requested"
+      ],
+      "outputPacket": [
+        "perceptual diagnosis",
+        "system-role decision",
+        "bindings/ids",
+        "visual/system/accessibility proof"
+      ],
+      "ioFocus": [
+        "composition-local evidence",
+        "no whole-palette dump by default"
+      ]
+    },
+    {
+      "owner": "figma-components",
+      "decisionDelta": "Design the public semantic component API from consumer jobs and propagation rather than mirroring the layer tree or minimizing variant count mechanically.",
+      "minimumInputs": [
+        "component/set identity",
+        "property definitions/options",
+        "shallow configurable anatomy",
+        "representative instances/overrides"
+      ],
+      "escalateWhen": [
+        "boundary ambiguous",
+        "slot/anatomy needs deep tree",
+        "propagation/reaction/binding evidence material"
+      ],
+      "outputPacket": [
+        "semantic job/anatomy",
+        "property/slot/variant decisions",
+        "migration/propagation",
+        "affected-ids",
+        "proof"
+      ],
+      "ioFocus": [
+        "API projection before deep tree",
+        "sample consumers instead of all instances"
+      ]
+    },
+    {
+      "owner": "figma-prototype",
+      "decisionDelta": "Model interaction as state paths with ordered actions, conditions, destinations/context, and recovery instead of disconnected click links.",
+      "minimumInputs": [
+        "approved behavior",
+        "source interactive nodes",
+        "current reactions/actions",
+        "dependent variables/destinations"
+      ],
+      "escalateWhen": [
+        "reachable conditional branch",
+        "reusable interactive component",
+        "overlay/recovery crosses subtree"
+      ],
+      "outputPacket": [
+        "state-path",
+        "affected-ids",
+        "interaction proof per inspected path"
+      ],
+      "ioFocus": [
+        "reachable path first",
+        "avoid whole-file reaction dump"
+      ]
+    },
+    {
+      "owner": "figma-motion",
+      "decisionDelta": "Author temporal continuity/choreography only when time changes meaning, feedback, emphasis, or plane continuity; reuse temporal relationships rather than literal durations.",
+      "minimumInputs": [
+        "animated subjects",
+        "start/rest/end intent",
+        "material timeline/keyframe/timing data",
+        "reduced-motion obligation when relevant"
+      ],
+      "escalateWhen": [
+        "multi-node coordination",
+        "transform origin/mask/path behavior",
+        "temporal render needed"
+      ],
+      "outputPacket": [
+        "subjects",
+        "motion role/model",
+        "keyframe/timing/easing/cohort decisions",
+        "reduced-motion meaning",
+        "temporal proof"
+      ],
+      "ioFocus": [
+        "animated subtree only",
+        "video/phases only when timing cannot be proven structurally"
+      ]
+    },
+    {
+      "owner": "figma-design-system",
+      "decisionDelta": "Govern cross-capability reuse, authority, propagation, deprecation, and library distribution without becoming a super-Skill that reimplements each local method.",
+      "minimumInputs": [
+        "bounded system scope",
+        "authority sources",
+        "affected inventory summaries",
+        "representative consumers"
+      ],
+      "escalateWhen": [
+        "conflict crosses scope",
+        "blast radius reaches broader semantic role/foundation/distribution"
+      ],
+      "outputPacket": [
+        "reconciliation dispositions",
+        "source/owner",
+        "propagation/publication impact",
+        "conflicts",
+        "proof"
+      ],
+      "ioFocus": [
+        "inventory/diff before deep trees",
+        "scope expansion deliberate"
+      ]
+    },
+    {
+      "owner": "figma-design-authoring",
+      "decisionDelta": "Compile approved Product Design truth through simultaneous semantic/layout/component/style-type/plane-input/state-time graphs and recompose the whole after local decisions.",
+      "minimumInputs": [
+        "approved behavior",
+        "bounded design question",
+        "real content/states/constraints",
+        "relevant current system evidence"
+      ],
+      "escalateWhen": [
+        "higher fidelity required by active question",
+        "system/interaction/motion proof becomes material"
+      ],
+      "outputPacket": [
+        "design decisions/changes",
+        "owners/representations",
+        "affected-ids",
+        "unresolved Product truth",
+        "fidelity-appropriate proof"
+      ],
+      "ioFocus": [
+        "fidelity-based escalation",
+        "reuse/search context before broad inspection"
+      ]
+    },
+    {
+      "owner": "figma-verification",
+      "decisionDelta": "Prevent false PASS by binding exact obligations and evidence dimensions, keeping assessment read-only, and refusing evidence that cannot prove the claim.",
+      "minimumInputs": [
+        "fixed target/revision",
+        "expected source",
+        "requested dimensions",
+        "capable proof sources"
+      ],
+      "escalateWhen": [
+        "claim remains inconclusive",
+        "claim generalizes beyond sampled state/consumer"
+      ],
+      "outputPacket": [
+        "dimension states",
+        "finding packets",
+        "bounded verdict",
+        "reproduction evidence ids"
+      ],
+      "ioFocus": [
+        "smallest sufficient proof",
+        "no all-evidence-by-default"
+      ]
+    },
+    {
+      "owner": "figma-code-connect",
+      "decisionDelta": "Map two independent semantic APIs with exhaustive property correspondence and migration proof rather than matching names or copying provider snippets.",
+      "minimumInputs": [
+        "published Figma component/property definitions",
+        "real code component/API",
+        "current mapping state when applicable"
+      ],
+      "escalateWhen": [
+        "nested composition/slot ambiguity",
+        "variant coverage unclear",
+        "import/publication state unclear"
+      ],
+      "outputPacket": [
+        "correspondence ledger",
+        "mapping change/state",
+        "unresolved mismatches",
+        "translation proof"
+      ],
+      "ioFocus": [
+        "structured Code Connect context first",
+        "avoid broad repo/canvas scans"
+      ]
+    },
+    {
+      "owner": "figma-code-to-design",
+      "decisionDelta": "Translate production semantics into native reusable Figma truth rather than tracing DOM/view structure or promoting captures to system authority.",
+      "minimumInputs": [
+        "exact code revision",
+        "relevant token/component source",
+        "representative runtime visual",
+        "current Figma/system assets"
+      ],
+      "escalateWhen": [
+        "authority conflict",
+        "representation gap",
+        "broader consumer state needed"
+      ],
+      "outputPacket": [
+        "reconciliation matrix",
+        "reused/changed Figma identities",
+        "authority conflicts",
+        "translation/system/visual proof"
+      ],
+      "ioFocus": [
+        "semantic source subset",
+        "capture only as visual evidence"
+      ]
+    },
+    {
+      "owner": "figma-design-to-design",
+      "decisionDelta": "Choose and execute the correct cross-Figma identity relationship—reuse remote, wrap, fork, migrate, or sync—so future propagation semantics survive instead of copying pixels.",
+      "minimumInputs": [
+        "source asset identity/publish state/key",
+        "target file/system identities",
+        "intended future update relationship",
+        "representative consumers/overrides when migrating"
+      ],
+      "escalateWhen": [
+        "component API/state compatibility is unclear",
+        "prototype behavior is part of reusable contract",
+        "library publication/enablement authority is unresolved",
+        "binary assets must cross files"
+      ],
+      "outputPacket": [
+        "source-target identity map",
+        "strategy per asset",
+        "created/imported/reused identities",
+        "migrated consumers",
+        "preserved/lost update paths",
+        "authority gates",
+        "proof"
+      ],
+      "ioFocus": [
+        "identity/library discovery before deep node copy",
+        "sample representative consumers",
+        "use asset transfer primitives rather than base64 context"
+      ]
+    },
+    {
+      "owner": "figma-design-to-code",
+      "decisionDelta": "Choose IMPLEMENT vs HANDOFF from actual repository authority, reconcile Figma evidence into real production architecture, and never mistake provider-generated reference code for the terminal artifact.",
+      "minimumInputs": [
+        "exact Figma node/design context",
+        "target repository stack",
+        "current component/token owners",
+        "required assets"
+      ],
+      "escalateWhen": [
+        "mapping/state/responsive ambiguity",
+        "animated node requires Motion context",
+        "runtime visual proof required"
+      ],
+      "outputPacket": [
+        "IMPLEMENT: actual changed production files/components/tokens/assets/state/motion plus proof",
+        "HANDOFF: Design Translation Packet with source/target mappings, REUSE/ADAPT/CREATE decisions, conflicts, and proofRequired"
+      ],
+      "ioFocus": [
+        "node-specific context",
+        "Motion context only for animated claims",
+        "do not echo source context after translation"
+      ]
+    }
+  ],
+  "capabilityCandidates": [
+    {
+      "candidate": "figma-motion-to-code",
+      "status": "REFERENCE_BRANCH_MATERIALIZED_NOT_RUN",
+      "currentOwner": "figma-design-to-code",
+      "reference": "skills/figma-design-to-code/references/motion-translation.md",
+      "splitOnlyIf": "Representative executions show an independently useful trigger/outcome/proof and material behavioral gain that cannot be expressed as a conditional branch of figma-design-to-code."
+    }
+  ]
+}

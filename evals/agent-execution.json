@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "status": "MECHANISM_TESTED_BEHAVIORAL_COMPARISON_NOT_RUN",
+  "candidate": "progressive-work-plan-runtime-sdk-plan-telemetry-reuse-registry-v1",
+  "claims": {
+    "planningMechanism": "IMPLEMENTED_TESTED",
+    "progressiveContextMechanism": "IMPLEMENTED_TESTED",
+    "representationSelectionMechanism": "IMPLEMENTED_TESTED",
+    "runtimeSdkMechanism": "IMPLEMENTED_TESTED_LOCAL_V2",
+    "typedRuntimePlatform": "LIVE_PASS_WITH_PROVIDER_LIMIT",
+    "planTelemetryMechanism": "IMPLEMENTED_TESTED_LOCAL",
+    "telemetryDeltaProtocol": "IMPLEMENTED_TESTED_LIVE_BRIDGE",
+    "smoothTelemetryLifecycle": "IMPLEMENTED_TESTED_LIVE_PRESSURE",
+    "coreRuntimeSmoke": "EXECUTED_PASS_V2",
+    "reuseRegistryMechanism": "IMPLEMENTED_TESTED_LOCAL",
+    "liveRuntimeSdkExecution": "EXECUTED_PASS_V2",
+    "devResourceWrite": "BLOCKED_BY_PROVIDER_403",
+    "crossFileLibraryReuse": "NOT_RUN",
+    "designToCodeParity": "NOT_RUN",
+    "behavioralSkillComparison": "NOT_RUN",
+    "independentQualification": "NOT_RUN"
+  },
+  "invariants": {
+    "maxActiveDeepResources": 2,
+    "noteAfterEachLoad": true,
+    "distillBeforeNextLoad": true,
+    "smallDirectWorkNeedsPlan": false,
+    "telemetryOwnsCanonicalPlan": false,
+    "declaredPostconditionsAutoPass": false
+  },
+  "cases": [
+    {
+      "id": "multi-skill-dashboard",
+      "trigger": "Create a system-aware dashboard with reusable components, real content, responsive layout, and rendered proof.",
+      "expected": {
+        "planning": "work-graph",
+        "primaryOwner": "figma-design-authoring",
+        "activateJustInTime": ["figma-layout", "figma-components", "figma-typography", "figma-visual-system"],
+        "representation": "rendered-composition",
+        "context": "one active packet plus at most two deep resources"
+      },
+      "failureSignals": ["preloads every specialist", "no proof per packet", "one giant mutation", "paragraph-only design explanation"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "small-direct-edit",
+      "trigger": "Rename one known layer on one resolved page.",
+      "expected": {
+        "planning": "direct",
+        "primaryOwner": "figma-native",
+        "activateJustInTime": [],
+        "representation": "text",
+        "context": "no work-plan ceremony"
+      },
+      "failureSignals": ["creates a multi-node plan", "loads design-system Skills", "renders a decorative diagram"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "context-overload-recovery",
+      "trigger": "A task appears relevant to eight Figma Skills but only the component API is currently unresolved.",
+      "expected": {
+        "planning": "active-packet",
+        "primaryOwner": "figma-design-authoring",
+        "activateJustInTime": ["figma-components"],
+        "representation": "component-specimen",
+        "context": "note component decision immediately, then release deep context"
+      },
+      "failureSignals": ["reads all eight Skills before acting", "summarizes prose instead of decision mechanism", "loses the active component question"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "process-not-paragraph",
+      "trigger": "Explain an inspect-create-verify-recover workflow with two failure branches.",
+      "expected": {
+        "planning": "direct",
+        "primaryOwner": "figma-design-authoring",
+        "activateJustInTime": [],
+        "representation": "flow",
+        "context": "short node labels plus branch conditions"
+      },
+      "failureSignals": ["long Markdown narrative", "untyped decorative arrows", "branch semantics hidden in prose"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "quantitative-progress",
+      "trigger": "Show completion and failure rates across four execution lanes.",
+      "expected": {
+        "planning": "direct",
+        "primaryOwner": "figma-design-authoring",
+        "activateJustInTime": [],
+        "representation": "bar",
+        "context": "values, units, labels, and evidence caveat"
+      },
+      "failureSignals": ["four prose paragraphs", "unmeasured confidence percentage", "all states use equal visual salience"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "dynamic-page-style-binding",
+      "trigger": "Bind text and fill styles under a dynamic-page manifest.",
+      "expected": {
+        "planning": "direct",
+        "primaryOwner": "figma-native",
+        "activateJustInTime": [],
+        "representation": "text",
+        "context": "runtimeSdk v2 async page, style, and variable helpers"
+      },
+      "failureSignals": ["assigns textStyleId synchronously", "retries the same failing code", "loads unrelated design methodology"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "timeout-recovery",
+      "trigger": "A dispatched Figma mutation times out before the caller receives a result.",
+      "expected": {
+        "planning": "recovery-packet",
+        "primaryOwner": "figma-native",
+        "activateJustInTime": [],
+        "representation": "state-diagram",
+        "context": "inspect queue and target before any retry"
+      },
+      "failureSignals": ["immediate duplicate mutation", "false failure-to-no-side-effect assumption", "restarts unrelated plan nodes"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "cross-file-reuse",
+      "trigger": "Reuse a component from a published library in another Figma file.",
+      "expected": {
+        "planning": "work-graph",
+        "primaryOwner": "figma-components",
+        "activateJustInTime": ["figma-design-to-design"],
+        "representation": "component-specimen",
+        "context": "registry identity plus source and consumer proof"
+      },
+      "failureSignals": ["visual similarity counted as reuse", "LOCAL_VERIFIED called cross-file proof", "detached copy accepted"],
+      "status": "FROZEN_NOT_RUN"
+    }
+  ],
+  "mechanismEvidence": [
+    "tests/agent/work-plan.test.mjs",
+    "tests/agent/reuse-registry.test.mjs",
+    "tests/plugin/execute-js.test.ts",
+    "tests/server/runtime-telemetry.test.ts",
+    "tests/server/surface.test.ts",
+    "tests/plugin/ui.test.ts"
+  ]
+}

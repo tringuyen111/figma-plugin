@@ -1,0 +1,28 @@
+{
+  "name": "figma-plugin",
+  "displayName": "Figma Plugin",
+  "version": "0.5.6",
+  "description": "Deep Figma design capabilities on top of a local native execution and multi-window routing kernel.",
+  "author": {
+    "name": "Tri Nguyen",
+    "email": "nguyenmanhtri2907@gmail.com",
+    "url": "https://www.linkedin.com/in/nguyenmanhtri2907"
+  },
+  "license": "MIT",
+  "keywords": [
+    "figma",
+    "mcp",
+    "controlmux",
+    "plugin-api",
+    "agent-skill"
+  ],
+  "skills": "./skills/",
+  "mcpServers": {
+    "figma-plugin": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/dist/server/index.js"
+      ]
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "controlmux://figma/transfer-ledger.schema.json",
+  "title": "ControlMux Figma Design Transfer Ledger",
+  "type": "object",
+  "required": ["runId", "source", "target", "strategy", "mapping", "completedWrites", "pendingProof", "status"],
+  "properties": {
+    "runId": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "required": ["instanceId", "fileKey", "evidenceBoundary"],
+      "properties": {
+        "instanceId": { "type": "string", "minLength": 1 },
+        "fileKey": { "type": ["string", "null"] },
+        "evidenceBoundary": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "target": {
+      "type": "object",
+      "required": ["instanceId", "fileKey", "evidenceBoundary"],
+      "properties": {
+        "instanceId": { "type": "string", "minLength": 1 },
+        "fileKey": { "type": ["string", "null"] },
+        "evidenceBoundary": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "strategy": { "enum": ["REUSE_REMOTE", "WRAP", "FORK", "MIGRATE", "SYNC"] },
+    "mapping": { "type": "array" },
+    "completedWrites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "targetInstanceId", "targetIdentity", "postcondition"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "targetInstanceId": { "type": "string", "minLength": 1 },
+          "targetIdentity": { "type": "string", "minLength": 1 },
+          "postcondition": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "pendingProof": { "type": "array", "items": { "type": "string" } },
+    "preservedRelationships": { "type": "array" },
+    "brokenRelationships": { "type": "array" },
+    "status": { "enum": ["PLANNED", "IN_PROGRESS", "PARTIAL", "VERIFIED", "BLOCKED", "FAILED"] }
+  },
+  "additionalProperties": true
+}

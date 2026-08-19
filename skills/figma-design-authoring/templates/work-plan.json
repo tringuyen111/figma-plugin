@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "planId": "replace-me",
+  "objective": "Replace with the bounded multi-step design objective.",
+  "terminalTruth": "Name the exact changed artifact and proof required for completion.",
+  "state": "ACTIVE",
+  "contextPolicy": {
+    "mode": "progressive",
+    "maxActiveDeepResources": 2,
+    "noteAfterEachLoad": true,
+    "distillBeforeNextLoad": true
+  },
+  "representationPolicy": {
+    "default": "text",
+    "rules": [
+      { "shape": "sequence", "use": "flow" },
+      { "shape": "branch", "use": "tree" },
+      { "shape": "state", "use": "state-diagram" },
+      { "shape": "ownership", "use": "typed-graph" },
+      { "shape": "comparison", "use": "table" },
+      { "shape": "progress", "use": "bar" },
+      { "shape": "screen-layout", "use": "wireframe" },
+      { "shape": "reusable-contract", "use": "component-specimen" },
+      { "shape": "local-fact", "use": "text" }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "first-packet",
+      "type": "VERTICAL_SLICE",
+      "label": "First accountable packet",
+      "outcome": "Describe the observable result.",
+      "status": "ACTIVE",
+      "owner": "figma-design-authoring",
+      "specialists": [],
+      "dependsOn": [],
+      "entrypoint": "Bind the exact Figma target before mutation.",
+      "proof": ["Name the real artifact/runtime evidence."],
+      "nonGoals": ["Do not broaden product behavior."],
+      "recovery": "Inspect the target before retrying any timed-out mutation."
+    }
+  ],
+  "edges": [],
+  "frontier": ["first-packet"],
+  "notesPath": "path/to/rolling-notes.md"
+}

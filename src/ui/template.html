@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+{{CONTROLMUX_STYLES}}</style>
+</head>
+<body>
+
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M9 15l6-6"/><path d="M7.5 12.5l-1.8 1.8a3.5 3.5 0 104.9 4.9l1.8-1.8"/><path d="M16.5 11.5l1.8-1.8a3.5 3.5 0 10-4.9-4.9l-1.8 1.8"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v6"/><path d="M12 7h.01"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5z"/><circle cx="12" cy="12" r="2.2"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20l4.2-1 10-10a2.1 2.1 0 00-3-3l-10 10L4 20z"/><path d="M13.8 7.2l3 3"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v11"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6h14v-6"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M14 5l-4 14"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 6v12"/><path d="M16 6v12"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7V5z"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V4h6v3"/><path d="M8 10v7"/><path d="M12 10v7"/><path d="M16 10v7"/><path d="M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-title">Figma Plugin</div>
+      <div class="brand-context" id="fileContext">Waiting for Figma…</div>
+    </div>
+    <div class="top-actions">
+      <div class="live-pill connecting" id="livePill"><span class="live-dot"></span><span id="liveText">LINKING</span></div>
+      <button class="icon-button" id="systemButton" type="button" title="System" aria-label="System details"><svg><use href="#i-info"></use></svg></button>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="section-label">Connection</div>
+    <div class="group">
+      <button class="connection-main" id="connectionButton" type="button" aria-label="Open connection details">
+        <span class="connection-icon connecting" id="connectionIcon"><svg><use href="#i-link"></use></svg></span>
+        <span class="connection-copy">
+          <span class="connection-title" id="connectionTitle">Connecting…</span>
+          <span class="connection-note" id="connectionNote">Finding bridge…</span>
+        </span>
+        <span class="chevron">›</span>
+      </button>
+      <div class="connection-facts">
+        <div class="fact"><div class="fact-label">Signal</div><div class="fact-value" id="lastSignal">—</div></div>
+        <div class="fact"><div class="fact-label">Uptime</div><div class="fact-value" id="connectedFor">—</div></div>
+        <div class="fact"><div class="fact-label">Agents</div><div class="fact-value" id="agentPresence">—</div></div>
+      </div>
+      <div class="recovery" id="recovery">
+        <div class="recovery-copy">Bridge unavailable.</div>
+        <button class="retry-button" id="retryButton" type="button">Reconnect</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Requests</div>
+    <div class="group requests">
+      <div class="request-primary">
+        <div class="request-total"><strong id="requestTotal">0</strong></div>
+        <div class="current-load"><strong id="currentLoad">Idle</strong><span id="currentLoadNote">0 queued</span></div>
+      </div>
+      <div class="quality-grid">
+        <div class="quality">
+          <div class="quality-label">Success</div>
+          <div class="quality-value" id="reliabilityValue">—</div>
+          <div class="quality-note" id="reliabilityNote">No data</div>
+        </div>
+        <div class="quality">
+          <div class="quality-label">Latency</div>
+          <div class="quality-value" id="speedValue">—</div>
+          <div class="quality-note" id="speedNote">Waiting</div>
+        </div>
+      </div>
+      <div class="request-mix" id="requestMix">
+        <div class="mix-bar">
+          <span class="mix-segment mix-read" id="mixRead" style="width:0%"></span>
+          <span class="mix-segment mix-write" id="mixWrite" style="width:0%"></span>
+          <span class="mix-segment mix-export" id="mixExport" style="width:0%"></span>
+          <span class="mix-segment mix-other" id="mixOther" style="width:100%"></span>
+        </div>
+        <div class="mix-labels" id="mixLabels"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section log-section">
+    <div class="section-label">Operation log</div>
+    <div class="log-group">
+      <div class="log-toolbar">
+        <div class="log-title"><strong id="logCount">0 operations · 0 requests</strong><span id="logState"></span></div>
+        <button class="tool-button" id="pauseButton" type="button" title="Pause live log" aria-label="Pause live log" aria-pressed="false"><svg><use id="pauseIcon" href="#i-pause"></use></svg></button>
+        <button class="tool-button" id="filterButton" type="button" title="Filter operation log" aria-label="Filter operation log" aria-expanded="false"><svg><use href="#i-filter"></use></svg></button>
+        <button class="tool-button danger" id="clearButton" type="button" title="Clear operation log" aria-label="Clear operation log"><svg><use href="#i-trash"></use></svg></button>
+      </div>
+      <div class="filter-tray" id="filterTray" hidden>
+        <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button>
+        <button class="filter-button" type="button" data-filter="read" aria-pressed="false">Read</button>
+        <button class="filter-button" type="button" data-filter="write" aria-pressed="false">Write</button>
+        <button class="filter-button" type="button" data-filter="export" aria-pressed="false">Export</button>
+        <button class="filter-button" type="button" data-filter="other" aria-pressed="false">Other</button>
+        <button class="filter-button" type="button" data-filter="failed" aria-pressed="false">Problems</button>
+      </div>
+      <div class="log-wrap">
+        <button class="new-button" id="newButton" type="button" hidden>1 new ↑</button>
+        <div class="log-scroll" id="logScroll"><div id="requestList"></div></div>
+      </div>
+      
+    </div>
+  </section>
+</div>
+
+<dialog class="sheet" id="connectionSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>Connection</strong><button class="sheet-close" type="button" data-close="connectionSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body">
+    <div class="sheet-list">
+      <div class="sheet-row"><span>Status</span><strong id="detailConnectionStatus">Connecting</strong></div>
+      <div class="sheet-row"><span>Signal</span><strong id="detailLastSignal">—</strong></div>
+      <div class="sheet-row"><span>Uptime</span><strong id="detailConnectedFor">—</strong></div>
+      <div class="sheet-row"><span>Agents</span><strong id="detailAgents">—</strong></div>
+      <div class="sheet-row"><span>Reconnects</span><strong id="detailReconnects">0</strong></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="systemSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>System</strong><button class="sheet-close" type="button" data-close="systemSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body">
+    <div class="sheet-list">
+      <div class="sheet-row"><span>Endpoint</span><strong id="detailEndpoint">—</strong></div>
+      <div class="sheet-row"><span>Transport</span><strong>WebSocket</strong></div>
+      <div class="sheet-row"><span>Plugin</span><strong id="detailVersion">—</strong></div>
+      <div class="sheet-row"><span>Protocol</span><strong id="detailProtocol">—</strong></div>
+      <div class="sheet-row"><span>Bundle</span><strong id="detailBundleRevision">—</strong></div>
+      <div class="sheet-row"><span>Runtime SDK</span><strong id="detailRuntimeSdk">—</strong></div>
+      <div class="sheet-row"><span>Queue cap</span><strong>20</strong></div>
+      <div class="sheet-row"><span>Log</span><strong id="detailRetention">100 recent</strong></div>
+      <div class="sheet-row"><span>Traffic</span><strong id="detailTraffic">—</strong></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="requestSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>Operation</strong><button class="sheet-close" type="button" data-close="requestSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body" id="requestDetailBody"></div>
+</dialog>
+
+<dialog class="sheet" id="clearSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><strong>Clear log?</strong><button class="sheet-close" type="button" data-close="clearSheet" aria-label="Close"><svg><use href="#i-close"></use></svg></button></div>
+  <div class="sheet-body">
+    <p class="sheet-note" style="margin-top:0">Clears recent log only. Totals stay.</p>
+    <div class="sheet-actions"><button class="sheet-action" type="button" data-close="clearSheet">Cancel</button><button class="sheet-action danger" type="button" id="confirmClear">Clear log</button></div>
+  </div>
+</dialog>
+
+<script>
+{{CONTROLMUX_SCRIPT}}</script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Figma Verification"
+  short_description: "Evidence-backed Figma audit, lint, accessibility, and parity"

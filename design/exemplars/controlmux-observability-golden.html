@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ControlMux Observability — Golden Teaching Specimen</title>
+<style>
+:root{
+  color-scheme: light;
+  --canvas:#f4f4f7;
+  --surface:#ffffff;
+  --subtle:#f8f8fa;
+  --text:#111114;
+  --muted:#6f6f78;
+  --line:#dedee4;
+  --green:#218258;
+  --red:#b94248;
+  --blue:#2d6db6;
+  --amber:#a66316;
+  --purple:#7755a7;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--canvas);color:var(--text)}
+body{display:flex;justify-content:flex-start;align-items:flex-start}
+.app{width:100%;max-width:420px;height:844px;display:flex;flex-direction:column;gap:10px;padding:16px 12px 12px;background:var(--canvas);overflow:hidden}
+.header{height:48px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:0 2px}
+.title{font-size:22px;line-height:25px;font-weight:730;letter-spacing:-.035em}
+.context{margin-top:4px;font-size:11px;line-height:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+.header-actions{display:flex;align-items:center;gap:8px}
+.status{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);display:flex;align-items:center;gap:7px;font-size:10px;line-height:12px;font-weight:650}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.icon{width:34px;height:34px;border:1px solid var(--line);border-radius:11px;background:var(--surface);display:grid;place-items:center;color:var(--muted);font-size:15px}
+.section{flex:0 0 auto}
+.section-label{height:18px;padding:0 4px;color:var(--muted);font-size:9.5px;line-height:12px;font-weight:650;letter-spacing:.05em;text-transform:uppercase}
+.surface{border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.connection-main{height:61px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:11px;padding:10px 13px}
+.connection-symbol{width:36px;height:36px;border-radius:11px;background:#ecf6f1;color:var(--green);display:grid;place-items:center;font-size:17px;font-weight:700}
+.connection-title{font-size:15px;line-height:19px;font-weight:660;letter-spacing:-.015em}
+.connection-sub{margin-top:2px;font-size:10.5px;line-height:14px;color:var(--muted)}
+.chev{font-size:18px;color:#9a9aa2}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}
+.fact{padding:8px 11px 9px;min-width:0}
+.fact+.fact{border-left:1px solid var(--line)}
+.fact-label{font-size:8.5px;line-height:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.045em}
+.fact-value{margin-top:3px;font-size:11px;line-height:14px;font-weight:620;font-variant-numeric:tabular-nums}
+.requests{padding:12px 13px 11px}
+.requests-head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:12px}
+.total{font-size:29px;line-height:30px;font-weight:730;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.total-note{margin-top:3px;font-size:10px;line-height:13px;color:var(--muted)}
+.load{text-align:right}
+.load strong{display:block;font-size:12px;line-height:15px;font-weight:650}
+.load span{display:block;margin-top:2px;font-size:9.5px;line-height:12px;color:var(--muted)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.metric{min-width:0;padding:9px 10px;border-radius:11px;background:var(--subtle)}
+.metric-label{font-size:9px;line-height:12px;color:var(--muted)}
+.metric-value{margin-top:2px;font-size:15px;line-height:19px;font-weight:680;letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+.metric-note{margin-top:2px;font-size:9px;line-height:12px;color:var(--muted)}
+.mix{margin-top:10px}
+.mixbar{height:6px;display:flex;gap:2px}
+.seg{height:6px;border-radius:3px}.read{background:var(--blue)}.write{background:var(--amber)}.export{background:var(--purple)}.other{background:#9999a2}
+.mixlabels{display:flex;gap:10px;margin-top:6px;font-size:9px;line-height:12px;color:var(--muted)}
+.mixlabels b{color:var(--text);font-weight:620}
+.log-section{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.log-surface{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.toolbar{height:46px;flex:0 0 46px;display:flex;align-items:center;gap:6px;padding:5px 7px 5px 13px;border-bottom:1px solid var(--line)}
+.log-title{flex:1;min-width:0}
+.log-title strong{display:block;font-size:11.5px;line-height:15px;font-weight:650}
+.log-title span{display:block;margin-top:1px;font-size:9px;line-height:12px;color:var(--muted)}
+.tool{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--muted)}.tool.danger{color:var(--red)} .tool svg,.icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rows{flex:1 1 auto;min-height:0;overflow:hidden}
+.row{height:50px;display:grid;grid-template-columns:48px 30px minmax(0,1fr) 52px;gap:7px;align-items:center;padding:5px 10px;border-bottom:1px solid var(--line)}
+.time{font-size:9px;line-height:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.kind{width:29px;height:29px;border-radius:9px;display:grid;place-items:center;font-size:10px;font-weight:760}
+.kind.r{background:#eef4fb;color:var(--blue)}.kind.w{background:#faf2e7;color:var(--amber)}.kind.e{background:#f3eef8;color:var(--purple)}
+.row-main{min-width:0}
+.meta{display:flex;align-items:center;gap:5px;font-size:8.5px;line-height:11px;font-weight:700;letter-spacing:.035em}
+.meta .ok{color:var(--green)}.meta .fail{color:var(--red)}
+.label{margin-top:2px;font-size:10.5px;line-height:13px;font-weight:590;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.duration{text-align:right;font-size:10.5px;line-height:13px;font-weight:650;font-variant-numeric:tabular-nums}
+.footer-note{height:22px;display:flex;align-items:center;padding:0 10px;color:var(--muted);font-size:8.5px}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <div>
+      <div class="title">ControlMux Figma</div>
+      <div class="context">Checkout · Design system cleanup</div>
+    </div>
+    <div class="header-actions">
+      <div class="status"><span class="dot"></span>Connected</div>
+      <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v6"/><path d="M12 7h.01"/></svg></div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="section-label">Connection</div>
+    <div class="surface">
+      <div class="connection-main">
+        <div class="connection-symbol">↔</div>
+        <div><div class="connection-title">Local bridge healthy</div></div>
+        <div class="chev">›</div>
+      </div>
+      <div class="facts">
+        <div class="fact"><div class="fact-label">Signal</div><div class="fact-value">now</div></div>
+        <div class="fact"><div class="fact-label">Uptime</div><div class="fact-value">01:48:32</div></div>
+        <div class="fact"><div class="fact-label">Agents</div><div class="fact-value">2 active</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Requests</div>
+    <div class="surface requests">
+      <div class="requests-head">
+        <div><div class="total">148</div><div class="total-note">requests this session</div></div>
+        <div class="load"><strong>2 running</strong><span>1 queued</span></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Success</div><div class="metric-value">98.6%</div><div class="metric-note">2 failed · 0 timeout</div></div>
+        <div class="metric"><div class="metric-label">Latency p95</div><div class="metric-value">284 ms</div><div class="metric-note">p50 116 ms</div></div>
+      </div>
+      <div class="mix">
+        <div class="mixbar"><div class="seg read" style="width:48%"></div><div class="seg write" style="width:31%"></div><div class="seg export" style="width:15%"></div><div class="seg other" style="width:6%"></div></div>
+        <div class="mixlabels"><span>Read <b>71</b></span><span>Write <b>46</b></span><span>Export <b>22</b></span><span>Other <b>9</b></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section log-section">
+    <div class="section-label">Request log</div>
+    <div class="surface log-surface">
+      <div class="toolbar">
+        <div class="log-title"><strong>100 recent</strong><span>Live</span></div>
+        <div class="tool"><svg viewBox="0 0 24 24"><path d="M8 6v12"/><path d="M16 6v12"/></svg></div><div class="tool"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg></div><div class="tool danger"><svg viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V4h6v3"/><path d="M8 10v7"/><path d="M12 10v7"/><path d="M16 10v7"/><path d="M7 7l1 13h8l1-13"/></svg></div>
+      </div>
+      <div class="rows">
+        <div class="row"><div class="time">00:31:42</div><div class="kind w">W</div><div class="row-main"><div class="meta">WRITE <span class="ok">● success</span></div><div class="label">Update request-log layout</div></div><div class="duration">214 ms</div></div>
+        <div class="row"><div class="time">00:31:36</div><div class="kind r">R</div><div class="row-main"><div class="meta">READ <span class="ok">● success</span></div><div class="label">Inspect local variables</div></div><div class="duration">92 ms</div></div>
+        <div class="row"><div class="time">00:31:19</div><div class="kind e">E</div><div class="row-main"><div class="meta">EXPORT <span class="ok">● success</span></div><div class="label">Render current selection</div></div><div class="duration">341 ms</div></div>
+        <div class="row"><div class="time">00:31:11</div><div class="kind w">W</div><div class="row-main"><div class="meta">WRITE <span class="fail">● failed</span></div><div class="label">Apply typography role to 12 labels</div></div><div class="duration">1.24 s</div></div>
+        <div class="row"><div class="time">00:30:58</div><div class="kind r">R</div><div class="row-main"><div class="meta">READ <span class="ok">● success</span></div><div class="label">Resolve active Figma page</div></div><div class="duration">74 ms</div></div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

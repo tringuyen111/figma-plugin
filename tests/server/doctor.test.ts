@@ -1,0 +1,56 @@
+import { describe, expect, it } from "vitest";
+import { mkdtempSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { buildDoctorReport, formatDoctorReport, REQUIRED_FIGMA_SKILLS } from "../../src/server/doctor.js";
+
+function readyFixture(): string {
+  const root = mkdtempSync(join(tmpdir(), "controlmux-figma-doctor-"));
+  for (const dir of ["dist/server", "plugin", ...REQUIRED_FIGMA_SKILLS.map((name) => `skills/${name}`)]) mkdirSync(join(root, dir), { recursive: true });
+  writeFileSync(join(root, "dist/server/index.js"), "// bundle");
+  writeFileSync(join(root, "plugin/code.js"), "// plugin");
+    writeFileSync(join(root, "plugin/ui.html"), "<div>Figma Plugin</div>");
+  writeFileSync(join(root, ".mcp.json"), "{}");
+  for (const name of REQUIRED_FIGMA_SKILLS) writeFileSync(join(root, `skills/${name}/SKILL.md`), `# ${name}`);
+  writeFileSync(join(root, "plugin/manifest.json"), JSON.stringify({
+    name: "Figma Plugin",
+    id: "figma-plugin",
+    main: "code.js",
+    ui: "ui.html",
+  }));
+  return root;
+}
+
+describe("Figma Plugin doctor", () => {
+  it("reports the exact Figma manifest and continuation steps", () => {
+    const report = buildDoctorReport(readyFixture());
+    expect(report.status).toBe("READY");
+    expect(report.manifestPath).toMatch(/plugin[\\/]manifest\.json$/);
+    expect(report.userSteps.join("\n")).toContain("Import plugin from manifest");
+    expect(report.agentSteps.join("\n")).toContain("figma_status");
+    expect(formatDoctorReport(report)).toContain("Agent continuation:");
+    expect(report.checks.find((check) => check.id === "figma-provider-evidence")?.status).toBe("warn");
+  });
+
+  it("requires the complete Figma capability topology", () => {
+    const root = readyFixture();
+    const missing = join(root, "skills/figma-motion/SKILL.md");
+    unlinkSync(missing);
+    const report = buildDoctorReport(root);
+    expect(report.status).toBe("ACTION_REQUIRED");
+    expect(report.checks.find((check) => check.id === "figma-skills")?.detail).toContain("figma-motion");
+  });
+
+  it("fails clearly when the Figma plugin output is incomplete", () => {
+    const root = readyFixture();
+    writeFileSync(join(root, "plugin/manifest.json"), JSON.stringify({
+      name: "Figma Plugin",
+      id: "figma-plugin",
+      main: "missing.js",
+      ui: "ui.html",
+    }));
+    const report = buildDoctorReport(root);
+    expect(report.status).toBe("ACTION_REQUIRED");
+    expect(report.checks.find((check) => check.id === "figma-manifest")?.status).toBe("fail");
+  });
+});

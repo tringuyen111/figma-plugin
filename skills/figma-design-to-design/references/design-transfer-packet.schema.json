@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "controlmux://figma/design-transfer-packet.schema.json",
+  "title": "ControlMux Figma Design Transfer Packet",
+  "type": "object",
+  "required": [
+    "source",
+    "target",
+    "assets",
+    "unresolved",
+    "proofRequired"
+  ],
+  "properties": {
+    "source": {
+      "type": "object",
+      "required": [
+        "fileKey",
+        "instanceId",
+        "evidenceBoundary"
+      ],
+      "properties": {
+        "fileKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceBoundary": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "target": {
+      "type": "object",
+      "required": [
+        "fileKey",
+        "instanceId",
+        "evidenceBoundary"
+      ],
+      "properties": {
+        "fileKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceBoundary": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "sourceIdentity",
+          "semanticJob",
+          "strategy",
+          "upstreamRelationship",
+          "status"
+        ],
+        "properties": {
+          "sourceIdentity": {
+            "type": "string",
+            "minLength": 1
+          },
+          "semanticJob": {
+            "type": "string",
+            "minLength": 1
+          },
+          "strategy": {
+            "enum": [
+              "REUSE_REMOTE",
+              "WRAP",
+              "FORK",
+              "MIGRATE",
+              "SYNC"
+            ]
+          },
+          "targetIdentity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "upstreamRelationship": {
+            "enum": [
+              "FOLLOW",
+              "WRAPPED",
+              "NONE",
+              "RECONCILED"
+            ]
+          },
+          "status": {
+            "enum": [
+              "PLANNED",
+              "IN_PROGRESS",
+              "MATERIALIZED",
+              "VERIFIED",
+              "BLOCKED",
+              "FAILED"
+            ]
+          },
+          "compatibility": {
+            "type": "array"
+          },
+          "consumerScope": {
+            "type": "array"
+          },
+          "interactionContract": {
+            "type": "object"
+          },
+          "systemBindings": {
+            "type": "object"
+          },
+          "lossyFields": {
+            "type": "array"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "unresolved": {
+      "type": "array"
+    },
+    "proofRequired": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

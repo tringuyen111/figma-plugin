@@ -1,0 +1,3 @@
+interface:
+  display_name: "Figma Tokens"
+  short_description: "Variables, modes, aliases, naming, and token reuse"

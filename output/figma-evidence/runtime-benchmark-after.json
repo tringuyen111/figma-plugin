@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-08-19",
+  "target": {
+    "fileName": "Untitled",
+    "pageId": "45:69",
+    "pageName": "02 - Components",
+    "runtimeSdks": ["v1", "v2"]
+  },
+  "initialRun": {
+    "transport": { "mcpConnectMs": 606.09, "firstStatusMs": 10.61 },
+    "sequential": { "count": 20, "minMs": 8.91, "medianMs": 14.34, "meanMs": 17.26, "p95Ms": 30.48, "maxMs": 37.34 },
+    "concurrent": { "count": 8, "wallMs": 581.13, "medianMs": 409.7, "p95Ms": 579.58 }
+  },
+  "historyGrowthRun": {
+    "transport": { "mcpConnectMs": 572.5, "firstStatusMs": 13.25 },
+    "sequential": { "count": 30, "minMs": 10.48, "medianMs": 15.45, "meanMs": 17.97, "p95Ms": 32.92, "maxMs": 43.5 },
+    "concurrent": { "count": 8, "wallMs": 121.97, "medianMs": 57.95, "p95Ms": 121.48 }
+  },
+  "historyPressureRun": {
+    "historyTotalCountAfterRun": 88,
+    "transport": { "mcpConnectMs": 479.1, "firstStatusMs": 9.14 },
+    "sequential": { "count": 5, "minMs": 13.73, "medianMs": 17.7, "meanMs": 18.88, "p95Ms": 30.94, "maxMs": 30.94 },
+    "concurrent": { "count": 2, "wallMs": 46.78, "medianMs": 19.14, "p95Ms": 46.43 }
+  },
+  "pairedHistoryPressureComparison": {
+    "beforeSequentialMedianMs": 184.04,
+    "afterSequentialMedianMs": 17.7,
+    "medianReductionPercent": 90.4,
+    "beforeSequentialP95Ms": 198.68,
+    "afterSequentialP95Ms": 30.94,
+    "p95ReductionPercent": 84.4,
+    "beforeConcurrentWallMs": 248.98,
+    "afterConcurrentWallMs": 46.78,
+    "concurrentWallReductionPercent": 81.2
+  },
+  "finalState": {
+    "pluginConnected": true,
+    "queueLength": 0,
+    "pendingCount": 0,
+    "instanceQueueLength": 0,
+    "instanceInFlight": 0
+  },
+  "interpretation": "The companion keeps only a bounded DOM window and debounces log reconstruction. MCP process startup did not materially improve; native execution under large request history did. Arbitrary execution remains one-in-flight for mutation safety."
+}

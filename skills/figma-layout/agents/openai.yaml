@@ -1,0 +1,3 @@
+interface:
+  display_name: "Figma Layout"
+  short_description: "Auto Layout, Grid, sizing, and responsive geometry"

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://controlmux.local/schemas/figma-work-plan-v1.json",
+  "title": "Figma progressive work plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "planId",
+    "objective",
+    "terminalTruth",
+    "state",
+    "contextPolicy",
+    "representationPolicy",
+    "nodes",
+    "edges",
+    "frontier",
+    "notesPath"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "planId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$" },
+    "objective": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "terminalTruth": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "state": { "enum": ["ACTIVE", "PASS", "FAIL", "BLOCKED"] },
+    "contextPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "maxActiveDeepResources", "noteAfterEachLoad", "distillBeforeNextLoad"],
+      "properties": {
+        "mode": { "const": "progressive" },
+        "maxActiveDeepResources": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "noteAfterEachLoad": { "const": true },
+        "distillBeforeNextLoad": { "const": true }
+      }
+    },
+    "representationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default", "rules"],
+      "properties": {
+        "default": { "enum": ["text", "table", "flow", "timeline", "tree", "state-diagram", "typed-graph", "bar", "metric-cards", "wireframe", "component-specimen"] },
+        "rules": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["shape", "use"],
+            "properties": {
+              "shape": { "type": "string", "minLength": 1, "maxLength": 64 },
+              "use": { "enum": ["text", "table", "flow", "timeline", "tree", "state-diagram", "typed-graph", "bar", "metric-cards", "wireframe", "component-specimen"] }
+            }
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "frontier": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "notesPath": { "type": "string", "minLength": 1, "maxLength": 260 }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label", "outcome", "status", "owner", "specialists", "dependsOn", "entrypoint", "proof", "nonGoals", "recovery"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$" },
+        "type": { "enum": ["FOUNDATION", "WALKING_SKELETON", "VERTICAL_SLICE", "HARDENING", "VERIFICATION"] },
+        "label": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "outcome": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "status": { "enum": ["PENDING", "ACTIVE", "PASS", "FAIL", "BLOCKED", "NOT_RUN"] },
+        "owner": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "specialists": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "dependsOn": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "entrypoint": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "proof": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "maxLength": 300 } },
+        "nonGoals": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 } },
+        "recovery": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "blocker": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "relation", "to"],
+      "properties": {
+        "from": { "type": "string" },
+        "relation": { "enum": ["BLOCKS_TRUTH", "PROVED_BY", "INVALIDATES", "CONFLICTS_WRITE_WITH"] },
+        "to": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-08-19",
+  "target": {
+    "fileName": "Untitled",
+    "pageId": "45:69",
+    "pageName": "02 - Components",
+    "runtimeSdks": ["v1"]
+  },
+  "transport": {
+    "mcpConnectMs": 478.51,
+    "firstStatusMs": 8.81
+  },
+  "sequential": {
+    "count": 20,
+    "minMs": 23.09,
+    "medianMs": 61.68,
+    "meanMs": 65.14,
+    "p95Ms": 125.92,
+    "maxMs": 130.49
+  },
+  "concurrent": {
+    "count": 8,
+    "wallMs": 715.35,
+    "minMs": 205.88,
+    "medianMs": 392.79,
+    "meanMs": 433.12,
+    "p95Ms": 714.88,
+    "maxMs": 714.88
+  },
+  "finalState": {
+    "pluginConnected": true,
+    "queueLength": 0,
+    "pendingCount": 0,
+    "instanceQueueLength": 0,
+    "instanceInFlight": 0
+  },
+  "boundary": "Local MCP stdio follower through the elected HTTP leader and WebSocket companion into one live Figma Desktop instance. The UI history already contained prior operations."
+}

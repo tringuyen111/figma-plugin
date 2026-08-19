@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "registryId": "replace-me",
+  "scope": {
+    "kind": "local-file",
+    "sourceFileName": "Replace with Figma file name",
+    "sourceFileKey": null
+  },
+  "assets": [
+    {
+      "registryKey": "controls/button/primary",
+      "semanticJob": "Primary foreground action",
+      "kind": "COMPONENT",
+      "identityState": "NOT_RUN",
+      "source": {
+        "published": false,
+        "fileName": "Replace with Figma file name",
+        "fileKey": null,
+        "nodeId": null,
+        "componentKey": null,
+        "libraryName": null
+      },
+      "contract": {
+        "anatomy": ["label", "affordance"],
+        "properties": ["Label"],
+        "states": ["Default"]
+      },
+      "verification": {
+        "state": "NOT_RUN",
+        "observedAt": null,
+        "evidence": []
+      },
+      "consumers": []
+    }
+  ]
+}

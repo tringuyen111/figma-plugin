@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "kind": "figma-native-export-evidence",
+  "intent": "evidence",
+  "capturedAt": "2026-08-19T06:21:49.979Z",
+  "source": {
+    "provider": "figma-plugin-local-bridge",
+    "interface": "figma_export",
+    "runtime": "Figma Desktop companion plugin",
+    "instanceId": "instance-mszjgjg5-1xxcfom1snvl6p",
+    "fileName": "Untitled",
+    "pageId": "45:70",
+    "pageName": "03 - Playground",
+    "nodeId": "55:1149",
+    "nodeName": "Capability Demo / Operations Dashboard",
+    "nodeType": "FRAME"
+  },
+  "state": {
+    "pageClearedBeforeBuild": true,
+    "topLevelChildrenAfterBuild": [
+      "Capability Demo / Component Library",
+      "Capability Demo / Operations Dashboard"
+    ],
+    "viewport": {
+      "width": 1440,
+      "height": 1024
+    },
+    "content": "capability-system-demo"
+  },
+  "actions": [
+    "inspect exact instance and page",
+    "clear direct children of the bound page by re-resolved node id",
+    "construct component library and dashboard",
+    "bind measured evidence during construction",
+    "independently verify structure and component links",
+    "export the exact verified root frame as PNG",
+    "open and visually inspect the exported PNG"
+  ],
+  "structuralEvidence": {
+    "componentContracts": 4,
+    "componentMasters": 5,
+    "componentSets": 1,
+    "instances": 11,
+    "linkedInstances": 11,
+    "autoLayoutNodes": 66,
+    "paintStyles": 5,
+    "textStyles": 8,
+    "designPacketAttached": true
+  },
+  "artifact": {
+    "path": "output/figma-evidence/figma-capability-demo.png",
+    "format": "PNG",
+    "mimeType": "image/png",
+    "byteLength": 136968,
+    "naturalWidth": 1440,
+    "naturalHeight": 1024,
+    "sha256": "0a22da2b3989f88cbdc61e249b6f863e16303891d0d5f2ee3e0ad026b96f1fac"
+  },
+  "inspection": {
+    "performed": true,
+    "piiPresent": false,
+    "masksRequired": false,
+    "calloutsRequired": false,
+    "result": "rendered hierarchy, spacing, typography, color mass and clipping inspected"
+  },
+  "boundaries": {
+    "visualDesign": "SELF_REVIEWED",
+    "localComponentReuse": "PASS",
+    "crossFileLibraryReuse": "NOT_RUN",
+    "designToCodeImplementationParity": "NOT_RUN",
+    "behavioralInteraction": "NOT_RUN",
+    "independentQualification": "NOT_RUN",
+    "productionApproval": "NOT_CLAIMED",
+    "browserCaptureManifestV4": "NOT_APPLICABLE_NATIVE_FIGMA_EXPORT"
+  }
+}

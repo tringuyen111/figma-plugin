@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-08-19",
+  "target": {
+    "instanceId": "instance-mszu36nn-1edub51r0rt76",
+    "fileName": "Untitled",
+    "pageId": "45:69",
+    "pageName": "02 - Components",
+    "bundleRevision": "e79c886c1bc3d9e9",
+    "loadedRuntimeSdks": ["v1", "v2"]
+  },
+  "tools": ["figma_status", "figma_query", "figma_apply", "figma_exec", "figma_export"],
+  "query": {
+    "state": "PASS",
+    "pages": 3,
+    "components": { "total": 0, "components": 0, "componentSets": 0, "instances": 0 },
+    "localStyles": { "paint": 0, "text": 0, "effect": 0, "grid": 0 },
+    "variables": { "collections": 0, "variables": 0 }
+  },
+  "apply": {
+    "state": "PASS_DRY_RUN",
+    "action": "clear_file_owned_assets",
+    "pagesPlanned": 3,
+    "removeLocalAssets": true,
+    "mutationExecuted": false
+  },
+  "runtimeSdkV2": {
+    "state": "PASS_WITH_PROVIDER_LIMIT",
+    "targetedPageLoad": "PASS",
+    "styleBinding": "PASS",
+    "nodeVariableBinding": "PASS",
+    "paintVariableBinding": "PASS",
+    "handoffInspection": "PASS",
+    "undoCheckpoint": "PASS",
+    "temporaryFixtureCleanup": "PASS",
+    "devResourceWrite": "BLOCKED_BY_PROVIDER_403"
+  },
+  "finalState": { "queueLength": 0, "pendingCount": 0, "instanceQueueLength": 0, "instanceInFlight": 0 },
+  "verdict": "PASS_WITH_PROVIDER_LIMIT"
+}

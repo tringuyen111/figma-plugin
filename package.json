@@ -1,0 +1,71 @@
+{
+  "name": "figma-plugin",
+  "version": "0.5.6",
+  "description": "Figma Plugin — local Figma execution kernel plus deep reusable Figma design capabilities for AI agents.",
+  "type": "module",
+  "bin": {
+    "figma-plugin": "dist/server/index.js"
+  },
+  "files": [
+    "dist",
+    "plugin",
+    "README.md",
+    "docs",
+    "design",
+    "evals",
+    "skills",
+    ".codex-plugin",
+    ".mcp.json",
+    ".claude-plugin",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run check:capabilities && npm run typecheck && npm run test && npm run build:bundle && npm run test:bundle",
+    "build:watch": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.plugin.json --noEmit",
+    "test": "vitest run",
+    "start": "node dist/server/index.js",
+    "build:bundle": "node scripts/build.mjs",
+    "prepack": "npm run build",
+    "test:bundle": "node scripts/smoke-native-exec.mjs",
+    "test:mcp-operation": "node scripts/smoke-mcp-operation.mjs",
+    "test:typed-tools-live": "node scripts/smoke-typed-tools-live.mjs",
+    "test:runtime-sdk-v2-live": "node scripts/smoke-runtime-sdk-v2-live.mjs",
+    "test:runtime-sdk-v2-provider-live": "node scripts/smoke-runtime-sdk-v2-live.mjs --provider-probes",
+    "probe:mcp-operation": "node scripts/smoke-mcp-operation.mjs --allow-stale",
+    "inspect:figma-file": "node scripts/figma-file-maintenance.mjs",
+    "clear:figma-file": "node scripts/figma-file-maintenance.mjs --clear",
+    "benchmark:figma": "node scripts/benchmark-figma-runtime.mjs",
+    "demo:figma-capability": "node scripts/run-figma-capability-demo.mjs",
+    "use:figma-playground-proof": "node scripts/use-figma-playground-cockpit.mjs",
+    "build:ui": "node scripts/build-ui.mjs",
+    "preview:ui-fixture": "node scripts/visual-operation-fixture.mjs",
+    "check:capabilities": "node scripts/check-capabilities.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "figma",
+    "mcp",
+    "model-context-protocol",
+    "controlmux",
+    "ai",
+    "codex",
+    "claude"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.134.0",
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.6.0",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.6"
+  }
+}

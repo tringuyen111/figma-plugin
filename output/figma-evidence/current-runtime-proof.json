@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "kind": "current-runtime-proof",
+  "observedAt": "2026-08-19",
+  "packageVersion": "0.5.6",
+  "bundleRevision": "1431a21f019211dd",
+  "publicTools": [
+    "figma_status",
+    "figma_query",
+    "figma_apply",
+    "figma_exec",
+    "figma_export"
+  ],
+  "localProof": {
+    "build": "PASS",
+    "typecheck": "PASS",
+    "tests": "21 files / 97 tests PASS",
+    "shippedBundleSmoke": "PASS",
+    "npmAuditHigh": "PASS_0_VULNERABILITIES"
+  },
+  "currentRuntime": {
+    "leaderEntry": "D:/tri-nguyen-brand-system/figma-plugin/dist/server/index.js",
+    "port": 38470,
+    "staleLeaderRevisionObserved": "3804fe4ab09d239d",
+    "staleLeaderAction": "STOPPED_AND_RESTARTED_FROM_CURRENT_BUNDLE",
+    "companionAfterRestart": "NOT_CONNECTED",
+    "queueLength": 0,
+    "pendingCount": 0,
+    "instanceInFlight": null
+  },
+  "observations": [
+    {
+      "command": "npm run test:typed-tools-live",
+      "state": "PASS",
+      "scope": "current source build before stale leader restart",
+      "details": {
+        "pages": 3,
+        "components": 2,
+        "paintStyles": 8,
+        "textStyles": 10,
+        "finalQueueLength": 0,
+        "finalPendingCount": 0,
+        "finalInstanceInFlight": 0
+      }
+    },
+    {
+      "command": "npm run test:mcp-operation",
+      "state": "BLOCKED_RELOAD_REQUIRED",
+      "error": "Figma instance had bundle revision 1431a21f019211dd while stale leader expected 3804fe4ab09d239d; after restart the companion was disconnected."
+    },
+    {
+      "command": "npm run test:runtime-sdk-v2-live",
+      "state": "BLOCKED_RELOAD_REQUIRED",
+      "error": "No Figma companion is connected."
+    }
+  ],
+  "remainingQualification": {
+    "crossFileLibraryReuse": "NOT_RUN",
+    "designToCodeImplementationParity": "NOT_RUN_NO_FRONTEND_TARGET",
+    "behavioralInteraction": "NOT_RUN_NO_REPRESENTATIVE_RUN",
+    "independentQualification": "NOT_RUN_NO_FROZEN_BASELINE"
+  }
+}

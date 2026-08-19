@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 2,
+  "status": "FROZEN_NOT_RUN",
+  "evidenceDimensions": [
+    "runtime",
+    "structure",
+    "system-reuse",
+    "visual",
+    "interaction",
+    "temporal",
+    "accessibility",
+    "translation-parity"
+  ],
+  "cases": [
+    {
+      "owner": "figma-native",
+      "positive": "Run a bounded native Figma Plugin API inspection against this exact page and return the affected node IDs.",
+      "nearMiss": "Decide whether this region should be a Frame or Group.",
+      "completion": "Target resolved; execution result/error and affected IDs/evidence returned.",
+      "evidenceRequired": [
+        "runtime"
+      ]
+    },
+    {
+      "owner": "figma-scene",
+      "positive": "Repair the modal/scrim clipping, stacking, surface ownership, and overlay relation without changing its product behavior.",
+      "nearMiss": "Fix the modal's child spacing and responsive sizing.",
+      "completion": "Tree/bounds/plane/surface relations and visible result are coherent.",
+      "evidenceRequired": [
+        "structure",
+        "visual"
+      ]
+    },
+    {
+      "owner": "figma-layout",
+      "positive": "Make this repeated comparison region use the right Auto Layout or grid relation and survive narrow/long-content pressure.",
+      "nearMiss": "Choose the component variants for this repeated control.",
+      "completion": "Layout owner, sizing/spacing relation, and pressure proof are explicit.",
+      "evidenceRequired": [
+        "structure",
+        "visual"
+      ]
+    },
+    {
+      "owner": "figma-tokens",
+      "positive": "Reconcile these color and spacing variables into primitive/semantic roles, modes, aliases, scopes, and code syntax.",
+      "nearMiss": "Rebalance the accent color because the screen feels too cold and saturated.",
+      "completion": "Token identities, reuse, modes/scopes, consumers, and migration impact are coherent.",
+      "evidenceRequired": [
+        "system-reuse"
+      ]
+    },
+    {
+      "owner": "figma-typography",
+      "positive": "Build reusable text roles/styles that survive the Vietnamese fallback, long labels, and metric scanning.",
+      "nearMiss": "Choose the page surface and shadow hierarchy.",
+      "completion": "Text roles, styles/variables, font availability, and representative content pressure are proven.",
+      "evidenceRequired": [
+        "system-reuse",
+        "visual"
+      ]
+    },
+    {
+      "owner": "figma-visual-system",
+      "positive": "Recompose this palette and surface/depth system so the accent, neutrals, material, and repeated states have the right visual mass.",
+      "nearMiss": "Rename and re-alias the underlying color variables without changing composition.",
+      "completion": "System bindings and rendered perceptual composition are both checked.",
+      "evidenceRequired": [
+        "visual",
+        "system-reuse"
+      ]
+    },
+    {
+      "owner": "figma-components",
+      "positive": "Repair this component set API: decide Slot versus Instance Swap versus Variant, reduce override drift, and verify representative instances.",
+      "nearMiss": "Implement the matching React component in the repository.",
+      "completion": "Semantic job, anatomy, properties/variants/slots, instances, overrides, and propagation are coherent.",
+      "evidenceRequired": [
+        "structure",
+        "system-reuse"
+      ]
+    },
+    {
+      "owner": "figma-prototype",
+      "positive": "Wire this approved settings interaction: trigger the modal, preserve context, branch on the prototype variable, and provide dismiss/recovery paths.",
+      "nearMiss": "Tune the spring/keyframe timing of the modal entrance without changing its interaction path.",
+      "completion": "Source state, trigger/condition/action, destination/context, recovery path, and interaction readback are explicit.",
+      "evidenceRequired": [
+        "interaction"
+      ]
+    },
+    {
+      "owner": "figma-motion",
+      "positive": "Author the approved collapsed-to-expanded Motion timeline with reusable timing/easing, coordinated keyframes, reduced-motion meaning, and temporal proof.",
+      "nearMiss": "Decide which click action, variable condition, and overlay destination should fire.",
+      "completion": "Animated subjects, keyframes/timing/easing/cohort, resting result, and temporal evidence are explicit.",
+      "evidenceRequired": [
+        "temporal",
+        "visual"
+      ]
+    },
+    {
+      "owner": "figma-design-system",
+      "positive": "Reconcile the current Figma library with the code design system, reusing foundations/components and fixing naming/propagation drift.",
+      "nearMiss": "Create a single one-off frame that does not introduce or change shared system truth.",
+      "completion": "Discovery/reconciliation, reuse/new decisions, publication scope, and system proof are explicit.",
+      "evidenceRequired": [
+        "system-reuse",
+        "structure"
+      ]
+    },
+    {
+      "owner": "figma-design-authoring",
+      "positive": "Turn this approved product behavior into a coherent Figma settings screen using the existing design system and verify the whole composition.",
+      "nearMiss": "Audit this fixed approved screen and return a verdict without changing it.",
+      "completion": "Approved truth is compiled through scene graphs into reusable Figma representation with structural/visual proof.",
+      "evidenceRequired": [
+        "structure",
+        "visual"
+      ]
+    },
+    {
+      "owner": "figma-verification",
+      "positive": "Audit this fixed Figma screen against the approved component/token rules, visual reference, prototype paths, and specified accessibility checks; do not redesign it.",
+      "nearMiss": "Fix the failed spacing, component API, and prototype findings now.",
+      "completion": "Exact target and expected truth are bound; each requested dimension has findings and PASS/FAIL/NOT_RUN/INCONCLUSIVE/MISSING/BLOCKED state; no unrequested repair occurs.",
+      "evidenceRequired": [
+        "structure",
+        "system-reuse",
+        "visual",
+        "interaction",
+        "accessibility"
+      ]
+    },
+    {
+      "owner": "figma-code-connect",
+      "positive": "Create or migrate the verified Code Connect mapping between this published Figma component and its real code component.",
+      "nearMiss": "Redesign the Figma component API to make it prettier.",
+      "completion": "Both identities, property correspondences, template/snippet/import behavior, validation, and publication state are verified.",
+      "evidenceRequired": [
+        "translation-parity"
+      ]
+    },
+    {
+      "owner": "figma-code-to-design",
+      "positive": "Rebuild the current production token/component semantics in Figma without tracing the DOM tree one-to-one.",
+      "nearMiss": "Implement a Figma design in production code.",
+      "completion": "Code semantics are reconciled to reusable native Figma truth and representative visuals are compared.",
+      "evidenceRequired": [
+        "translation-parity",
+        "system-reuse",
+        "visual"
+      ]
+    },
+    {
+      "owner": "figma-design-to-design",
+      "positive": "Reuse this published component library in another Figma file, preserving the intended upstream relationship; migrate the old local component consumers without losing compatible overrides or interactive-component behavior.",
+      "nearMiss": "Translate this Figma component into the production React codebase.",
+      "completion": "Source/target identities, REUSE_REMOTE/WRAP/FORK/MIGRATE/SYNC strategy, preserved/lost update path, migrated consumers, authority gates, and system/structure/interaction proof are explicit.",
+      "evidenceRequired": [
+        "system-reuse",
+        "structure",
+        "interaction"
+      ]
+    },
+    {
+      "owner": "figma-design-to-code",
+      "positive": "Implement this Figma screen in the existing repository using its real components/tokens and verify runtime visual parity.",
+      "nearMiss": "Write or mutate nodes back into the Figma file.",
+      "completion": "Design context/mappings are verified against repository truth and implementation has runtime/visual proof.",
+      "evidenceRequired": [
+        "translation-parity",
+        "runtime",
+        "visual"
+      ]
+    }
+  ],
+  "topologyMigrations": [
+    {
+      "proposal": "split-prototype-from-motion",
+      "status": "APPROVED_MATERIALIZED",
+      "version": "0.5.2",
+      "replacement": [
+        "figma-prototype",
+        "figma-motion"
+      ]
+    },
+    {
+      "proposal": "add-figma-verification",
+      "status": "APPROVED_MATERIALIZED",
+      "version": "0.5.2",
+      "replacement": [
+        "figma-verification"
+      ]
+    },
+    {
+      "proposal": "add-figma-design-to-design",
+      "status": "APPROVED_MATERIALIZED",
+      "version": "0.5.5",
+      "replacement": [
+        "figma-design-to-design"
+      ]
+    }
+  ],
+  "capabilityCandidates": [
+    {
+      "candidate": "figma-motion-to-code",
+      "status": "REFERENCE_BRANCH_MATERIALIZED_NOT_RUN",
+      "proofNeeded": "Representative executions showing motion implementation has an independently useful trigger/outcome/proof beyond the conditional figma-design-to-code branch, without becoming a provider-tool-shaped wrapper around get_motion_context.",
+      "currentOwner": "figma-design-to-code",
+      "reference": "skills/figma-design-to-code/references/motion-translation.md"
+    }
+  ]
+}

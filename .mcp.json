@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "figma-plugin": {
+      "command": "node",
+      "args": ["./dist/server/index.js"],
+      "cwd": "."
+    }
+  }
+}

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Figma Scene"
+  short_description: "Scene structure, planes, depth, and shape"

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "controlmux://figma/design-translation-packet.schema.json",
+  "title": "ControlMux Figma Design Translation Packet",
+  "type": "object",
+  "required": ["mode", "source", "target", "mappings", "tokens", "assets", "interactions", "motion", "unresolved", "proofRequired"],
+  "properties": {
+    "mode": { "const": "HANDOFF" },
+    "source": {
+      "type": "object",
+      "required": ["fileKey", "nodeId", "evidenceBoundary"],
+      "properties": {
+        "fileKey": { "type": ["string", "null"] },
+        "nodeId": { "type": "string", "minLength": 1 },
+        "evidenceBoundary": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "target": {
+      "type": "object",
+      "required": ["platform"],
+      "properties": {
+        "repository": { "type": ["string", "null"] },
+        "revision": { "type": ["string", "null"] },
+        "platform": { "type": "string", "minLength": 1 },
+        "framework": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["figmaIdentity", "semanticRole", "strategy"],
+        "properties": {
+          "figmaIdentity": { "type": "string", "minLength": 1 },
+          "semanticRole": { "type": "string", "minLength": 1 },
+          "codeIdentity": { "type": ["string", "null"] },
+          "targetLocation": { "type": ["string", "null"] },
+          "strategy": { "enum": ["REUSE", "ADAPT", "CREATE"] },
+          "props": { "type": "object" },
+          "states": { "type": "object" },
+          "slots": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "tokens": { "type": "array" },
+    "assets": { "type": "array" },
+    "interactions": { "type": "array" },
+    "motion": { "type": "array" },
+    "unresolved": { "type": "array" },
+    "proofRequired": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

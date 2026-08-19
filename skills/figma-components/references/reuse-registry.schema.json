@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://controlmux.local/schemas/figma-reuse-registry-v1.json",
+  "title": "Figma component reuse registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "registryId", "scope", "assets"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registryId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$" },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sourceFileName", "sourceFileKey"],
+      "properties": {
+        "kind": { "enum": ["local-file", "published-library", "mixed"] },
+        "sourceFileName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "sourceFileKey": { "type": ["string", "null"], "maxLength": 256 }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/asset" }
+    }
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registryKey", "semanticJob", "kind", "identityState", "source", "contract", "verification", "consumers"],
+      "properties": {
+        "registryKey": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:/-]{0,159}$" },
+        "semanticJob": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "kind": { "enum": ["COMPONENT", "COMPONENT_SET"] },
+        "identityState": { "enum": ["LOCAL_VERIFIED", "LIBRARY_DISCOVERED", "LIBRARY_IMPORTED_VERIFIED", "STALE", "MISSING", "NOT_RUN"] },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["published", "fileName", "fileKey", "nodeId", "componentKey", "libraryName"],
+          "properties": {
+            "published": { "type": "boolean" },
+            "fileName": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "fileKey": { "type": ["string", "null"], "maxLength": 256 },
+            "nodeId": { "type": ["string", "null"], "maxLength": 256 },
+            "componentKey": { "type": ["string", "null"], "maxLength": 256 },
+            "libraryName": { "type": ["string", "null"], "maxLength": 200 }
+          }
+        },
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["anatomy", "properties", "states"],
+          "properties": {
+            "anatomy": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 120 }, "uniqueItems": true },
+            "properties": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 160 }, "uniqueItems": true },
+            "states": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 120 }, "uniqueItems": true }
+          }
+        },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "observedAt", "evidence"],
+          "properties": {
+            "state": { "enum": ["PASS", "FAIL", "NOT_RUN", "INCONCLUSIVE", "MISSING", "BLOCKED"] },
+            "observedAt": { "type": ["string", "null"], "format": "date-time" },
+            "evidence": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "uniqueItems": true }
+          }
+        },
+        "consumers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["fileKey", "pageId", "instanceId", "mainComponentId", "linkState"],
+            "properties": {
+              "fileKey": { "type": ["string", "null"], "maxLength": 256 },
+              "pageId": { "type": "string", "minLength": 1, "maxLength": 256 },
+              "instanceId": { "type": "string", "minLength": 1, "maxLength": 256 },
+              "mainComponentId": { "type": ["string", "null"], "maxLength": 256 },
+              "linkState": { "enum": ["LINKED", "DETACHED", "UNKNOWN"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

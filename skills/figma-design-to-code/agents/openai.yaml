@@ -1,0 +1,3 @@
+interface:
+  display_name: "Figma Design to Code"
+  short_description: "Implement Figma faithfully in the real codebase"
