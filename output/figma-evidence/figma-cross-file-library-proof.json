@@ -39,19 +39,21 @@
     "fileKey": "DzeJyjCspvmFlsJTUTJ1Ip",
     "url": "https://www.figma.com/design/DzeJyjCspvmFlsJTUTJ1Ip",
     "creation": "PASS",
-    "pluginActivation": "PASS_CONNECTED_INSTANCE_OBSERVED_THEN_DISCONNECTED_ON_LEADER_RECOVERY"
+    "pluginActivation": "PASS_SOURCE_AND_TARGET_CONNECTED"
   },
   "proof": {
     "sourceFoundations": "PASS",
     "sourceComponent": "PASS_EDITED_IN_PLACE",
     "sourceVisualExport": "PASS",
     "sourcePublish": "BLOCKED_UNPUBLISHED_STARTER_UI_BOUNDARY",
-    "targetImport": "TIMEOUT_UNPUBLISHED_SOURCE_IMPORT",
+    "targetImport": "NOT_RUN_PREFLIGHT_GATE",
     "linkedInstanceReadback": "NOT_RUN"
   },
   "blocker": {
-    "state": "WAITING_FOR_PLUGIN_RECONNECT_AND_SOURCE_PUBLISH",
-    "nextAction": "Reconnect the plugin in both files after leader recovery, publish the source component in Figma UI, then retry import/readback.",
-    "doNotClaim": "Source component creation and an import timeout do not prove cross-file propagation."
+    "state": "READY_FOR_PUBLISH",
+    "nextAction": "Publish the component set in Figma UI, rerun preflight, then run import/readback.",
+    "preflight": "figma-plugin/scripts/preflight-cloud-library-transfer.mjs",
+    "writePerformedByPreflight": false,
+    "doNotClaim": "Source component creation alone does not prove cross-file propagation."
   }
 }
