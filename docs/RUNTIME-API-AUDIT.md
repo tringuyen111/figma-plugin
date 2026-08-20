@@ -46,7 +46,7 @@ Primary API references: [Figma global API](https://developers.figma.com/docs/plu
 - Historical Runtime SDK v2 live proof: core `PASS` — companion advertised `v1, v2`; targeted page loading, style/variable binding, native CSS/component inspection with provider calls disabled, undo checkpoint, cleanup, and queue recovery passed. This proof was bound to an older bundle revision and is not current-source proof until re-run.
 - Post-optimization history-pressure benchmark: sequential median `7.25 ms` and p95 `8.33 ms` at the bounded 100-record retention window; two-call burst wall `11.43 ms`. The request lifecycle is coalesced into one delta when it completes inside the 16 ms flush window, while peer windows still receive current runtime load. This is an observed local comparison, not a universal Figma performance claim.
 - Team Library cross-file import/update proof: NOT_RUN because no external library is enabled or selected.
-- Design-to-code parity: NOT_RUN because no target frontend implementation is in scope.
+- Design-to-code parity: PASS bounded to the new `Personal Homepage / Paper / 1440x1024` frame and `prototype/` browser target; see `prototype/design-translation.json`.
 
 ## Current-source revalidation — 2026-08-19
 
