@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "kind": "figma-cross-file-library-proof",
+  "capturedAt": "2026-08-20",
+  "plan": { "name": "Test", "key": "team::1346398645996325708", "seat": "Full", "tier": "starter" },
+  "source": {
+    "name": "Tri Brand / Personal Homepage Library",
+    "fileKey": "I7nSONHVA2K0B8AYEl6RHV",
+    "url": "https://www.figma.com/design/I7nSONHVA2K0B8AYEl6RHV",
+    "instanceId": "instance-mt0xqv4e-wxk6gluca5bu",
+    "pageId": "1:9",
+    "pageName": "02 - Components",
+    "component": {
+      "id": "1:16",
+      "name": "Work Card / Default",
+      "key": "bbefd58e46e99ee136d5ff8541ff6963c51c5db4",
+      "remote": false,
+      "publishStatus": "UNPUBLISHED",
+      "previewInstanceId": "1:22",
+      "visualExport": "prototype/verification/figma/tri-brand-cloud-library-work-card.png"
+    },
+    "foundations": { "collectionId": "VariableCollectionId:1:2", "variableCount": 7, "variableScopeAndCodeSyntaxReadback": "PASS" }
+  },
+  "target": {
+    "name": "Tri Brand / Personal Homepage Consumer",
+    "fileKey": "DzeJyjCspvmFlsJTUTJ1Ip",
+    "url": "https://www.figma.com/design/DzeJyjCspvmFlsJTUTJ1Ip",
+    "creation": "PASS",
+    "pluginActivation": "PENDING_USER_ACTION"
+  },
+  "proof": {
+    "sourceFoundations": "PASS",
+    "sourceComponent": "PASS",
+    "sourceVisualExport": "PASS",
+    "sourcePublish": "BLOCKED_UNPUBLISHED_STARTER_UI_BOUNDARY",
+    "targetImport": "NOT_RUN_TARGET_PLUGIN_NOT_CONNECTED",
+    "linkedInstanceReadback": "NOT_RUN"
+  },
+  "blocker": {
+    "state": "WAITING_FOR_TARGET_PLUGIN_INSTANCE",
+    "nextAction": "Open the target file URL, run the Figma Plugin there until LIVE/Connected, then resume import/readback with that instanceId.",
+    "doNotClaim": "File creation alone does not prove library propagation."
+  }
+}

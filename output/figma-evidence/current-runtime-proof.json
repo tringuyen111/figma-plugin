@@ -100,7 +100,7 @@
     "translationPacket": "prototype/design-translation.json"
   },
   "remainingQualification": {
-    "crossFileLibraryReuse": "NOT_RUN",
+    "crossFileLibraryReuse": "SOURCE_CLOUD_COMPONENT_PASS; TARGET_IMPORT_PENDING_USER_PLUGIN_ACTIVATION_AND_SOURCE_PUBLISH",
     "designToCodeImplementationParity": "PASS_BOUNDED_TO_PERSONAL_HOMEPAGE_FRAME",
     "behavioralInteraction": "PASS_BOUNDED_TO_FRONTEND_PROTOTYPE_AND_FIGMA_REACTION_READBACK; FIGMA_CLICK_RUN_NOT_EXECUTED",
     "independentQualification": "NOT_RUN_NO_FROZEN_BASELINE"
