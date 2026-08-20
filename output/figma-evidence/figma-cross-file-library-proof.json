@@ -17,7 +17,20 @@
       "remote": false,
       "publishStatus": "UNPUBLISHED",
       "previewInstanceId": "1:22",
-      "visualExport": "prototype/verification/figma/tri-brand-cloud-library-work-card.png"
+      "componentSetId": "2:44",
+      "variantCount": 3,
+      "variants": ["State=Default", "State=Featured", "State=Compact"],
+      "propertyCount": 9,
+      "propertyApi": {
+        "text": ["Title", "Description", "Meta", "Index"],
+        "boolean": ["Show Description", "Show Meta", "Show Index", "Show Arrow"]
+      },
+      "previewInstances": ["1:22", "3:8", "3:21"],
+      "visualExports": [
+        { "path": "prototype/verification/figma/tri-brand-cloud-library-work-card.png", "sha256": "d476dca39aa105fd94d953e179242e90f20e712b364290972a86e09012fabcf7" },
+        { "path": "prototype/verification/figma/tri-brand-cloud-library-work-card-featured.png", "sha256": "3a89aa29912414f7d4dfa4d819f8e3dec4110f8fc8de818ee843802a2e2ce929" },
+        { "path": "prototype/verification/figma/tri-brand-cloud-library-work-card-compact.png", "sha256": "56fc494ecbef8301055da8308e523d83e3f4bc6eadad5096c63c4f0a5216d7a1" }
+      ]
     },
     "foundations": { "collectionId": "VariableCollectionId:1:2", "variableCount": 7, "variableScopeAndCodeSyntaxReadback": "PASS" }
   },
@@ -30,7 +43,7 @@
   },
   "proof": {
     "sourceFoundations": "PASS",
-    "sourceComponent": "PASS",
+    "sourceComponent": "PASS_EDITED_IN_PLACE",
     "sourceVisualExport": "PASS",
     "sourcePublish": "BLOCKED_UNPUBLISHED_STARTER_UI_BOUNDARY",
     "targetImport": "NOT_RUN_TARGET_PLUGIN_NOT_CONNECTED",
