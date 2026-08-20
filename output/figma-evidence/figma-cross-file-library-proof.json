@@ -39,19 +39,19 @@
     "fileKey": "DzeJyjCspvmFlsJTUTJ1Ip",
     "url": "https://www.figma.com/design/DzeJyjCspvmFlsJTUTJ1Ip",
     "creation": "PASS",
-    "pluginActivation": "PENDING_USER_ACTION"
+    "pluginActivation": "PASS_CONNECTED_INSTANCE_OBSERVED_THEN_DISCONNECTED_ON_LEADER_RECOVERY"
   },
   "proof": {
     "sourceFoundations": "PASS",
     "sourceComponent": "PASS_EDITED_IN_PLACE",
     "sourceVisualExport": "PASS",
     "sourcePublish": "BLOCKED_UNPUBLISHED_STARTER_UI_BOUNDARY",
-    "targetImport": "NOT_RUN_TARGET_PLUGIN_NOT_CONNECTED",
+    "targetImport": "TIMEOUT_UNPUBLISHED_SOURCE_IMPORT",
     "linkedInstanceReadback": "NOT_RUN"
   },
   "blocker": {
-    "state": "WAITING_FOR_TARGET_PLUGIN_INSTANCE",
-    "nextAction": "Open the target file URL, run the Figma Plugin there until LIVE/Connected, then resume import/readback with that instanceId.",
-    "doNotClaim": "File creation alone does not prove library propagation."
+    "state": "WAITING_FOR_PLUGIN_RECONNECT_AND_SOURCE_PUBLISH",
+    "nextAction": "Reconnect the plugin in both files after leader recovery, publish the source component in Figma UI, then retry import/readback.",
+    "doNotClaim": "Source component creation and an import timeout do not prove cross-file propagation."
   }
 }
