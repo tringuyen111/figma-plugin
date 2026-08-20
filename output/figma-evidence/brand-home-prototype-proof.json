@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "kind": "figma-prototype-proof",
+  "capturedAt": "2026-08-20",
+  "bundleRevision": "1431a21f019211dd",
+  "source": {
+    "provider": "local-figma-companion",
+    "fileName": "Untitled",
+    "fileKey": null,
+    "pageId": "45:70",
+    "pageName": "03 - Playground"
+  },
+  "statePath": {
+    "source": { "id": "77:2270", "name": "Hero / Primary CTA" },
+    "trigger": { "type": "ON_CLICK" },
+    "action": { "type": "NODE", "navigation": "NAVIGATE", "destinationId": "78:2314" },
+    "destination": { "id": "78:2314", "name": "Selected Work / Prototype Destination / 1440x1024" },
+    "recovery": { "sourceId": "78:2319", "name": "Prototype Destination / Back Button", "trigger": "ON_CLICK", "action": "BACK" }
+  },
+  "proof": {
+    "mutation": "PASS",
+    "independentReadback": "PASS_BOUNDED_TO_FIGMA_REACTION_READBACK",
+    "export": "PASS",
+    "artifact": {
+      "path": "prototype/verification/figma/tri-brand-personal-homepage-prototype-destination.png",
+      "sha256": "995f7d4e8fa002055bf821ac2ec8fa07a49dbaaaf4014bc846bb5936fd4f6b63"
+    }
+  },
+  "boundaries": {
+    "figmaNativeReactionWiring": "PASS",
+    "frontendInteraction": "PASS",
+    "figmaCloudClickRun": "NOT_RUN_LOCAL_FILE_KEY_NULL",
+    "crossFileLibraryReuse": "BLOCKED_NEEDS_SECOND_EXACT_FILE_AND_PLAN_SELECTION",
+    "independentQualification": "NOT_RUN"
+  },
+  "commands": [
+    "node scripts/add-brand-home-prototype.mjs",
+    "node scripts/verify-brand-home-prototype.mjs",
+    "node scripts/export-brand-home-proof.mjs --node-id=78:2314"
+  ]
+}

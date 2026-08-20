@@ -1,4 +1,4 @@
-# Runtime and Figma API audit — 2026-08-19
+# Runtime and Figma API audit — 2026-08-20
 
 Scope: the current `figma-plugin` package, Figma Desktop file `Untitled`, and the local MCP → HTTP leader → WebSocket companion → native Plugin API path. This is not a claim about Figma REST API coverage or published Team Library administration.
 
@@ -45,8 +45,9 @@ Primary API references: [Figma global API](https://developers.figma.com/docs/plu
 - Local source/build proof: PASS — typecheck, 21 test files / 97 tests, bundle build, and shipped-bundle smoke all passed after telemetry batching and core/provider probe separation.
 - Historical Runtime SDK v2 live proof: core `PASS` — companion advertised `v1, v2`; targeted page loading, style/variable binding, native CSS/component inspection with provider calls disabled, undo checkpoint, cleanup, and queue recovery passed. This proof was bound to an older bundle revision and is not current-source proof until re-run.
 - Post-optimization history-pressure benchmark: sequential median `7.25 ms` and p95 `8.33 ms` at the bounded 100-record retention window; two-call burst wall `11.43 ms`. The request lifecycle is coalesced into one delta when it completes inside the 16 ms flush window, while peer windows still receive current runtime load. This is an observed local comparison, not a universal Figma performance claim.
-- Team Library cross-file import/update proof: NOT_RUN because no external library is enabled or selected.
+- Team Library cross-file import/update proof: BLOCKED/NOT_RUN because the current source file has `fileKey: null` and no second exact file/library target has been selected.
 - Design-to-code parity: PASS bounded to the new `Personal Homepage / Paper / 1440x1024` frame and `prototype/` browser target; see `prototype/design-translation.json`.
+- Figma-native prototype reaction wiring: PASS bounded to local readback (`Hero / Primary CTA` → `Selected Work / Prototype Destination` → `BACK`); cloud prototype click-run remains NOT_RUN.
 
 ## Current-source revalidation — 2026-08-19
 

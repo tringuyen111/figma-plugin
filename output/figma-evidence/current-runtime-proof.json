@@ -87,12 +87,22 @@
       ],
       "command": "python prototype/verify_browser.py"
     },
+    "figmaPrototypeProof": {
+      "state": "PASS_BOUNDED_TO_FIGMA_REACTION_READBACK",
+      "sourceNodeId": "77:2270",
+      "destinationNodeId": "78:2314",
+      "recoveryNodeId": "78:2319",
+      "statePath": "ON_CLICK -> NAVIGATE -> Selected Work / Prototype Destination -> BACK",
+      "mutationCommand": "node scripts/add-brand-home-prototype.mjs",
+      "readbackCommand": "node scripts/verify-brand-home-prototype.mjs",
+      "clickRun": "NOT_RUN_CLOUD_PLAYER"
+    },
     "translationPacket": "prototype/design-translation.json"
   },
   "remainingQualification": {
     "crossFileLibraryReuse": "NOT_RUN",
     "designToCodeImplementationParity": "PASS_BOUNDED_TO_PERSONAL_HOMEPAGE_FRAME",
-    "behavioralInteraction": "PASS_BOUNDED_TO_FRONTEND_PROTOTYPE; FIGMA_NATIVE_NOT_RUN",
+    "behavioralInteraction": "PASS_BOUNDED_TO_FRONTEND_PROTOTYPE_AND_FIGMA_REACTION_READBACK; FIGMA_CLICK_RUN_NOT_EXECUTED",
     "independentQualification": "NOT_RUN_NO_FROZEN_BASELINE"
   }
 }
