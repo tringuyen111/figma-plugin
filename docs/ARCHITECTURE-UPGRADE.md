@@ -11,7 +11,7 @@ The current source build fixed point is bundle revision `1431a21f019211dd` (pack
 - `npm run test:typed-tools-live` observed a matching current-source typed inventory and guarded dry-run after the companion reload: 3 pages, 2 component records, 8 paint styles, 10 text styles, and zero queue/pending/in-flight residue.
 - The stale leader was stopped and restarted from `D:/tri-nguyen-brand-system/figma-plugin/dist/server/index.js`.
 - The companion was reloaded from the current development manifest. `npm run test:mcp-operation` returned `SDK_READ_OK`, and `npm run test:runtime-sdk-v2-live` returned core `PASS` with temporary fixture cleanup and queue recovery.
-- Provider-specific probes remain opt-in; cross-file reuse, behavioral interaction and independent qualification remain separate `NOT_RUN` claims. Design-to-code parity is now PASS within the bounded Personal Homepage frame.
+- Provider-specific probes remain opt-in. Design-to-code parity is now PASS within the bounded Personal Homepage frame, and the derived frontend prototype passes bounded interaction/accessibility probes. Cross-file reuse, Figma-native interaction and independent qualification remain separate `NOT_RUN` claims.
 
 ## Decision
 
