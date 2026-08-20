@@ -1,4 +1,4 @@
-# Kiến trúc capability — Figma Plugin 0.5.6
+# Kiến trúc capability — Figma Plugin 0.6.0
 
 Figma Plugin tách **Design cognition**, **verification**, **provider evidence** và **runtime kernel** thành các lớp khác nhau.
 
@@ -11,16 +11,18 @@ provider-aware execution / evidence selection
           ↓
 figma-native execution contract
           ↓
-figma_status + figma_query + figma_apply + figma_exec + figma_export
+figma_status + typed figma_query/figma_apply + figma_exec + figma_export
           ↓
 local MCP/runtime bridge
           ↓
 Figma Plugin API
 ```
 
-Ba MCP primitive local vẫn cố ý nhỏ:
+Các MCP primitive local vẫn cố ý nhỏ:
 
 - `figma_status`: connection/target/routing/runtime health.
+- `figma_query`: typed read, gồm `library_inventory` cho identity/publish-status/enabled-library evidence.
+- `figma_apply`: guarded write, gồm `import_library_asset` cho published-key reuse; publish/enable vẫn là provider authority.
 - `figma_exec`: primitive thực thi native Figma Plugin API.
 - `figma_export`: typed artifact egress; lưu bytes local và trả metadata/path thay vì đưa binary lớn vào model context.
 
@@ -347,8 +349,8 @@ Interactive-component variant reactions được reuse như behavior contract; i
 Manifest có `teamlibrary` permission cho local inspection cần thiết. Library publish/enable vẫn là user/Figma authority; ControlMux chỉ được claim readiness/status nếu đó là evidence thực tế, không suy publish từ local state.
 
 
-## 0.5.6 Lifecycle reliability + behavioral components
+## 0.6.0 Typed library lifecycle + reliability
 
-Topology giữ **16 Skill**; không thêm provider/tool-shaped Skill. Runtime có `figma_status`, typed `figma_query`/`figma_apply`, raw `figma_exec`, và `figma_export`. `figma_export` có terminal egress semantics riêng: leader persist typed artifact, follower nhận compact descriptor, MCP result có text descriptor + `resource_link` + `structuredContent`. Local file resource link không đồng nghĩa remote host portability.
+Topology giữ **16 Skill**; không thêm provider/tool-shaped Skill. Runtime có `figma_status`, typed `figma_query`/`figma_apply`, raw `figma_exec`, và `figma_export`. `library_inventory` làm rõ identity/publish-status/enablement boundary; `import_library_asset` làm rõ exact-key published reuse với dry-run/confirm/readback. `figma_export` có terminal egress semantics riêng: leader persist typed artifact, follower nhận compact descriptor, MCP result có text descriptor + `resource_link` + `structuredContent`. Local file resource link không đồng nghĩa remote host portability.
 
 `figma-design-to-design` bổ sung transactional Transfer Ledger và Design Transfer Packet để bind exact source/target instance + file + evidence boundary, record writes/postconditions và resume idempotently. `figma-design-to-code` HANDOFF có Design Translation Packet schema. Components/Prototype được thêm behavioral Golden Teaching Cases nhưng execution qualification vẫn `NOT_RUN`.

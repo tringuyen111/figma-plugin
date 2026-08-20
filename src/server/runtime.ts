@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { APPLY_ACTIONS, DEFAULT_PORT, EXPORT_RPC_TIMEOUT_MS, MAX_BINARY_ARTIFACT_BYTES, PORT_RANGE, QUERY_KINDS, RUNTIME_SDK_VERSIONS, type BridgeResponse, type Operation, type RuntimeSdkVersion } from "../shared/protocol.js";
+import { APPLY_ACTIONS, DEFAULT_PORT, EXPORT_RPC_TIMEOUT_MS, LIBRARY_ASSET_TYPES, MAX_BINARY_ARTIFACT_BYTES, PORT_RANGE, QUERY_KINDS, RUNTIME_SDK_VERSIONS, type BridgeResponse, type Operation, type RuntimeSdkVersion } from "../shared/protocol.js";
 import type { Bridge } from "./bridge.js";
 import { ErrorCode, OpError } from "./errors.js";
 import { Follower, STATUS_RPC_TIMEOUT_MS } from "./follower.js";
@@ -230,6 +230,30 @@ function validateApplyParams(params: Record<string, unknown>): void {
   const pageIds = params["pageIds"];
   if (pageIds !== undefined && (!Array.isArray(pageIds) || pageIds.length > 100 || !pageIds.every((id) => typeof id === "string" && id.length > 0 && id.length <= 256))) {
     throw new OpError(ErrorCode.INVALID_PARAMS, "pageIds must be an array of 1-100 non-empty page ids.");
+  }
+  if (action === "import_library_asset") {
+    const assetType = params["assetType"];
+    if (typeof assetType !== "string" || !LIBRARY_ASSET_TYPES.includes(assetType as (typeof LIBRARY_ASSET_TYPES)[number])) {
+      throw new OpError(ErrorCode.INVALID_PARAMS, `import_library_asset assetType must be one of: ${LIBRARY_ASSET_TYPES.join(", ")}.`);
+    }
+    const key = params["key"];
+    if (typeof key !== "string" || key.trim().length === 0 || key.length > 256 || /[\u0000-\u001f]/.test(key)) {
+      throw new OpError(ErrorCode.INVALID_PARAMS, "import_library_asset key must be a non-empty string up to 256 characters.");
+    }
+    const instanceName = params["instanceName"];
+    if (instanceName !== undefined && (typeof instanceName !== "string" || instanceName.trim().length === 0 || instanceName.length > 180 || /[\u0000-\u001f]/.test(instanceName))) {
+      throw new OpError(ErrorCode.INVALID_PARAMS, "instanceName must be a non-empty string up to 180 characters.");
+    }
+    for (const coordinate of ["x", "y"]) {
+      const value = params[coordinate];
+      if (value !== undefined && (typeof value !== "number" || !Number.isFinite(value) || value < -1_000_000 || value > 1_000_000)) {
+        throw new OpError(ErrorCode.INVALID_PARAMS, `${coordinate} must be a finite number between -1000000 and 1000000.`);
+      }
+    }
+    const propertyValues = params["propertyValues"];
+    if (propertyValues !== undefined && (!propertyValues || typeof propertyValues !== "object" || Array.isArray(propertyValues) || !Object.entries(propertyValues).every(([name, value]) => Boolean(name) && (typeof value === "string" || typeof value === "boolean")))) {
+      throw new OpError(ErrorCode.INVALID_PARAMS, "propertyValues must be an object of exact Figma property keys to string/boolean values.");
+    }
   }
 }
 

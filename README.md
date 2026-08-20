@@ -295,3 +295,8 @@ MIT License — xem `LICENSE`.
 ## 0.5.6 — Lifecycle reliability + behavioral components
 
 0.5.6 giữ đúng **16 Skill** và 5 local MCP tools (`figma_status`, `figma_query`, `figma_apply`, `figma_exec`, `figma_export`). Durable `figma_export` giờ persist artifact ở leader trước khi follower RPC, dùng operation deadline xuyên leader/follower, framing-safe byte ceiling, private artifact permissions và 24h ephemeral cleanup mặc định. Design→Design có Transfer Ledger + Design Transfer Packet để bind source/target instance, resume idempotently và proof future relationship. Design→Code HANDOFF có schema/validator riêng. `figma-components` và `figma-prototype` được thêm Golden Teaching Cases chi tiết; behavioral Figma execution vẫn `NOT_RUN` cho tới khi representative executions thực sự chạy.
+
+
+## 0.6.0 — Typed Figma library lifecycle
+
+0.6.0 thêm `figma_query(kind=library_inventory)` để đọc exact component/style/variable identity, publish status, remote state, enabled library-variable descriptors và publish/enable boundary. `figma_apply(action=import_library_asset)` hỗ trợ import component, component set, style và variable theo published key với dry-run mặc định, `confirm:true`, undo boundary, idempotency theo source identity và typed readback. Preflight/import recipes đã chuyển khỏi raw JavaScript sang typed query/apply. Library publish/enable vẫn không được giả lập: khi source còn `UNPUBLISHED`, workflow dừng ở `READY_FOR_PUBLISH`.

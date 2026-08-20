@@ -5,7 +5,7 @@ import { validateOperationContext } from "../../src/server/operation-context.js"
 import { DEFAULT_PORT, ErrorCode, OPERATIONS, PROTOCOL_VERSION } from "../../src/shared/protocol.js";
 
 describe("native MCP surface", () => {
-  it("exposes status, native execution, and typed artifact egress", () => {
+  it("exposes status, native execution, typed library lifecycle, and artifact egress", () => {
     const tools = toolDefinitions();
     expect(tools.map((tool) => tool.name)).toEqual(["figma_status", "figma_query", "figma_apply", "figma_exec", "figma_export"]);
     expect(OPERATIONS).toEqual(["execute_js", "query_document", "apply_document", "export_node"]);
@@ -19,10 +19,13 @@ describe("native MCP surface", () => {
     expect(props).toHaveProperty("runtimeSdk");
     const query = tools.find((tool) => tool.name === "figma_query");
     const queryProps = (query?.inputSchema as { properties?: Record<string, unknown> }).properties ?? {};
-    expect((queryProps.kind as { enum?: string[] }).enum).toEqual(["file_inventory", "node_handoff", "structure"]);
+    expect((queryProps.kind as { enum?: string[] }).enum).toEqual(["file_inventory", "node_handoff", "structure", "library_inventory"]);
     const apply = tools.find((tool) => tool.name === "figma_apply");
     const applyProps = (apply?.inputSchema as { properties?: Record<string, unknown> }).properties ?? {};
-    expect((applyProps.action as { enum?: string[] }).enum).toEqual(["clear_file_owned_assets"]);
+    expect((applyProps.action as { enum?: string[] }).enum).toEqual(["clear_file_owned_assets", "import_library_asset"]);
+    expect(applyProps).toHaveProperty("assetType");
+    expect(applyProps).toHaveProperty("key");
+    expect(applyProps).toHaveProperty("propertyValues");
     expect((props.runtimeSdk as { enum?: string[] }).enum).toEqual(["v1", "v2"]);
     const operation = props.operation as { required?: string[]; properties?: Record<string, unknown> };
     expect(operation.required).toEqual(["label", "kind"]);

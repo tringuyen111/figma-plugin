@@ -13,10 +13,14 @@ export const DEFAULT_MAX_EXPORT_BYTES = 32 * 1024 * 1024;
 
 export const OPERATIONS = ["execute_js", "query_document", "apply_document", "export_node"] as const;
 export type Operation = (typeof OPERATIONS)[number];
-export const QUERY_KINDS = ["file_inventory", "node_handoff", "structure"] as const;
+export const QUERY_KINDS = ["file_inventory", "node_handoff", "structure", "library_inventory"] as const;
 export type QueryKind = (typeof QUERY_KINDS)[number];
-export const APPLY_ACTIONS = ["clear_file_owned_assets"] as const;
+export const APPLY_ACTIONS = ["clear_file_owned_assets", "import_library_asset"] as const;
 export type ApplyAction = (typeof APPLY_ACTIONS)[number];
+
+/** Published asset kinds supported by the native Figma Plugin API import methods. */
+export const LIBRARY_ASSET_TYPES = ["component", "component_set", "style", "variable"] as const;
+export type LibraryAssetType = (typeof LIBRARY_ASSET_TYPES)[number];
 
 export const EXPORT_FORMATS = ["PNG", "JPG", "SVG", "PDF", "JSON", "MP4", "GIF", "WEBM"] as const;
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];

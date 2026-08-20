@@ -1,7 +1,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, type CallToolResult, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { VERSION } from "./version.js";
-import { APPLY_ACTIONS, MAX_BINARY_ARTIFACT_BYTES, OPERATION_PHASES, OPERATION_REPRESENTATIONS, QUERY_KINDS, REQUEST_KINDS, RUNTIME_SDK_VERSIONS, type OperationContextWire, type RequestKind, type RuntimeSdkVersion } from "../shared/protocol.js";
+import { APPLY_ACTIONS, LIBRARY_ASSET_TYPES, MAX_BINARY_ARTIFACT_BYTES, OPERATION_PHASES, OPERATION_REPRESENTATIONS, QUERY_KINDS, REQUEST_KINDS, RUNTIME_SDK_VERSIONS, type OperationContextWire, type RequestKind, type RuntimeSdkVersion } from "../shared/protocol.js";
 import { FIGMA_SKILL_IDS } from "../capabilities/skill-registry.js";
 import { ErrorCode, OpError, toBridgeError } from "./errors.js";
 import { handleApply, handleExec, handleExport, handleQuery, handleStatus, type ToolContext } from "./tools.js";
@@ -106,7 +106,7 @@ const EXPORT_TOOL: Tool = {
 
 const QUERY_TOOL: Tool = {
   name: "figma_query",
-  description: "Run an enforceable read-only query against the native Figma Plugin API. Use it for file inventory, component/style/variable counts, structure, and code-handoff evidence instead of writing repeated figma_exec JavaScript.",
+  description: "Run an enforceable read-only query against the native Figma Plugin API. Use library_inventory for component/style/variable identity, publish status, enabled library-variable descriptors, and the explicit publish/enable boundary; use the other kinds for file, structure, and code-handoff evidence.",
   inputSchema: {
     type: "object",
     properties: {
@@ -128,7 +128,7 @@ const QUERY_TOOL: Tool = {
 
 const APPLY_TOOL: Tool = {
   name: "figma_apply",
-  description: "Run a bounded, serialized Figma mutation with dry-run, explicit confirmation, undo checkpoint, and postcondition evidence. dryRun defaults to true; destructive clear requires confirm:true and dryRun:false.",
+  description: "Run a bounded, serialized Figma mutation with dry-run, explicit confirmation, undo checkpoint, and postcondition evidence. Supports importing published components, component sets, styles, and variables by exact key; publication and library enablement remain provider/UI authority. dryRun defaults to true.",
   inputSchema: {
     type: "object",
     properties: {
@@ -137,6 +137,12 @@ const APPLY_TOOL: Tool = {
       confirm: { type: "boolean", description: "Required true for a non-dry-run destructive action." },
       pageIds: { type: "array", maxItems: 100, items: { type: "string", minLength: 1, maxLength: 256 }, description: "Optional exact pages to clear; omit for all pages." },
       removeLocalAssets: { type: "boolean", description: "For clear_file_owned_assets, also remove local styles and variable collections." },
+      assetType: { type: "string", enum: [...LIBRARY_ASSET_TYPES], description: "For import_library_asset, exact published asset kind." },
+      key: { type: "string", minLength: 1, maxLength: 256, description: "For import_library_asset, exact published component/component-set/style/variable key. Local unpublished keys are rejected by Figma." },
+      instanceName: { type: "string", minLength: 1, maxLength: 180, description: "For component imports, target instance name used for idempotency." },
+      x: { type: "number", minimum: -1000000, maximum: 1000000, description: "For component imports, target X coordinate." },
+      y: { type: "number", minimum: -1000000, maximum: 1000000, description: "For component imports, target Y coordinate." },
+      propertyValues: { type: "object", additionalProperties: { type: ["string", "boolean"] }, description: "For component imports, exact Figma component property keys including # suffixes for TEXT/BOOLEAN/INSTANCE_SWAP properties." },
       sessionId: { type: "string", minLength: 1, maxLength: 256 },
       instanceId: { type: "string", minLength: 1, maxLength: 256 },
       pageId: { type: "string", minLength: 1, maxLength: 256 },
@@ -210,7 +216,7 @@ async function callTool(ctx: ToolContext, name: string, args: Record<string, unk
     const traceId = optionalTraceId(args["traceId"]);
     const operation = optionalOperation(args["operation"], traceId, "write");
     const params: Record<string, unknown> = {};
-    for (const key of ["action", "dryRun", "confirm", "pageIds", "removeLocalAssets"]) if (args[key] !== undefined) params[key] = args[key];
+    for (const key of ["action", "dryRun", "confirm", "pageIds", "removeLocalAssets", "assetType", "key", "instanceName", "x", "y", "propertyValues"]) if (args[key] !== undefined) params[key] = args[key];
     return handleApply(
       ctx,
       params,

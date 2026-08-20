@@ -14,6 +14,8 @@ Scope: the current `figma-plugin` package, Figma Desktop file `Untitled`, and th
 
 The transport/status path is fast. The material regression came from the companion UI synchronously rebuilding a growing operation log while the same iframe also relayed execution responses. Increasing `MAX_IN_FLIGHT` was rejected: caller-declared `kind: read` is observability metadata and cannot enforce that arbitrary JavaScript is mutation-free.
 
+The detailed boundary and new typed lifecycle contract are recorded in [FIGMA-API-CAPABILITY-MATRIX.md](FIGMA-API-CAPABILITY-MATRIX.md). This audit does not claim Figma REST write coverage or published Team Library administration.
+
 ## Chosen API upgrades
 
 | API/mechanism | Why it is used | Runtime surface |
@@ -24,6 +26,8 @@ The transport/status path is fast. The material regression came from the compani
 | `getCSSAsync`, `getDevResourcesAsync`, `getPublishStatusAsync` | collect native implementation/reuse evidence without inventing code correctness | `inspectHandoff` |
 | `commitUndo` | make a completed mutation packet a recoverable Figma undo boundary | `commitUndoCheckpoint` |
 | local style/variable collection removal APIs | deterministic file-owned cleanup after node removal | `npm run clear:figma-file` |
+| library identity/status and enabled-variable descriptors | expose exact component/style/variable keys, publish status, remote state, and provider authority without inferring publication | `figma_query(kind=library_inventory)` |
+| published-key import APIs | import components, component sets, styles, and variables behind dry-run/confirm and typed readback | `figma_apply(action=import_library_asset)` |
 
 Runtime SDK v1 remains compatible. V2 is separately advertised by the exact loaded companion so a stale v1 bundle fails before queueing a v2 request.
 
@@ -34,7 +38,7 @@ Runtime SDK v1 remains compatible. V2 is separately advertised by the exact load
 | `loadAllPagesAsync` | CONDITIONAL | Figma warns it can be slow and memory-heavy. Use only for true whole-document traversal/events; maintenance loads each explicitly required page. |
 | `documentchange` | NOT_USED | requires whole-document loading in dynamic-page mode. Prefer `PageNode.nodechange` or `stylechange` when a concrete external-change consumer exists. |
 | `figma.codegen` | NOT_USED | requires a separate Dev Mode/codegen manifest capability and lifecycle; it does not belong in the current always-open execution companion by default. |
-| Team Library enable/unpublish | PROVIDER_LIMIT | enabled variable libraries can be queried, but Figma does not let Plugin API enable libraries. Published component/style discovery still requires keys or another authorized source. |
+| Team Library enable/publish/unpublish | PROVIDER_LIMIT | enabled variable libraries can be queried and published assets can be imported by exact key, but Figma does not expose Plugin API publish/enable/unpublish authority. The typed lifecycle surface reports this boundary explicitly. |
 | `saveVersionHistoryAsync` | NOT_DEFAULT | useful for explicit release checkpoints, but Figma documents timing caveats after plugin mutations; it should not be hidden inside every operation. |
 | concurrent arbitrary `figma_exec` | REJECTED | arbitrary code labelled `read` may still mutate; parallel execution would weaken ordering and recovery truth. |
 
@@ -42,16 +46,18 @@ Primary API references: [Figma global API](https://developers.figma.com/docs/plu
 
 ## Proof boundary
 
-- Local source/build proof: PASS — typecheck, 21 test files / 97 tests, bundle build, and shipped-bundle smoke all passed after telemetry batching and core/provider probe separation.
+- Local source/build proof: PASS — typecheck, 21 test files / 102 tests, bundle build, and shipped-bundle smoke all passed after the typed library lifecycle upgrade.
 - Historical Runtime SDK v2 live proof: core `PASS` — companion advertised `v1, v2`; targeted page loading, style/variable binding, native CSS/component inspection with provider calls disabled, undo checkpoint, cleanup, and queue recovery passed. This proof was bound to an older bundle revision and is not current-source proof until re-run.
 - Post-optimization history-pressure benchmark: sequential median `7.25 ms` and p95 `8.33 ms` at the bounded 100-record retention window; two-call burst wall `11.43 ms`. The request lifecycle is coalesced into one delta when it completes inside the 16 ms flush window, while peer windows still receive current runtime load. This is an observed local comparison, not a universal Figma performance claim.
 - Team Library cross-file import/update proof: exact cloud source/target files now exist in team `Test`; source foundations/component/export are PASS. The source component was edited in place into a 3-variant, 9-property component set while preserving master `1:16`. The new transfer preflight binds both instances and fails closed at `READY_FOR_PUBLISH` while source status is `UNPUBLISHED`; import is not attempted until the user/Figma publish gate is satisfied. See `output/figma-evidence/figma-cross-file-library-proof.json`.
 - Design-to-code parity: PASS bounded to the new `Personal Homepage / Paper / 1440x1024` frame and `prototype/` browser target; see `prototype/design-translation.json`.
 - Figma-native prototype reaction wiring: PASS bounded to local readback (`Hero / Primary CTA` → `Selected Work / Prototype Destination` → `BACK`); cloud prototype click-run remains NOT_RUN.
 
-## Current-source revalidation — 2026-08-19
+## Current-source revalidation — 2026-08-20
 
-- Current package revision: `1431a21f019211dd`.
-- Typed inventory and guarded dry-run: PASS was observed against current source revision `1431a21f019211dd` after the companion reload.
-- Current MCP operation returned `SDK_READ_OK`; Runtime SDK v2 core proof returned `PASS` with temporary fixture cleanup and queue/in-flight recovery.
-- The exact command results and stale-revision boundary are recorded in `../output/figma-evidence/current-runtime-proof.json`.
+- Current package revision: `7634a79593c9d06a` (`0.6.0`).
+- Typed library inventory: `PASS_TYPED_LIBRARY_INVENTORY_READ_ONLY`; source `Work Card / Default` was read back as a 3-variant, 9-property component set with `publishStatus: UNPUBLISHED`, `remote: false`, and no write.
+- Typed cross-file preflight: `READY_FOR_PUBLISH`; source/target file keys were bound from the transfer recipe, target had no existing imported instance, and `writePerformed: false`.
+- Typed import recipe dry-run: `dryRun: true`, exact component-set key and target page returned, `writePerformed: false`.
+- The revision-bound read-only evidence is `../output/figma-evidence/library-api-live.json`; the previous `current-runtime-proof.json` remains historical evidence for revision `1431a21f019211dd`.
+- Typed library lifecycle proof is covered by unit tests and the read-only `npm run test:library-api-live` smoke; it remains bound to the loaded companion bundle revision.

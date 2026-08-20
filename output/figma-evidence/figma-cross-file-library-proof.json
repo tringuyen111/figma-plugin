@@ -7,7 +7,8 @@
     "name": "Tri Brand / Personal Homepage Library",
     "fileKey": "I7nSONHVA2K0B8AYEl6RHV",
     "url": "https://www.figma.com/design/I7nSONHVA2K0B8AYEl6RHV",
-    "instanceId": "instance-mt0xqv4e-wxk6gluca5bu",
+    "instanceId": "instance-mt0zyr1f-h6hwhz1uqfkg0",
+    "bundleRevision": "7634a79593c9d06a",
     "pageId": "1:9",
     "pageName": "02 - Components",
     "component": {
@@ -18,6 +19,7 @@
       "publishStatus": "UNPUBLISHED",
       "previewInstanceId": "1:22",
       "componentSetId": "2:44",
+      "componentSetKey": "edfe507b7a980545361a9bd7ef2dfa3aede08154",
       "variantCount": 3,
       "variants": ["State=Default", "State=Featured", "State=Compact"],
       "propertyCount": 9,
@@ -39,21 +41,24 @@
     "fileKey": "DzeJyjCspvmFlsJTUTJ1Ip",
     "url": "https://www.figma.com/design/DzeJyjCspvmFlsJTUTJ1Ip",
     "creation": "PASS",
-    "pluginActivation": "PASS_SOURCE_AND_TARGET_CONNECTED"
+    "pluginActivation": "PASS_SOURCE_AND_TARGET_CONNECTED",
+    "typedRuntimeBundleRevision": "7634a79593c9d06a"
   },
   "proof": {
     "sourceFoundations": "PASS",
     "sourceComponent": "PASS_EDITED_IN_PLACE",
     "sourceVisualExport": "PASS",
-    "sourcePublish": "BLOCKED_UNPUBLISHED_STARTER_UI_BOUNDARY",
-    "targetImport": "NOT_RUN_PREFLIGHT_GATE",
+    "sourcePublish": "BLOCKED_UNPUBLISHED_PROVIDER_AUTHORITY",
+    "targetImport": "NOT_RUN_READY_FOR_PUBLISH_GATE",
     "linkedInstanceReadback": "NOT_RUN"
   },
   "blocker": {
     "state": "READY_FOR_PUBLISH",
-    "nextAction": "Publish the component set in Figma UI, rerun preflight, then run import/readback.",
+    "nextAction": "Publish the component set through Figma authority, rerun typed preflight, then run confirmed typed import/readback.",
     "preflight": "figma-plugin/scripts/preflight-cloud-library-transfer.mjs",
     "writePerformedByPreflight": false,
+    "typedLibraryInventory": "figma-plugin/output/figma-evidence/library-api-live.json",
+    "typedPreflightReadback": "PASS_READY_FOR_PUBLISH",
     "doNotClaim": "Source component creation alone does not prove cross-file propagation."
   }
 }

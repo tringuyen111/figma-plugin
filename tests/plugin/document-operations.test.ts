@@ -59,7 +59,194 @@ describe("typed document operations", () => {
     expect(collection.remove).toHaveBeenCalledOnce();
     expect(commitUndo).toHaveBeenCalledOnce();
   });
+
+  it("returns library identity, publish status, enabled variables, and authority boundaries", async () => {
+    const variant: any = {
+      id: "variant:1",
+      name: "State=Default",
+      type: "COMPONENT",
+      key: "variant-key",
+      remote: false,
+      parent: null,
+      componentPropertyDefinitions: {},
+      getPublishStatusAsync: async () => "UNPUBLISHED",
+    };
+    const componentSet = {
+      id: "set:1",
+      name: "Work Card / Default",
+      type: "COMPONENT_SET",
+      key: "set-key",
+      remote: false,
+      children: [variant],
+      componentPropertyDefinitions: {
+        State: { type: "VARIANT", defaultValue: "Default", variantOptions: ["Default", "Featured"] },
+        "Title#1:1": { type: "TEXT", defaultValue: "ControlMux" },
+      },
+      getPublishStatusAsync: async () => "UNPUBLISHED",
+    };
+    variant.parent = componentSet;
+    const component = {
+      id: "component:1",
+      name: "Standalone",
+      type: "COMPONENT",
+      key: "component-key",
+      remote: false,
+      componentPropertyDefinitions: {},
+      getPublishStatusAsync: async () => "CURRENT",
+    };
+    const page = {
+      id: "page:library",
+      name: "Components",
+      type: "PAGE",
+      children: [componentSet, component],
+      async loadAsync() {},
+      findAllWithCriteria(criteria: { types: string[] }) { return criteria.types.includes("INSTANCE") ? [] : [componentSet, variant, component]; },
+      findAll() { return []; },
+    };
+    const style = { id: "style:1", name: "Paper/Surface", key: "style-key", remote: false, getPublishStatusAsync: async () => "CURRENT" };
+    const variable = { id: "variable:1", key: "variable-key", name: "color/surface", resolvedType: "COLOR", remote: false, variableCollectionId: "collection:1" };
+    const collection = { id: "collection:1", key: "collection-key", name: "Tri Brand / Paper", variableIds: [variable.id] };
+    (globalThis as Record<string, unknown>).figma = {
+      editorType: "figma",
+      root: { name: "Tri Brand Library", children: [page] },
+      getLocalPaintStylesAsync: async () => [style],
+      getLocalTextStylesAsync: async () => [],
+      getLocalEffectStylesAsync: async () => [],
+      getLocalGridStylesAsync: async () => [],
+      variables: {
+        getLocalVariableCollectionsAsync: async () => [collection],
+        getLocalVariablesAsync: async () => [variable],
+      },
+      teamLibrary: {
+        getAvailableLibraryVariableCollectionsAsync: async () => [{ name: "Consumer Library", key: "remote-collection", libraryName: "Consumer" }],
+        getVariablesInLibraryCollectionAsync: async () => [{ name: "color/text", key: "remote-variable", resolvedType: "COLOR" }],
+      },
+    };
+
+    await expect(queryDocument({ kind: "library_inventory" })).resolves.toMatchObject({
+      fileName: "Tri Brand Library",
+      local: {
+        components: [
+          { id: "set:1", type: "COMPONENT_SET", key: "set-key", publishStatus: "UNPUBLISHED", variantCount: 1 },
+          { id: "variant:1", type: "COMPONENT", key: "variant-key", publishStatus: "UNPUBLISHED", properties: [] },
+          { id: "component:1", type: "COMPONENT", key: "component-key", publishStatus: "CURRENT" },
+        ],
+        styles: [{ id: "style:1", publishStatus: "CURRENT" }],
+        variables: [{ id: "variable:1", key: "variable-key" }],
+      },
+      enabledLibraries: { variableCollections: [{ key: "remote-collection", variableCount: 1 }] },
+      publicationAuthority: { pluginApiCanInspectPublishStatus: true, pluginApiCanImportPublishedAssetsByKey: true, pluginApiCanPublishLibrary: false, pluginApiCanEnableLibrary: false },
+    });
+  });
+
+  it("plans published library imports without calling the provider during dry-run", async () => {
+    const page = makeImportPage();
+    let importCalls = 0;
+    (globalThis as Record<string, unknown>).figma = {
+      currentPage: page,
+      importComponentByKeyAsync: async () => { importCalls += 1; throw new Error("must not run during dry-run"); },
+    };
+
+    await expect(applyDocument({ action: "import_library_asset", assetType: "component", key: "published-component-key", instanceName: "Imported / Work Card", dryRun: true })).resolves.toMatchObject({
+      dryRun: true,
+      plan: { assetType: "component", key: "published-component-key", providerOperation: "figma.importComponentByKeyAsync", writePerformed: false, targetPage: { id: "page:target" } },
+    });
+    expect(importCalls).toBe(0);
+    expect(page.children).toHaveLength(0);
+  });
+
+  it("imports a published component with exact properties and readback behind confirmation", async () => {
+    const page = makeImportPage();
+    const commitUndo = vi.fn();
+    const component = {
+      id: "remote-component:1",
+      name: "Work Card / Featured",
+      type: "COMPONENT",
+      key: "published-component-key",
+      remote: true,
+      createInstance() {
+        const instance: Record<string, any> = {
+          id: "instance:1",
+          name: "",
+          type: "INSTANCE",
+          parent: null,
+          x: 0,
+          y: 0,
+          componentProperties: { State: { type: "VARIANT", value: "Default" }, "Title#1:1": { type: "TEXT", value: "ControlMux" } },
+          setProperties(values: Record<string, string | boolean>) {
+            for (const [key, value] of Object.entries(values)) this.componentProperties[key].value = value;
+          },
+          async getMainComponentAsync() { return component; },
+          remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); this.parent = null; },
+        };
+        return instance;
+      },
+    };
+    (globalThis as Record<string, unknown>).figma = {
+      currentPage: page,
+      importComponentByKeyAsync: async (key: string) => { expect(key).toBe("published-component-key"); return component; },
+      commitUndo,
+    };
+
+    await expect(applyDocument({
+      action: "import_library_asset",
+      assetType: "component",
+      key: "published-component-key",
+      instanceName: "Imported / Work Card",
+      x: 120,
+      y: 240,
+      propertyValues: { State: "Featured", "Title#1:1": "Imported Work Card" },
+      dryRun: false,
+      confirm: true,
+    })).resolves.toMatchObject({
+      state: "PASS_LIBRARY_ASSET_IMPORTED",
+      writePerformed: true,
+      importedAsset: { key: "published-component-key", remote: true },
+      instance: { id: "instance:1", name: "Imported / Work Card", parentId: "page:target", mainComponentKey: "published-component-key", requestedKey: "published-component-key", componentProperties: { State: { value: "Featured" }, "Title#1:1": { value: "Imported Work Card" } } },
+    });
+    expect(commitUndo).toHaveBeenCalledOnce();
+    expect(page.children).toHaveLength(1);
+  });
+
+  it("requires confirmation for a non-dry-run library import", async () => {
+    const page = makeImportPage();
+    (globalThis as Record<string, unknown>).figma = { currentPage: page };
+    await expect(applyDocument({ action: "import_library_asset", assetType: "variable", key: "published-variable-key", dryRun: false })).rejects.toMatchObject({
+      bridgeError: { code: ErrorCode.INVALID_PARAMS },
+    });
+  });
+
+  it("fails closed when the idempotency name points at a different library identity", async () => {
+    const page = makeImportPage();
+    const otherMain = { id: "other-main:1", key: "different-key", parent: null };
+    const existing = {
+      id: "existing:1",
+      name: "Imported / Work Card",
+      type: "INSTANCE",
+      parent: page,
+      componentProperties: {},
+      async getMainComponentAsync() { return otherMain; },
+    };
+    page.children.push(existing);
+    (globalThis as Record<string, unknown>).figma = { currentPage: page };
+    await expect(applyDocument({ action: "import_library_asset", assetType: "component", key: "published-key", instanceName: "Imported / Work Card", dryRun: true })).rejects.toMatchObject({
+      bridgeError: { code: ErrorCode.AMBIGUOUS_TARGET },
+    });
+  });
 });
+
+function makeImportPage() {
+  const page: any = {
+    id: "page:target",
+    name: "Consumer",
+    type: "PAGE",
+    children: [],
+    async loadAsync() {},
+    findOne(predicate: (node: any) => boolean) { return this.children.find(predicate) ?? null; },
+    appendChild(node: any) { node.parent = this; this.children.push(node); },
+  };
+  return page;
+}
 
 function makePage(id: string, name: string) {
   return {

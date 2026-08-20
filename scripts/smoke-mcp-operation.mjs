@@ -18,6 +18,8 @@ try {
   assert(Boolean(exportTool?.inputSchema?.properties?.operation), "figma_export is missing operation schema.");
   assert(queryTool?.inputSchema?.properties?.kind?.enum?.includes("file_inventory"), "figma_query is missing file_inventory schema.");
   assert(applyTool?.inputSchema?.properties?.action?.enum?.includes("clear_file_owned_assets"), "figma_apply is missing clear_file_owned_assets schema.");
+  assert(applyTool?.inputSchema?.properties?.action?.enum?.includes("import_library_asset"), "figma_apply is missing import_library_asset schema.");
+  assert(queryTool?.inputSchema?.properties?.kind?.enum?.includes("library_inventory"), "figma_query is missing library_inventory schema.");
   assert(execProperties.runtimeSdk?.enum?.includes("v2"), "figma_exec is missing runtimeSdk v2 schema.");
   for (const field of ["planId", "stepId", "representation"]) {
     assert(Boolean(operationProperties[field]), `operation schema is missing ${field}.`);

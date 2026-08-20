@@ -189,7 +189,7 @@ Khi split/add/remove Skill:
 
 ## 0.5.5 runtime egress and lifecycle
 
-Public local MCP surface is now `figma_status`, read-only `figma_query`, guarded `figma_apply`, raw `figma_exec`, and `figma_export`. Query/apply dispatch typed protocol operations so common inventory and cleanup work no longer requires repeated agent-authored JavaScript. `figma_export` dispatches protocol operation `export_node`; the plugin validates/exports bytes, binary framing transports them locally, and `export-artifacts.ts` persists them without serializing large binary into MCP text/image context. Requested filenames are basenames only and existing paths are not overwritten.
+Public local MCP surface is now `figma_status`, read-only `figma_query`, guarded `figma_apply`, raw `figma_exec`, and `figma_export`. Query/apply dispatch typed protocol operations so common inventory, library lifecycle inspection, published-key import, and cleanup work no longer requires repeated agent-authored JavaScript. `figma_query(kind=library_inventory)` returns identity/status/authority evidence; `figma_apply(action=import_library_asset)` performs exact-key imports only behind dry-run and confirmation, with undo and readback. `figma_export` dispatches protocol operation `export_node`; the plugin validates/exports bytes, binary framing transports them locally, and `export-artifacts.ts` persists them without serializing large binary into MCP text/image context. Requested filenames are basenames only and existing paths are not overwritten.
 
 `plugin/manifest.json` adds `teamlibrary` permission for local library inspection. This changes capability to inspect, not publication/enablement authority.
 
