@@ -51,6 +51,6 @@ Primary API references: [Figma global API](https://developers.figma.com/docs/plu
 ## Current-source revalidation — 2026-08-19
 
 - Current package revision: `1431a21f019211dd`.
-- Typed inventory and guarded dry-run: PASS was observed against the current-source build before the stale leader was replaced.
-- After the leader restart, no Figma companion was connected. Current MCP operation and Runtime SDK v2 proof are `BLOCKED_RELOAD_REQUIRED`, not PASS.
+- Typed inventory and guarded dry-run: PASS was observed against current source revision `1431a21f019211dd` after the companion reload.
+- Current MCP operation returned `SDK_READ_OK`; Runtime SDK v2 core proof returned `PASS` with temporary fixture cleanup and queue/in-flight recovery.
 - The exact command results and stale-revision boundary are recorded in `../output/figma-evidence/current-runtime-proof.json`.

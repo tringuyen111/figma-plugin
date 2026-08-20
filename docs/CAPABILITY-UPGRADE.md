@@ -2,7 +2,7 @@
 
 This report is bound to the live Figma execution on 2026-08-19 against file `Untitled`, page `03 - Playground` (`45:70`). It diagnoses the observed capability system; it is not a general superiority claim for the Skills or plugin.
 
-This is a historical live snapshot. Current package/runtime currentness is tracked separately in `output/figma-evidence/current-runtime-proof.json`; the current source build is revision `1431a21f019211dd`, and the companion must be reloaded before historical v2 claims are re-admitted.
+This is a historical live snapshot. Current package/runtime currentness is tracked separately in `output/figma-evidence/current-runtime-proof.json`; the current source build is revision `1431a21f019211dd`, and its core v2 proof has now been revalidated after companion reload.
 
 ## What the live run proved
 

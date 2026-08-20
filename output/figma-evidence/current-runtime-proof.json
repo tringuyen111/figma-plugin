@@ -23,7 +23,7 @@
     "port": 38470,
     "staleLeaderRevisionObserved": "3804fe4ab09d239d",
     "staleLeaderAction": "STOPPED_AND_RESTARTED_FROM_CURRENT_BUNDLE",
-    "companionAfterRestart": "NOT_CONNECTED",
+    "companionAfterRestart": "CONNECTED_CURRENT_REVISION",
     "queueLength": 0,
     "pendingCount": 0,
     "instanceInFlight": null
@@ -32,7 +32,7 @@
     {
       "command": "npm run test:typed-tools-live",
       "state": "PASS",
-      "scope": "current source build before stale leader restart",
+      "scope": "current source build after companion reload",
       "details": {
         "pages": 3,
         "components": 2,
@@ -45,13 +45,29 @@
     },
     {
       "command": "npm run test:mcp-operation",
-      "state": "BLOCKED_RELOAD_REQUIRED",
-      "error": "Figma instance had bundle revision 1431a21f019211dd while stale leader expected 3804fe4ab09d239d; after restart the companion was disconnected."
+      "state": "PASS",
+      "details": {
+        "liveRead": "SDK_READ_OK",
+        "runtimeSdks": ["v1", "v2"],
+        "queueLength": 0,
+        "pendingCount": 0,
+        "instanceInFlight": 0
+      }
     },
     {
       "command": "npm run test:runtime-sdk-v2-live",
-      "state": "BLOCKED_RELOAD_REQUIRED",
-      "error": "No Figma companion is connected."
+      "state": "PASS",
+      "details": {
+        "runtimeSdk": "v2",
+        "providerProbes": false,
+        "temporaryFixtureCleanup": "PASS",
+        "pageChildCountBeforeAfter": "0/0",
+        "localStyleCountBeforeAfter": "8/8",
+        "variableCollectionCountBeforeAfter": "0/0",
+        "queueLength": 0,
+        "pendingCount": 0,
+        "instanceInFlight": 0
+      }
     }
   ],
   "remainingQualification": {
