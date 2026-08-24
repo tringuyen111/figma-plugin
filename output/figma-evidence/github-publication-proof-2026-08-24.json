@@ -58,6 +58,9 @@
     "versionTag": "NOT_CREATED",
     "publicVisibility": "NOT_ENABLED",
     "hostedCiCandidateVerdict": "NOT_RUN_PROVIDER_BLOCKED",
-    "liveFigma": "NOT_RUN_PLUGIN_COMPANION_DISCONNECTED"
+    "liveFigma": "PASS_LOCAL_COMPANION_READ_WRITE_READBACK_EXPORT_CLEANUP",
+    "liveFigmaEvidenceRef": "output/figma-evidence/live-upgrade-proof-2026-08-24.json",
+    "secureMcpTunnel": "BLOCKED_NO_TUNNEL_CLIENT_IDENTITY_CREDENTIAL_OR_WORKSPACE_AUTHORITY",
+    "behavioralComparison": "NOT_RUN"
   }
 }
