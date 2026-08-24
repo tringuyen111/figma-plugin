@@ -3,5 +3,6 @@ dist/
 *.log
 .DS_Store
 .env
+tunnel-id.txt
 coverage/
 plugin/code.js
