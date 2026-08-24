@@ -1,6 +1,6 @@
 ---
 name: figma-layout
-description: Design, inspect, repair, and author resilient Figma layout relationships. Use for Auto Layout, Grid Auto Layout, layout guides, constraints, HUG/FILL/FIXED sizing, wrapping, absolute positioning, padding/gap/alignment, responsive recomposition, density, long-content pressure, or geometry bugs. Own the layout relationship and its Figma representation, not product behavior, component semantics, visual color/material direction, or raw runtime setup.
+description: "Design, inspect, repair, or author resilient Figma layout relationships. Use for Auto Layout, Grid, constraints, HUG/FILL/FIXED sizing, wrapping, absolute positioning, spacing, responsive recomposition, density, content pressure, or geometry bugs. Own layout behavior; not product semantics, components, visual direction, or runtime setup."
 ---
 
 # Figma Layout

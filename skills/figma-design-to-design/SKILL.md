@@ -1,6 +1,6 @@
 ---
 name: figma-design-to-design
-description: Transfer, reuse, migrate, or synchronize reusable design truth between Figma files and libraries while preserving component, style, variable, instance, and interaction identity where intended. Use when moving a design system or component from one Figma file to another, consuming a published library, replacing local components with shared ones, reconciling drift between design files, or intentionally forking design assets. Own cross-design identity/reuse/migration decisions and proof, not general design-system creation, product redesign, code translation, or library publication approval.
+description: "Transfer, reuse, migrate, or sync design truth across Figma files/libraries while preserving intended component, style, variable, instance, and interaction identity. Use for library use, shared-component replacement, cross-file drift, or deliberate forks. Own cross-design identity and proof; not redesign, code translation, or publication approval."
 ---
 
 # Figma Design to Design

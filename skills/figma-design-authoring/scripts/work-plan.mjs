@@ -1,16 +1,26 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const STATUS = new Set(["PENDING", "ACTIVE", "PASS", "FAIL", "BLOCKED", "NOT_RUN"]);
 const NODE_TYPE = new Set(["FOUNDATION", "WALKING_SKELETON", "VERTICAL_SLICE", "HARDENING", "VERIFICATION"]);
 const RELATION = new Set(["BLOCKS_TRUTH", "PROVED_BY", "INVALIDATES", "CONFLICTS_WRITE_WITH"]);
 const VISUAL = new Set(["text", "table", "flow", "timeline", "tree", "state-diagram", "typed-graph", "bar", "metric-cards", "wireframe", "component-specimen"]);
+const ACTOR = new Set([
+  "engineering-planning", "figma-code-connect", "figma-code-to-design", "figma-components",
+  "figma-design-authoring", "figma-design-system", "figma-design-to-code", "figma-design-to-design",
+  "figma-layout", "figma-motion", "figma-native", "figma-prototype", "figma-scene", "figma-tokens",
+  "figma-typography", "figma-verification", "figma-visual-system", "frontend-engineering",
+  "plugin-runtime", "skill-plugin-engineering",
+]);
 const ID = /^[a-z0-9][a-z0-9._:-]{0,127}$/;
 
-export function validateWorkPlan(plan) {
+export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {}) {
   const errors = [];
   if (!plan || typeof plan !== "object" || Array.isArray(plan)) return ["plan must be an object"];
-  if (plan.schemaVersion !== 1) errors.push("schemaVersion must equal 1");
+  if (![1, 2].includes(plan.schemaVersion)) errors.push("schemaVersion must equal 1 or 2");
+  const obligationLedgerEnabled = plan.schemaVersion === 2;
   if (typeof plan.planId !== "string" || !ID.test(plan.planId)) errors.push("planId is invalid");
   if (!bounded(plan.objective, 500)) errors.push("objective must be 1-500 characters");
   if (!bounded(plan.terminalTruth, 500)) errors.push("terminalTruth must be 1-500 characters");
@@ -32,6 +42,30 @@ export function validateWorkPlan(plan) {
     shapes.add(rule?.shape);
   }
 
+  const obligations = new Map();
+  if (obligationLedgerEnabled && (!Array.isArray(plan.obligations) || plan.obligations.length === 0)) {
+    errors.push("obligations must be a non-empty array");
+  }
+  for (const [index, obligation] of (plan.obligations ?? []).entries()) {
+    if (!obligation || typeof obligation !== "object" || Array.isArray(obligation)) {
+      errors.push(`obligation ${index} must be an object`);
+      continue;
+    }
+    if (typeof obligation.id !== "string" || !ID.test(obligation.id)) errors.push(`obligation ${index} id is invalid`);
+    if (obligations.has(obligation.id)) errors.push(`duplicate obligation id ${obligation.id}`);
+    obligations.set(obligation.id, obligation);
+    if (!bounded(obligation.sourceText, 1000)) errors.push(`obligation ${obligation.id} sourceText is invalid`);
+    if (typeof obligation.required !== "boolean") errors.push(`obligation ${obligation.id} required is invalid`);
+    if (!ACTOR.has(obligation.owner)) errors.push(`obligation ${obligation.id} owner is not canonical`);
+    if (typeof obligation.proofRequired !== "boolean") errors.push(`obligation ${obligation.id} proofRequired is invalid`);
+    if (!STATUS.has(obligation.status)) errors.push(`obligation ${obligation.id} status is invalid`);
+    if (!uniqueStringList(obligation.evidenceRefs, 0, 300)) errors.push(`obligation ${obligation.id} evidenceRefs are invalid`);
+    if (obligation.status === "PASS" && (obligation.evidenceRefs?.length ?? 0) === 0) errors.push(`passed obligation ${obligation.id} requires evidenceRefs`);
+    if (obligation.status === "PASS") validateEvidenceRefs(`passed obligation ${obligation.id}`, obligation.evidenceRefs, evidenceBaseDir, errors);
+    if (obligation.status === "BLOCKED" && !bounded(obligation.blocker, 500)) errors.push(`blocked obligation ${obligation.id} requires blocker`);
+    if (obligation.status !== "BLOCKED" && obligation.blocker !== "") errors.push(`non-blocked obligation ${obligation.id} must have an empty blocker`);
+  }
+
   if (!Array.isArray(plan.nodes) || plan.nodes.length === 0) errors.push("nodes must be a non-empty array");
   const ids = new Set();
   const nodes = new Map();
@@ -45,23 +79,41 @@ export function validateWorkPlan(plan) {
     if (!bounded(node.label, 100)) errors.push(`node ${node.id} label is invalid`);
     if (!bounded(node.outcome, 500)) errors.push(`node ${node.id} outcome is invalid`);
     if (!STATUS.has(node.status)) errors.push(`node ${node.id} status is invalid`);
-    if (!bounded(node.owner, 100)) errors.push(`node ${node.id} owner is invalid`);
-    if (!Array.isArray(node.specialists) || new Set(node.specialists).size !== node.specialists.length) errors.push(`node ${node.id} specialists are invalid`);
+    if (!ACTOR.has(node.owner)) errors.push(`node ${node.id} owner is not canonical`);
+    if (!uniqueActorList(node.specialists) || node.specialists.includes(node.owner)) errors.push(`node ${node.id} specialists are invalid`);
+    if (obligationLedgerEnabled && !uniqueIdList(node.obligationIds, 1)) errors.push(`node ${node.id} obligationIds are invalid`);
     if (!Array.isArray(node.dependsOn) || new Set(node.dependsOn).size !== node.dependsOn.length) errors.push(`node ${node.id} dependsOn is invalid`);
     if (!bounded(node.entrypoint, 300)) errors.push(`node ${node.id} entrypoint is invalid`);
     if (!stringList(node.proof, 1, 300)) errors.push(`node ${node.id} proof is invalid`);
+    if (obligationLedgerEnabled && !uniqueStringList(node.evidenceRefs, 0, 300)) errors.push(`node ${node.id} evidenceRefs are invalid`);
+    if (obligationLedgerEnabled && node.status === "PASS" && (node.evidenceRefs?.length ?? 0) === 0) errors.push(`passed node ${node.id} requires evidenceRefs`);
+    if (obligationLedgerEnabled && node.status === "PASS") validateEvidenceRefs(`passed node ${node.id}`, node.evidenceRefs, evidenceBaseDir, errors);
     if (!stringList(node.nonGoals, 0, 300)) errors.push(`node ${node.id} nonGoals is invalid`);
     if (!bounded(node.recovery, 500)) errors.push(`node ${node.id} recovery is invalid`);
     if (node.status === "BLOCKED" && !bounded(node.blocker, 500)) errors.push(`blocked node ${node.id} requires blocker`);
   }
 
+  const activeNodes = [...nodes.values()].filter((node) => node.status === "ACTIVE");
+  if (activeNodes.length > 1) errors.push("at most one node may be ACTIVE");
+
   for (const node of nodes.values()) {
+    for (const obligationId of node.obligationIds ?? []) {
+      if (!obligations.has(obligationId)) errors.push(`node ${node.id} references unknown obligation ${obligationId}`);
+    }
     for (const dependency of node.dependsOn ?? []) {
       if (!nodes.has(dependency)) errors.push(`node ${node.id} depends on unknown node ${dependency}`);
       if (dependency === node.id) errors.push(`node ${node.id} cannot depend on itself`);
     }
   }
   if (hasCycle(nodes)) errors.push("dependency graph contains a cycle");
+
+  if (obligationLedgerEnabled) {
+    for (const obligation of obligations.values()) {
+      if (obligation.required && ![...nodes.values()].some((node) => node.obligationIds?.includes(obligation.id))) {
+        errors.push(`required obligation ${obligation.id} is not covered by any node`);
+      }
+    }
+  }
 
   if (!Array.isArray(plan.edges)) errors.push("edges must be an array");
   const edgeKeys = new Set();
@@ -72,7 +124,7 @@ export function validateWorkPlan(plan) {
     edgeKeys.add(key);
   }
 
-  if (!Array.isArray(plan.frontier)) errors.push("frontier must be an array");
+  if (!Array.isArray(plan.frontier) || new Set(plan.frontier ?? []).size !== (plan.frontier?.length ?? 0)) errors.push("frontier must be a unique array");
   else if (plan.state === "ACTIVE" && plan.frontier.length === 0) errors.push("an ACTIVE plan requires a non-empty frontier");
   for (const id of plan.frontier ?? []) {
     if (!nodes.has(id)) errors.push(`frontier references unknown node ${id}`);
@@ -80,6 +132,24 @@ export function validateWorkPlan(plan) {
     if (node && !["PENDING", "ACTIVE"].includes(node.status)) errors.push(`frontier node ${id} must be PENDING or ACTIVE`);
     for (const dependency of node?.dependsOn ?? []) {
       if (nodes.get(dependency)?.status !== "PASS") errors.push(`frontier node ${id} has incomplete dependency ${dependency}`);
+    }
+    if (obligationLedgerEnabled && node) {
+      const mapped = (node.obligationIds ?? []).map((obligationId) => obligations.get(obligationId)).filter(Boolean);
+      if (mapped.some((obligation) => ["FAIL", "BLOCKED"].includes(obligation.status))) errors.push(`frontier node ${id} has a failed or blocked obligation`);
+      if (mapped.length > 0 && mapped.every((obligation) => obligation.status === "PASS")) errors.push(`frontier node ${id} has no unresolved obligation`);
+    }
+  }
+  for (const node of activeNodes) {
+    if (!plan.frontier?.includes(node.id)) errors.push(`active node ${node.id} must be in frontier`);
+  }
+
+  if (obligationLedgerEnabled && plan.state === "PASS") {
+    if ((plan.frontier?.length ?? 0) !== 0) errors.push("a PASS plan requires an empty frontier");
+    for (const obligation of obligations.values()) {
+      if (!obligation.required) continue;
+      if (obligation.status !== "PASS") errors.push(`PASS plan has unresolved required obligation ${obligation.id}`);
+      const mappedNodes = [...nodes.values()].filter((node) => node.obligationIds?.includes(obligation.id));
+      if (mappedNodes.some((node) => node.status !== "PASS")) errors.push(`PASS plan has unresolved node for required obligation ${obligation.id}`);
     }
   }
   if (!bounded(plan.notesPath, 260)) errors.push("notesPath is invalid");
@@ -166,6 +236,9 @@ export function renderWorkPlanSvg(plan) {
 
 function bounded(value, max) { return typeof value === "string" && value.length > 0 && value.length <= max; }
 function stringList(value, min, max) { return Array.isArray(value) && value.length >= min && value.every((item) => bounded(item, max)); }
+function uniqueStringList(value, min, max) { return stringList(value, min, max) && new Set(value).size === value.length; }
+function uniqueIdList(value, min) { return Array.isArray(value) && value.length >= min && value.every((item) => typeof item === "string" && ID.test(item)) && new Set(value).size === value.length; }
+function uniqueActorList(value) { return Array.isArray(value) && value.every((item) => ACTOR.has(item)) && new Set(value).size === value.length; }
 function hasCycle(nodes) {
   const visiting = new Set();
   const visited = new Set();
@@ -181,6 +254,14 @@ function hasCycle(nodes) {
   return [...nodes.keys()].some(visit);
 }
 function esc(value) { return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[char]); }
+function validateEvidenceRefs(label, refs, evidenceBaseDir, errors) {
+  if (!Array.isArray(refs)) return;
+  for (const ref of refs) {
+    if (typeof ref !== "string" || ref.length === 0) continue;
+    const candidate = isAbsolute(ref) ? ref : resolve(evidenceBaseDir, ref);
+    if (!existsSync(candidate)) errors.push(`${label} evidenceRef does not exist: ${ref}`);
+  }
+}
 function trim(value, max) { const text = String(value); return text.length <= max ? text : `${text.slice(0, max - 1)}…`; }
 function wrap(value, max, lines) {
   const words = String(value).split(/\s+/);

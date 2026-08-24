@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Scene"
   short_description: "Scene structure, planes, depth, and shape"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

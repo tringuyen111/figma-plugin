@@ -15,15 +15,43 @@ try {
   const operationSchema = execProperties.operation;
   const operationProperties = operationSchema?.properties ?? {};
   assert(Boolean(operationSchema), "figma_exec is missing operation schema.");
+  assert(execTool?.inputSchema?.required?.includes("traceId") && execTool?.inputSchema?.required?.includes("operation"), "figma_exec does not require accountable context.");
+  assert(applyTool?.inputSchema?.required?.includes("traceId") && applyTool?.inputSchema?.required?.includes("operation"), "figma_apply does not require accountable context.");
+  assert(exportTool?.inputSchema?.required?.includes("traceId") && exportTool?.inputSchema?.required?.includes("operation"), "figma_export does not require accountable context.");
+  for (const tool of listed.tools) assert(Boolean(tool.outputSchema), `${tool.name} is missing outputSchema.`);
+  assert(queryTool?.annotations?.readOnlyHint === true, "figma_query is missing read-only annotation.");
+  assert(applyTool?.annotations?.destructiveHint === true, "figma_apply is missing destructive annotation.");
   assert(Boolean(exportTool?.inputSchema?.properties?.operation), "figma_export is missing operation schema.");
   assert(queryTool?.inputSchema?.properties?.kind?.enum?.includes("file_inventory"), "figma_query is missing file_inventory schema.");
   assert(applyTool?.inputSchema?.properties?.action?.enum?.includes("clear_file_owned_assets"), "figma_apply is missing clear_file_owned_assets schema.");
   assert(applyTool?.inputSchema?.properties?.action?.enum?.includes("import_library_asset"), "figma_apply is missing import_library_asset schema.");
   assert(queryTool?.inputSchema?.properties?.kind?.enum?.includes("library_inventory"), "figma_query is missing library_inventory schema.");
+  assert(JSON.stringify(queryTool?.inputSchema?.properties?.operation?.properties?.kind?.enum) === JSON.stringify(["read"]), "figma_query operation schema/runtime kind drifted.");
+  assert(JSON.stringify(applyTool?.inputSchema?.properties?.operation?.properties?.kind?.enum) === JSON.stringify(["write"]), "figma_apply operation schema/runtime kind drifted.");
+  assert(JSON.stringify(exportTool?.inputSchema?.properties?.operation?.properties?.kind?.enum) === JSON.stringify(["export"]), "figma_export operation schema/runtime kind drifted.");
   assert(execProperties.runtimeSdk?.enum?.includes("v2"), "figma_exec is missing runtimeSdk v2 schema.");
   for (const field of ["planId", "stepId", "representation"]) {
     assert(Boolean(operationProperties[field]), `operation schema is missing ${field}.`);
   }
+
+  const missingContext = await runtime.callRaw("figma_exec", { code: "return 1;" });
+  const missingContextPayload = textPayload(missingContext);
+  assert(missingContext.isError === true && missingContextPayload.code === "INVALID_PARAMS", "figma_exec without accountable context did not fail with INVALID_PARAMS.");
+  assert(missingContext.structuredContent?.status === "error", "MCP error omitted structuredContent.");
+  const missingPostconditions = await runtime.callRaw("figma_apply", {
+    action: "clear_file_owned_assets",
+    traceId: "smoke:missing-postconditions",
+    operation: { label: "Missing evidence obligations", kind: "write" },
+  });
+  const missingPostconditionsPayload = textPayload(missingPostconditions);
+  assert(missingPostconditions.isError === true && missingPostconditionsPayload.code === "INVALID_PARAMS", "write operation without postconditions did not fail with INVALID_PARAMS.");
+  const disguisedExecRead = await runtime.callRaw("figma_exec", {
+    code: "const node = figma.createRectangle(); figma.currentPage.appendChild(node); return node.id;",
+    traceId: "smoke:exec-read-bypass",
+    operation: { label: "Caller claims raw mutation is read-only", kind: "read" },
+  });
+  const disguisedExecReadPayload = textPayload(disguisedExecRead);
+  assert(disguisedExecRead.isError === true && disguisedExecReadPayload.code === "INVALID_PARAMS", "figma_exec accepted caller-declared read intent without postconditions.");
 
   const invalid = await runtime.callRaw("figma_exec", {
     code: "return 1;",
@@ -84,9 +112,14 @@ try {
   process.stdout.write(`${JSON.stringify({
     tools: names,
     operationSchema: true,
+    requiredAccountableContext: true,
+    structuredOutputSchema: true,
     planAwareOperationSchema: true,
     runtimeSdkSchema: "v2",
     invalidOperation: invalidPayload.code,
+    missingContext: missingContextPayload.code,
+    missingPostconditions: missingPostconditionsPayload.code,
+    disguisedExecRead: disguisedExecReadPayload.code,
     invalidPlan: invalidPlanPayload.code,
     pluginConnected: status.pluginConnected,
     instanceCount: instances.length,

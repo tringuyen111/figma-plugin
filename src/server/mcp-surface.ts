@@ -3,13 +3,13 @@ import { CallToolRequestSchema, ListToolsRequestSchema, type CallToolResult, typ
 import { VERSION } from "./version.js";
 import { APPLY_ACTIONS, LIBRARY_ASSET_TYPES, MAX_BINARY_ARTIFACT_BYTES, OPERATION_PHASES, OPERATION_REPRESENTATIONS, QUERY_KINDS, REQUEST_KINDS, RUNTIME_SDK_VERSIONS, type OperationContextWire, type RequestKind, type RuntimeSdkVersion } from "../shared/protocol.js";
 import { FIGMA_SKILL_IDS } from "../capabilities/skill-registry.js";
-import { ErrorCode, OpError, toBridgeError } from "./errors.js";
+import { ErrorCode, OpError, mcpErrorDisposition, toBridgeError } from "./errors.js";
 import { handleApply, handleExec, handleExport, handleQuery, handleStatus, type ToolContext } from "./tools.js";
 import { validateOperationContext } from "./operation-context.js";
 
 const OPERATION_SCHEMA = {
   type: "object",
-  description: "Optional logical-operation context for grouping retries/phases and showing accountable intent. Requires traceId. Postconditions are observability expectations, not automatic PASS claims.",
+  description: "Required accountable operation context for mutation-capable tools. Requires traceId. Postconditions are expectations for later evidence collection, never automatic PASS claims.",
   properties: {
     label: { type: "string", minLength: 1, maxLength: 96, description: "Concise user-facing objective shared by every request in this logical operation." },
     kind: { type: "string", enum: [...REQUEST_KINDS], description: "Caller-declared semantic request kind. The runtime does not guess JavaScript intent." },
@@ -27,22 +27,99 @@ const OPERATION_SCHEMA = {
     },
   },
   required: ["label", "kind"],
+  allOf: [{
+    if: { properties: { kind: { enum: ["write", "export", "other"] } }, required: ["kind"] },
+    then: { required: ["postconditions"] },
+  }],
   additionalProperties: false,
 } as const;
+
+const EXEC_OPERATION_SCHEMA = {
+  ...OPERATION_SCHEMA,
+  description: "Required accountable operation context for raw native execution. Because arbitrary JavaScript cannot be proven read-only before execution, postconditions are always required regardless of caller-declared kind.",
+  required: ["label", "kind", "postconditions"],
+} as const;
+
+function operationSchemaFor(kind: RequestKind, description: string, requirePostconditions: boolean) {
+  return {
+    ...OPERATION_SCHEMA,
+    description,
+    properties: {
+      ...OPERATION_SCHEMA.properties,
+      kind: { type: "string", enum: [kind], description: `This tool requires operation.kind=${kind}.` },
+    },
+    required: requirePostconditions ? ["label", "kind", "postconditions"] : ["label", "kind"],
+  } as const;
+}
+
+const QUERY_OPERATION_SCHEMA = operationSchemaFor("read", "Optional read-operation context for typed Figma queries.", false);
+const APPLY_OPERATION_SCHEMA = operationSchemaFor("write", "Required write-operation context with postconditions for guarded Figma mutations.", true);
+const EXPORT_OPERATION_SCHEMA = operationSchemaFor("export", "Required export-operation context with postconditions for persisted artifact egress.", true);
+
+const MCP_CONTRACT_SCHEMA_VERSION = 1;
+const MCP_SERVER_INSTRUCTIONS = [
+  "Call figma_status before target-dependent work and whenever connection or routing is ambiguous.",
+  "Prefer figma_query for enforceable reads and figma_apply for typed guarded mutations.",
+  "figma_exec is a low-level mutation-capable escape hatch; it requires traceId and operation context.",
+  "figma_apply and figma_export also require traceId and operation context.",
+  "Postconditions describe evidence still to collect and never certify PASS by themselves.",
+  "After a timeout or connection loss, inspect status and postconditions before retrying because a mutation may have committed.",
+].join(" ");
+
+function toolOutputSchema(toolName: string): NonNullable<Tool["outputSchema"]> {
+  return {
+    type: "object",
+    properties: {
+      schemaVersion: { type: "integer", const: MCP_CONTRACT_SCHEMA_VERSION },
+      tool: { type: "string", const: toolName },
+      status: { type: "string", enum: ["success", "error"] },
+      result: {},
+      error: {
+        type: "object",
+        properties: {
+          code: { type: "string" },
+          message: { type: "string" },
+          hint: { type: "string" },
+          retryable: { type: "boolean" },
+          retryAfterMs: { type: "integer", minimum: 0 },
+          possiblyCommitted: { type: "boolean" },
+          providerStateUnknown: { type: "boolean" },
+        },
+        required: ["code", "message", "retryable", "possiblyCommitted", "providerStateUnknown"],
+        additionalProperties: false,
+      },
+    },
+    required: ["schemaVersion", "tool", "status"],
+    oneOf: [
+      {
+        properties: { status: { const: "success" } },
+        required: ["result"],
+      },
+      {
+        properties: { status: { const: "error" } },
+        required: ["error"],
+      },
+    ],
+    additionalProperties: true,
+  } as NonNullable<Tool["outputSchema"]>;
+}
 
 const STATUS_TOOL: Tool = {
   name: "figma_status",
   description: "Inspect Figma Plugin runtime state: connected Figma windows, current file/page targets, routing, queue depth, latency/error health, and bridge role. Use it when target or connection state is ambiguous.",
+  annotations: { title: "Inspect Figma runtime", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   inputSchema: {
     type: "object",
     properties: { verbose: { type: "boolean", description: "Include full per-instance metrics, page lists, and local session diagnostics." } },
     additionalProperties: false,
   },
+  outputSchema: toolOutputSchema("figma_status"),
 };
 
 const EXEC_TOOL: Tool = {
   name: "figma_exec",
-  description: "Execute plain JavaScript against the native Figma Plugin API inside one connected Figma window. Use the installed Figma Skills for design/layout/system reasoning; this tool is the low-level execution kernel. With multiple windows, pass instanceId or bind the agent session in the Figma plugin UI. Optionally pass pageId to target a specific page deterministically. PNG/JPEG Uint8Array exports use binary bridge transport and become MCP image content.",
+  description: "Execute plain JavaScript against the native Figma Plugin API inside one connected Figma window. This is a mutation-capable low-level escape hatch; prefer typed query/apply tools. traceId and operation are required so intent, retries, target, and expected evidence remain inspectable.",
+  annotations: { title: "Execute native Figma code", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
   inputSchema: {
     type: "object",
     properties: {
@@ -53,19 +130,21 @@ const EXEC_TOOL: Tool = {
       instanceId: { type: "string", minLength: 1, maxLength: 256, description: "Target connected Figma plugin instance/window. Required when routing is ambiguous unless the session is bound in the plugin UI." },
       pageId: { type: "string", minLength: 1, maxLength: 256, description: "Optional page id inside the target instance. The plugin switches to that page before executing." },
       capability: { type: "string", enum: [...FIGMA_SKILL_IDS], description: "Optional primary Figma Plugin Skill attribution for performance/eval telemetry only. It does not change execution behavior." },
-      traceId: { type: "string", minLength: 1, maxLength: 128, description: "Optional stable logical-operation trace id for correlating tightly related calls. Reuse it across retries of the same operation." },
+      traceId: { type: "string", minLength: 1, maxLength: 128, description: "Required stable logical-operation trace id. Reuse it across retries of the same operation." },
       attempt: { type: "integer", minimum: 1, maximum: 1000, description: "Optional 1-based attempt number for the same logical operation. Use >1 only for retries, not normal sequential steps." },
-      operation: OPERATION_SCHEMA,
+      operation: EXEC_OPERATION_SCHEMA,
     },
-    required: ["code"],
+    required: ["code", "traceId", "operation"],
     additionalProperties: false,
   },
+  outputSchema: toolOutputSchema("figma_exec"),
 };
 
 
 const EXPORT_TOOL: Tool = {
   name: "figma_export",
   description: "Export one Figma node through the local ControlMux bridge and persist the bytes as a local artifact instead of putting large binary payloads in model context. Supports PNG, JPG, SVG, PDF, REST-shaped JSON, MP4, GIF, and WEBM when the target/editor supports that format. Video formats require an animated top-level frame.",
+  annotations: { title: "Export Figma artifact", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
   inputSchema: {
     type: "object",
     properties: {
@@ -97,16 +176,18 @@ const EXPORT_TOOL: Tool = {
       capability: { type: "string", enum: [...FIGMA_SKILL_IDS], description: "Optional calling Skill attribution for telemetry only." },
       traceId: { type: "string", minLength: 1, maxLength: 128 },
       attempt: { type: "integer", minimum: 1, maximum: 1000 },
-      operation: OPERATION_SCHEMA,
+      operation: EXPORT_OPERATION_SCHEMA,
     },
-    required: ["nodeId", "format"],
+    required: ["nodeId", "format", "traceId", "operation"],
     additionalProperties: false,
   },
+  outputSchema: toolOutputSchema("figma_export"),
 };
 
 const QUERY_TOOL: Tool = {
   name: "figma_query",
   description: "Run an enforceable read-only query against the native Figma Plugin API. Use library_inventory for component/style/variable identity, publish status, enabled library-variable descriptors, and the explicit publish/enable boundary; use the other kinds for file, structure, and code-handoff evidence.",
+  annotations: { title: "Query Figma", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   inputSchema: {
     type: "object",
     properties: {
@@ -119,16 +200,18 @@ const QUERY_TOOL: Tool = {
       capability: { type: "string", enum: [...FIGMA_SKILL_IDS] },
       traceId: { type: "string", minLength: 1, maxLength: 128 },
       attempt: { type: "integer", minimum: 1, maximum: 1000 },
-      operation: OPERATION_SCHEMA,
+      operation: QUERY_OPERATION_SCHEMA,
     },
     required: ["kind"],
     additionalProperties: false,
   },
+  outputSchema: toolOutputSchema("figma_query"),
 };
 
 const APPLY_TOOL: Tool = {
   name: "figma_apply",
-  description: "Run a bounded, serialized Figma mutation with dry-run, explicit confirmation, undo checkpoint, and postcondition evidence. Supports importing published components, component sets, styles, and variables by exact key; publication and library enablement remain provider/UI authority. dryRun defaults to true.",
+  description: "Run a bounded, serialized Figma mutation with dry-run, explicit confirmation, undo checkpoint, and postcondition evidence. traceId and operation are required. Publication and library enablement remain provider/UI authority; dryRun defaults to true.",
+  annotations: { title: "Apply guarded Figma mutation", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
   inputSchema: {
     type: "object",
     properties: {
@@ -149,11 +232,12 @@ const APPLY_TOOL: Tool = {
       capability: { type: "string", enum: [...FIGMA_SKILL_IDS] },
       traceId: { type: "string", minLength: 1, maxLength: 128 },
       attempt: { type: "integer", minimum: 1, maximum: 1000 },
-      operation: OPERATION_SCHEMA,
+      operation: APPLY_OPERATION_SCHEMA,
     },
-    required: ["action"],
+    required: ["action", "traceId", "operation"],
     additionalProperties: false,
   },
+  outputSchema: toolOutputSchema("figma_apply"),
 };
 
 export function toolDefinitions(): Tool[] {
@@ -161,15 +245,18 @@ export function toolDefinitions(): Tool[] {
 }
 
 export function createMcpServer(ctx: ToolContext): Server {
-  const server = new Server({ name: "figma-plugin", version: VERSION }, { capabilities: { tools: {} } });
+  const server = new Server(
+    { name: "figma-plugin", version: VERSION },
+    { capabilities: { tools: {} }, instructions: MCP_SERVER_INSTRUCTIONS },
+  );
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toolDefinitions() }));
   server.setRequestHandler(CallToolRequestSchema, async (req): Promise<CallToolResult> => {
     const { name, arguments: args = {} } = req.params;
     try {
       const result = await callTool(ctx, name, args as Record<string, unknown>);
-      return toToolResult(result);
+      return toToolResult(result, name);
     } catch (err) {
-      return toToolError(err);
+      return toToolError(err, name);
     }
   });
   return server;
@@ -178,8 +265,8 @@ export function createMcpServer(ctx: ToolContext): Server {
 async function callTool(ctx: ToolContext, name: string, args: Record<string, unknown>): Promise<unknown> {
   if (name === "figma_status") return handleStatus(ctx, args["verbose"] === true);
   if (name === "figma_exec") {
-    const traceId = optionalTraceId(args["traceId"]);
-    const operation = optionalOperation(args["operation"], traceId);
+    const traceId = requiredTraceId(args["traceId"], name);
+    const operation = requiredOperation(args["operation"], traceId, name, undefined, true);
     const runtimeSdk = optionalRuntimeSdk(args["runtimeSdk"]);
     return handleExec(
       ctx,
@@ -213,8 +300,8 @@ async function callTool(ctx: ToolContext, name: string, args: Record<string, unk
     );
   }
   if (name === "figma_apply") {
-    const traceId = optionalTraceId(args["traceId"]);
-    const operation = optionalOperation(args["operation"], traceId, "write");
+    const traceId = requiredTraceId(args["traceId"], name);
+    const operation = requiredOperation(args["operation"], traceId, name, "write");
     const params: Record<string, unknown> = {};
     for (const key of ["action", "dryRun", "confirm", "pageIds", "removeLocalAssets", "assetType", "key", "instanceName", "x", "y", "propertyValues"]) if (args[key] !== undefined) params[key] = args[key];
     return handleApply(
@@ -234,9 +321,9 @@ async function callTool(ctx: ToolContext, name: string, args: Record<string, unk
     for (const key of ["nodeId", "format", "constraint", "contentsOnly", "useAbsoluteBounds", "colorProfile", "svgOutlineText", "svgIdAttribute", "svgSimplifyStroke", "fps", "quality", "loopCount", "maxBytes", "capability", "traceId", "attempt"]) {
       if (args[key] !== undefined) params[key] = args[key];
     }
-    const traceId = optionalTraceId(args["traceId"]);
-    const operation = optionalOperation(args["operation"], traceId, "export");
-    if (operation) params["operation"] = operation;
+    const traceId = requiredTraceId(args["traceId"], name);
+    const operation = requiredOperation(args["operation"], traceId, name, "export");
+    params["operation"] = operation;
     return handleExport(
       ctx,
       params,
@@ -251,6 +338,23 @@ async function callTool(ctx: ToolContext, name: string, args: Record<string, unk
 
 function optionalOperation(value: unknown, traceId: string | undefined, expectedKind?: RequestKind): OperationContextWire | undefined {
   return validateOperationContext(value, traceId, expectedKind);
+}
+
+function requiredOperation(
+  value: unknown,
+  traceId: string,
+  toolName: string,
+  expectedKind?: RequestKind,
+  alwaysRequirePostconditions = false,
+): OperationContextWire {
+  const operation = validateOperationContext(value, traceId, expectedKind);
+  if (!operation) {
+    throw new OpError(ErrorCode.INVALID_PARAMS, `${toolName} requires operation context so intent and evidence obligations cannot be omitted.`);
+  }
+  if ((alwaysRequirePostconditions || operation.kind !== "read") && (!operation.postconditions || operation.postconditions.length === 0)) {
+    throw new OpError(ErrorCode.INVALID_PARAMS, `${toolName} requires operation.postconditions for mutation/export intent. Postconditions remain unverified until read back.`);
+  }
+  return operation;
 }
 
 function optionalRuntimeSdk(value: unknown): RuntimeSdkVersion | undefined {
@@ -294,6 +398,12 @@ function optionalTraceId(value: unknown): string | undefined {
   return value;
 }
 
+function requiredTraceId(value: unknown, toolName: string): string {
+  const traceId = optionalTraceId(value);
+  if (!traceId) throw new OpError(ErrorCode.INVALID_PARAMS, `${toolName} requires traceId.`);
+  return traceId;
+}
+
 function optionalAttempt(value: unknown): number | undefined {
   if (value === undefined) return undefined;
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 1000) {
@@ -304,7 +414,16 @@ function optionalAttempt(value: unknown): number | undefined {
 
 const IMAGE_MIME: Record<string, string> = { PNG: "image/png", JPG: "image/jpeg", JPEG: "image/jpeg" };
 
-function imageResult(result: unknown): CallToolResult | null {
+function structuredSuccess(toolName: string, result: unknown): Record<string, unknown> {
+  return {
+    schemaVersion: MCP_CONTRACT_SCHEMA_VERSION,
+    tool: toolName,
+    status: "success",
+    result: result === undefined ? null : result,
+  };
+}
+
+function imageResult(result: unknown, toolName: string, warnings?: unknown): CallToolResult | null {
   if (!result || typeof result !== "object") return null;
   const r = result as Record<string, unknown>;
   const format = typeof r["format"] === "string" ? String(r["format"]).toUpperCase() : "";
@@ -320,10 +439,14 @@ function imageResult(result: unknown): CallToolResult | null {
     if (key === "bytes" || key === "base64" || key === "format") continue;
     meta[key] = value;
   }
-  return { content: [{ type: "text", text: JSON.stringify(meta) }, { type: "image", data: base64, mimeType: mime }] };
+  const structuredResult = warnings === undefined ? meta : { ...meta, warnings };
+  return {
+    content: [{ type: "text", text: JSON.stringify(meta) }, { type: "image", data: base64, mimeType: mime }],
+    structuredContent: structuredSuccess(toolName, structuredResult),
+  };
 }
 
-function artifactResult(result: unknown): CallToolResult | null {
+function artifactResult(result: unknown, toolName: string): CallToolResult | null {
   if (!result || typeof result !== "object") return null;
   const outer = result as Record<string, unknown>;
   const artifact = outer["artifact"];
@@ -340,26 +463,44 @@ function artifactResult(result: unknown): CallToolResult | null {
       { type: "text", text: JSON.stringify(descriptor) },
       { type: "resource_link", uri, name, ...(mimeType ? { mimeType } : {}), ...(size !== undefined ? { size } : {}) },
     ],
-    structuredContent: descriptor,
+    structuredContent: { ...descriptor, ...structuredSuccess(toolName, descriptor) },
   };
 }
 
-export function toToolResult(result: unknown): CallToolResult {
-  const artifact = artifactResult(result);
+export function toToolResult(result: unknown, toolName = "figma_unknown"): CallToolResult {
+  const artifact = artifactResult(result, toolName);
   if (artifact) return artifact;
-  const image = imageResult(result);
+  const image = imageResult(result, toolName);
   if (image) return image;
   if (result && typeof result === "object" && "result" in result && "warnings" in result) {
-    const inner = imageResult((result as { result: unknown }).result);
+    const inner = imageResult(
+      (result as { result: unknown }).result,
+      toolName,
+      (result as { warnings: unknown }).warnings,
+    );
     if (inner) {
       inner.content.unshift({ type: "text", text: JSON.stringify({ warnings: (result as { warnings: unknown }).warnings }) });
       return inner;
     }
   }
-  return { content: [{ type: "text", text: typeof result === "string" ? result : JSON.stringify(result) }] };
+  return {
+    content: [{ type: "text", text: typeof result === "string" ? result : JSON.stringify(result) }],
+    structuredContent: structuredSuccess(toolName, result),
+  };
 }
 
-function toToolError(err: unknown): CallToolResult {
+export function toToolError(err: unknown, toolName = "figma_unknown"): CallToolResult {
   const error = toBridgeError(err);
-  return { isError: true, content: [{ type: "text", text: JSON.stringify({ code: error.code, message: error.message, hint: error.hint }) }] };
+  const disposition = mcpErrorDisposition(error.code, toolName);
+  const payload = { code: error.code, message: error.message, hint: error.hint, ...disposition };
+  return {
+    isError: true,
+    content: [{ type: "text", text: JSON.stringify(payload) }],
+    structuredContent: {
+      schemaVersion: MCP_CONTRACT_SCHEMA_VERSION,
+      tool: toolName,
+      status: "error",
+      error: payload,
+    },
+  };
 }

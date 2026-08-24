@@ -1,6 +1,6 @@
 ---
 name: figma-tokens
-description: Design, audit, migrate, and apply reusable Figma Variables and token architecture. Use for variable collections, modes, aliases, primitive/semantic/component token layers, scopes, code syntax, theming, density, language/context modes, extended collections or multi-brand systems, token naming, duplicate/drift cleanup, and Design-to-Code token mapping. Do not own typography recipes, component anatomy, visual color composition, or motion behavior even when those domains consume variables.
+description: "Design, audit, migrate, or apply Figma Variables and token architecture. Use for collections, modes, aliases, semantic layers, scopes, theming, naming, drift cleanup, and design-to-code token mapping. Own reusable value semantics; not typography recipes, component anatomy, visual composition, or motion behavior."
 ---
 
 # Figma Tokens
@@ -25,6 +25,8 @@ This Skill earns its place by distinguishing **semantic role identity from raw v
 **Escalate input only when** alias lineage, scope, mode behavior, or consumer impact is ambiguous. Prefer filtered variable/consumer records over exporting every variable in the file. Load values for every relevant mode only when the decision spans those modes.
 
 **Return** token identities/roles, collection+mode placement, alias/scope/code-syntax decisions, migration/consumer impact, and `system-reuse` proof. Do not return a giant token dump when the caller needs a role decision or changed subset.
+
+WHEN a token decision needs a bounded variable, alias, mode, or consumer projection, READ `references/inspection-recipes.md` because it defines compact evidence shapes without requiring a full-file token dump.
 
 ## Distillation and provider authority
 

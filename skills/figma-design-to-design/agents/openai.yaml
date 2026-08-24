@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Design to Design"
   short_description: "Reuse, migrate, fork, or sync Figma design truth across files and libraries"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

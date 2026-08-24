@@ -72,7 +72,7 @@ Do not use a cheaper evidence type when it cannot prove the claim, and do not us
 
 ## Local execution attribution
 
-`figma_exec` and `figma_export` accept optional measurement/intent metadata:
+`figma_exec`, `figma_apply`, and `figma_export` require accountable intent metadata at the MCP boundary; `capability` and `attempt` remain optional measurement fields:
 
 ```text
 capability  canonical primary Figma Plugin Skill id
@@ -81,7 +81,7 @@ attempt     1-based retry attempt; normal sequential steps remain attempt=1
 operation   label + kind + phase + target + expected postconditions
 ```
 
-`operation` requires `traceId`; retries retain the trace and increment `attempt`. These fields do not change Figma execution. They let local telemetry distinguish capability-attributed traffic, retries, and logical outcomes. Runtime metrics separate queue, execution, total latency and request/response bytes. Declared postconditions remain expectations until matching evidence is actually collected. This is execution evidence, not proof that the Skill improved behavior.
+`operation` and `traceId` are required for mutation-capable raw execution, typed apply, and export; retries retain the trace and increment `attempt`. The gate prevents silent omission of intent, but it does not authorize work or prove the postconditions. Runtime metrics separate queue, execution, total latency and request/response bytes. Declared postconditions remain expectations until matching evidence is actually collected.
 
 ## Evaluation
 

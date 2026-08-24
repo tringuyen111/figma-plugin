@@ -27,6 +27,8 @@ function sourceFiles(directory) {
 
 const revisionInputs = [
   new URL("../package.json", import.meta.url),
+  new URL("../package-lock.json", import.meta.url),
+  new URL("../THIRD_PARTY_NOTICES.md", import.meta.url),
   new URL("../plugin/manifest.json", import.meta.url),
   ...sourceFiles("src"),
 ];
@@ -58,10 +60,35 @@ const serverConfig = {
   platform: "node",
   format: "esm",
   target: "node18",
-  banner: { js: "#!/usr/bin/env node" },
-  // Keep runtime deps external so npm installs them; bundle only our code.
-  packages: "external",
+  metafile: true,
+  banner: {
+    js: [
+      "#!/usr/bin/env node",
+      'import { createRequire as __createRequire } from "node:module";',
+      "const require = __createRequire(import.meta.url);",
+    ].join("\n"),
+  },
+  // Codex plugin installation caches packaged files without running npm install.
+  // Bundle runtime dependencies so the installed MCP entrypoint is self-contained.
 };
+
+function validateBundledRuntimeNotices(metafile) {
+  const packages = new Set();
+  for (const input of Object.keys(metafile?.inputs ?? {})) {
+    const normalized = input.replaceAll("\\", "/");
+    const marker = "node_modules/";
+    const index = normalized.lastIndexOf(marker);
+    if (index < 0) continue;
+    const parts = normalized.slice(index + marker.length).split("/");
+    packages.add(parts[0].startsWith("@") ? parts.slice(0, 2).join("/") : parts[0]);
+  }
+  if (packages.size === 0) throw new Error("Self-contained server bundle contains no inspectable runtime dependencies.");
+  const notices = readFileSync(new URL("../THIRD_PARTY_NOTICES.md", import.meta.url), "utf8");
+  for (const name of [...packages].sort()) {
+    if (!notices.includes(`## ${name}@`)) throw new Error(`THIRD_PARTY_NOTICES.md is missing bundled runtime package ${name}.`);
+  }
+  return [...packages].sort();
+}
 
 const pluginConfig = {
   ...common,
@@ -91,6 +118,7 @@ if (watch) {
   }
   console.log("watching…");
 } else {
-  await Promise.all([build(serverConfig), build(pluginConfig)]);
-  console.log(`bundle revision ${bundleRevision}`);
+  const [serverResult] = await Promise.all([build(serverConfig), build(pluginConfig)]);
+  const bundledPackages = validateBundledRuntimeNotices(serverResult.metafile);
+  console.log(`bundle revision ${bundleRevision}; third-party notices ${bundledPackages.length}/${bundledPackages.length}`);
 }

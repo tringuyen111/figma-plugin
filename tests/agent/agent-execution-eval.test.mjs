@@ -9,6 +9,8 @@ describe("agent execution upgrade eval contract", () => {
   it("keeps mechanism proof separate from behavioral uplift", () => {
     expect(evals.status).toBe("MECHANISM_TESTED_BEHAVIORAL_COMPARISON_NOT_RUN");
     expect(evals.claims.behavioralSkillComparison).toBe("NOT_RUN");
+    expect(evals.claims.obligationLedgerMechanism).toBe("IMPLEMENTED_TESTED_V2");
+    expect(evals.claims.accountableMcpContext).toBe("IMPLEMENTED_TESTED_LOCAL");
     expect(evals.claims.liveRuntimeSdkExecution).toBe("EXECUTED_PASS_V2");
     expect(evals.claims.devResourceWrite).toBe("BLOCKED_BY_PROVIDER_403");
     expect(evals.invariants.maxActiveDeepResources).toBe(2);
@@ -16,7 +18,7 @@ describe("agent execution upgrade eval contract", () => {
 
   it("freezes planning, overload, representation, recovery, and reuse cases", () => {
     const ids = new Set(evals.cases.map((item) => item.id));
-    for (const required of ["multi-skill-dashboard", "small-direct-edit", "context-overload-recovery", "process-not-paragraph", "quantitative-progress", "dynamic-page-style-binding", "timeout-recovery", "cross-file-reuse"]) {
+    for (const required of ["multi-skill-dashboard", "small-direct-edit", "context-overload-recovery", "process-not-paragraph", "quantitative-progress", "dynamic-page-style-binding", "timeout-recovery", "cross-file-reuse", "required-obligation-closure", "mutation-context-omission"]) {
       expect(ids.has(required)).toBe(true);
     }
     for (const item of evals.cases) {

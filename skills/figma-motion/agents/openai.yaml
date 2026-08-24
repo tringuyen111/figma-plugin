@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Motion"
   short_description: "Timelines, keyframes, timing, easing, and animated components"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

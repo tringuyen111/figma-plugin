@@ -1,6 +1,6 @@
 {
   "name": "figma-plugin",
-  "version": "0.5.6",
+  "version": "0.6.0",
   "description": "Deep Figma design capabilities on top of a local native execution and multi-window routing kernel.",
   "author": {
     "name": "Tri Nguyen",
@@ -29,11 +29,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Set up or diagnose the local Figma Plugin connection and tell me the exact next action.",
-      "Design or revise this Figma screen using the appropriate deep Figma capabilities and reuse the existing system.",
-      "Audit this fixed Figma artifact with evidence-backed verification, or improve the owning design-system domain when repair is requested.",
-      "Translate between this Figma design system and the production codebase without duplicating existing design truth.",
-      "Reuse, migrate, fork, or synchronize this Figma design/library into another Figma file without losing the intended update path."
+      "Diagnose the local Figma connection and give the exact next action.",
+      "Design or revise this Figma screen with existing components, tokens, and verified readback.",
+      "Translate or synchronize this design across Figma files and production code without duplicating source truth."
     ]
   }
 }

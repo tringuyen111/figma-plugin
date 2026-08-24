@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "planId": "replace-me",
   "objective": "Replace with the bounded multi-step design objective.",
   "terminalTruth": "Name the exact changed artifact and proof required for completion.",
@@ -24,6 +24,18 @@
       { "shape": "local-fact", "use": "text" }
     ]
   },
+  "obligations": [
+    {
+      "id": "req-first-packet",
+      "sourceText": "Replace with one verbatim user obligation that this plan must satisfy.",
+      "required": true,
+      "owner": "figma-design-authoring",
+      "proofRequired": true,
+      "status": "ACTIVE",
+      "evidenceRefs": [],
+      "blocker": ""
+    }
+  ],
   "nodes": [
     {
       "id": "first-packet",
@@ -33,9 +45,11 @@
       "status": "ACTIVE",
       "owner": "figma-design-authoring",
       "specialists": [],
+      "obligationIds": ["req-first-packet"],
       "dependsOn": [],
       "entrypoint": "Bind the exact Figma target before mutation.",
       "proof": ["Name the real artifact/runtime evidence."],
+      "evidenceRefs": [],
       "nonGoals": ["Do not broaden product behavior."],
       "recovery": "Inspect the target before retrying any timed-out mutation."
     }

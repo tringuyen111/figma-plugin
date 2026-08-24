@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Components"
   short_description: "Components, variants, slots, properties, and reuse"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

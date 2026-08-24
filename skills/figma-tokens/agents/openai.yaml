@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Tokens"
   short_description: "Variables, modes, aliases, naming, and token reuse"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

@@ -1,6 +1,6 @@
 ---
 name: figma-typography
-description: Design, audit, repair, and reuse typography in Figma. Use for fonts, font loading/availability, Text Styles, typography variables, text-role hierarchy, line height, letter spacing, measure, numeric scanning, localization/RTL, text scaling, optical alignment, and text-slot pressure in reusable components. Own typography as geometry and system language; do not own generic layout, token architecture, component structure, or overall visual color/material direction.
+description: "Design, audit, repair, or reuse typography in Figma. Use for fonts, Text Styles, type variables, role hierarchy, metrics, measure, numeric scanning, localization/RTL, scaling, optical alignment, or text-slot pressure. Own typography as geometry and system language; not generic layout, tokens, component structure, or visual color/material direction."
 ---
 
 # Figma Typography

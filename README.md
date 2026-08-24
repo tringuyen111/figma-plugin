@@ -8,6 +8,8 @@ Figma Plugin cho agent làm việc trực tiếp với Figma Design, FigJam ho�
 Agent / Skill
     │
     ├─ figma_status
+    ├─ figma_query
+    ├─ figma_apply
     ├─ figma_exec
     └─ figma_export
           │
@@ -21,7 +23,7 @@ Agent / Skill
     native Figma Plugin API
 ```
 
-Runtime cố ý chỉ giữ ba primitive nhỏ; `figma_export` là egress primitive, không phải Design Skill. Design intelligence nằm ở bộ Skill chuyên sâu: scene/2.5D, layout, tokens, typography, visual system, components, prototype, motion, design system, design authoring, verification và ba chiều code bridge. Xem `docs/CAPABILITIES.md` để biết ownership/reuse contract, `docs/DESIGN-LIFECYCLE.md` cho library/cross-file lifecycle, `docs/EXPORT.md` cho typed egress, `docs/DISTILLATION.md` để truy provenance, và `docs/SOURCE-ARCHITECTURE.md` cho source ownership.
+Runtime cố ý chỉ giữ năm tool nhỏ: `figma_status` cho routing/health, `figma_query` cho typed read-only inventory, `figma_apply` cho mutation có dry-run/confirm guard, `figma_exec` làm native escape hatch, và `figma_export` làm typed egress primitive. Chúng không thay thế Design Skill. Design intelligence nằm ở bộ Skill chuyên sâu: scene/2.5D, layout, tokens, typography, visual system, components, prototype, motion, design system, design authoring, verification và ba chiều code bridge. Xem `docs/CAPABILITIES.md` để biết ownership/reuse contract, `docs/DESIGN-LIFECYCLE.md` cho library/cross-file lifecycle, `docs/EXPORT.md` cho typed egress, `docs/DISTILLATION.md` để truy provenance, và `docs/SOURCE-ARCHITECTURE.md` cho source ownership.
 
 Live capability findings and the system-level upgrade path are recorded in `docs/CAPABILITY-UPGRADE.md`; the report keeps local component reuse, cross-file library reuse, visual self-review, design-to-code parity and behavioral qualification as separate evidence claims.
 
@@ -35,7 +37,7 @@ npm run build
 node dist/server/index.js doctor
 ```
 
-`doctor` không thay đổi Figma hay cấu hình MCP. Nó kiểm tra bundle cục bộ, đủ 16 Figma capability Skills, và in **đường dẫn tuyệt đối** tới `plugin/manifest.json` cùng bước tiếp theo, để agent có thể tự chẩn đoán setup thay vì chờ người dùng đoán phải làm gì. Khi package đã được cài qua npm/bin, có thể dùng `figma-plugin doctor` hoặc `figma-plugin doctor --json`.
+`doctor` không thay đổi Figma hay cấu hình MCP. Nó kiểm tra bundle cục bộ, các file package/plugin/MCP bắt buộc, version giữa `package.json` và hai plugin manifest, đủ 16 Figma capability Skills, rồi in **đường dẫn tuyệt đối** tới `plugin/manifest.json` cùng bước tiếp theo. Đây là setup/static validation, không phải bằng chứng Figma live. Khi package đã được cài qua npm/bin, có thể dùng `figma-plugin doctor` hoặc `figma-plugin doctor --json`.
 
 Trong Figma Desktop:
 
@@ -57,7 +59,7 @@ node /absolute/path/to/figma-plugin/dist/server/index.js
 
 Nếu cần đổi port bắt đầu, `CONTROLMUX_FIGMA_PORT` phải nằm trong `38470-38479`. Runtime sẽ thử các port còn lại theo vòng trong đúng dải này để Figma plugin luôn có thể discover server.
 
-Khi nâng từ bản cũ lên `0.5.6`, hãy dừng các process Figma Plugin cũ đang chạy trước khi start runtime mới để tránh giữ leader/runtime state của bundle trước.
+Khi nâng từ bản cũ lên `0.6.0`, hãy dừng các process Figma Plugin cũ đang chạy trước khi start runtime mới để tránh giữ leader/runtime state của bundle trước.
 
 ### Codex
 
@@ -144,9 +146,9 @@ return {
 
 Dùng `figma_export` khi cần artifact durable thay vì immediate visual evidence. Runtime hỗ trợ PNG/JPG/SVG/PDF/JSON/MP4/GIF/WEBM, persist bytes ở **leader**, rồi trả descriptor nhỏ + local `resource_link`; follower không nhận base64 artifact. Default budget là 32 MiB và hard ceiling được chừa overhead cho binary frame. Export mặc định nằm trong private ControlMux runtime directory với retention 24 giờ; `CONTROLMUX_FIGMA_EXPORT_DIR` chuyển sang thư mục tuyệt đối do user quản lý.
 
-### Operation contract và I/O measurement tùy chọn
+### Operation contract bắt buộc cho mutation/export
 
-`figma_exec` và `figma_export` vẫn tương thích với caller cũ. Ngoài `capability`, `traceId`, `attempt`, caller có thể gửi `operation` để runtime biết mục tiêu có trách nhiệm thay vì phải đoán từ JavaScript:
+Từ candidate `0.6.0`, `figma_exec`, `figma_apply` và `figma_export` bắt buộc gửi `traceId + operation`; `capability` và `attempt` vẫn tùy chọn. Đây là omission gate ở MCP boundary: raw JavaScript, mutation typed và artifact export không được chạy khi thiếu intent có trách nhiệm. `figma_query` read-only vẫn có thể chạy không cần operation metadata.
 
 ```json
 {
@@ -213,7 +215,7 @@ Companion UI là **một live observability surface duy nhất**, không phải 
 
 Runtime giữ tối đa **100 request gần nhất cho mỗi plugin connection** và tối đa 100 latency samples. Metrics tách queue/execute/total latency (p50/p95), bytes, error/timeout, attributed count và retry count. Aggregate counters và traffic là in-memory kể từ lúc plugin instance kết nối; chúng reset khi connection/runtime tương ứng được tạo lại. Không có database hoặc durable telemetry history trong plugin này.
 
-Caller cũ vẫn có thể thêm comment tương thích ở đầu `figma_exec` code: `// @controlmux read <label>`, `write`, hoặc `export`. Structured `operation` được ưu tiên khi cả hai cùng tồn tại. Request không có structured context hoặc annotation được ghi là `Other / Unlabeled figma_exec`; binary image result tự được reclassify thành `Export`.
+Comment tương thích ở đầu code (`// @controlmux read <label>`, `write`, hoặc `export`) chỉ còn là label fallback ở bridge cũ; nó không thay thế `traceId + operation` tại MCP boundary. Binary image result vẫn được reclassify thành `Export`, nhưng declared postconditions chỉ là nghĩa vụ cần readback chứ không tự tạo PASS.
 
 Plugin mở ở **390×720** và cho phép resize trong biên 620–820px; đây là geometry của một desktop companion panel cao, không phải mô phỏng thiết bị mobile. Khi thiếu chiều cao, operation log co/scroll trong chính vùng của nó thay vì biến cả UI thành một trang dài.
 

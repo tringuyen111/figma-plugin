@@ -4,7 +4,7 @@ import { buildDoctorReport, formatDoctorReport } from "./doctor.js";
 import { createServer } from "./runtime.js";
 
 export { createServer, resolveStartPort, type ServerHandle } from "./runtime.js";
-export { toolDefinitions, toToolResult } from "./mcp-surface.js";
+export { toolDefinitions, toToolError, toToolResult } from "./mcp-surface.js";
 
 async function main(): Promise<void> {
   const command = process.argv[2];

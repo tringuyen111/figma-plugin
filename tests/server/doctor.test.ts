@@ -5,12 +5,15 @@ import { join } from "node:path";
 import { buildDoctorReport, formatDoctorReport, REQUIRED_FIGMA_SKILLS } from "../../src/server/doctor.js";
 
 function readyFixture(): string {
-  const root = mkdtempSync(join(tmpdir(), "controlmux-figma-doctor-"));
-  for (const dir of ["dist/server", "plugin", ...REQUIRED_FIGMA_SKILLS.map((name) => `skills/${name}`)]) mkdirSync(join(root, dir), { recursive: true });
+  const root = mkdtempSync(join(tmpdir(), "figma-plugin-doctor-"));
+  for (const dir of ["dist/server", "plugin", ".codex-plugin", ".claude-plugin", ...REQUIRED_FIGMA_SKILLS.map((name) => `skills/${name}`)]) mkdirSync(join(root, dir), { recursive: true });
   writeFileSync(join(root, "dist/server/index.js"), "// bundle");
   writeFileSync(join(root, "plugin/code.js"), "// plugin");
-    writeFileSync(join(root, "plugin/ui.html"), "<div>Figma Plugin</div>");
-  writeFileSync(join(root, ".mcp.json"), "{}");
+  writeFileSync(join(root, "plugin/ui.html"), "<div>Figma Plugin</div>");
+  writeFileSync(join(root, "package.json"), JSON.stringify({ name: "figma-plugin", version: "0.6.0" }));
+  writeFileSync(join(root, ".codex-plugin/plugin.json"), JSON.stringify({ name: "figma-plugin", version: "0.6.0" }));
+  writeFileSync(join(root, ".claude-plugin/plugin.json"), JSON.stringify({ name: "figma-plugin", version: "0.6.0" }));
+  writeFileSync(join(root, ".mcp.json"), JSON.stringify({ mcpServers: { "figma-plugin": { command: "node", args: ["./dist/server/index.js"] } } }));
   for (const name of REQUIRED_FIGMA_SKILLS) writeFileSync(join(root, `skills/${name}/SKILL.md`), `# ${name}`);
   writeFileSync(join(root, "plugin/manifest.json"), JSON.stringify({
     name: "Figma Plugin",
@@ -30,6 +33,7 @@ describe("Figma Plugin doctor", () => {
     expect(report.agentSteps.join("\n")).toContain("figma_status");
     expect(formatDoctorReport(report)).toContain("Agent continuation:");
     expect(report.checks.find((check) => check.id === "figma-provider-evidence")?.status).toBe("warn");
+    expect(report.checks.find((check) => check.id === "release-version-alignment")?.status).toBe("ok");
   });
 
   it("requires the complete Figma capability topology", () => {
@@ -52,5 +56,21 @@ describe("Figma Plugin doctor", () => {
     const report = buildDoctorReport(root);
     expect(report.status).toBe("ACTION_REQUIRED");
     expect(report.checks.find((check) => check.id === "figma-manifest")?.status).toBe("fail");
+  });
+
+  it("fails when a required plugin package file is missing", () => {
+    const root = readyFixture();
+    unlinkSync(join(root, ".mcp.json"));
+    const report = buildDoctorReport(root);
+    expect(report.status).toBe("ACTION_REQUIRED");
+    expect(report.checks.find((check) => check.id === "plugin-package-files")?.detail).toContain(".mcp.json");
+  });
+
+  it("fails when a plugin manifest version drifts from package.json", () => {
+    const root = readyFixture();
+    writeFileSync(join(root, ".codex-plugin/plugin.json"), JSON.stringify({ name: "figma-plugin", version: "0.5.6" }));
+    const report = buildDoctorReport(root);
+    expect(report.status).toBe("ACTION_REQUIRED");
+    expect(report.checks.find((check) => check.id === "release-version-alignment")?.detail).toContain(".codex-plugin/plugin.json=0.5.6");
   });
 });

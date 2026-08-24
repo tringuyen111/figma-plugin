@@ -1,6 +1,6 @@
 ---
 name: figma-design-authoring
-description: Translate approved Product/behavior truth into coherent Figma screens, views, flows, and design-system-aware compositions. Use when the user wants to design, redesign, create, or update a product UI in Figma and the hard problem is choosing semantic structure, layout, components, typography, color/material/depth, state, responsive behavior, and motion as one scene. Own Product-Design-to-Figma composition and representation selection; do not invent unresolved product behavior or production code.
+description: "Compose approved product and behavior truth into coherent Figma screens, flows, states, and system-aware views. Use for product UI design, redesign, creation, or updates where structure, layout, components, type, color/depth, responsiveness, and motion must cohere. Do not invent unresolved behavior or production code."
 ---
 
 # Figma Design Authoring
@@ -26,9 +26,11 @@ This Skill earns its place by compiling **approved Product Design truth into one
 
 **Return** the design decision/changes, owners/representations chosen, affected IDs, unresolved Product truth, and the minimum proof that supports the claimed fidelity. A concise result is preferred, but never omit a material design rationale or failed evidence dimension merely to save output.
 
+WHEN choosing proof for authored structure, system reuse, layout, visuals, content, interaction, or motion, READ `references/authoring-proof.md` because each claimed fidelity dimension requires its own matching evidence.
+
 ## Progressive multi-skill orchestration
 
-When the job has several independent decision/proof boundaries, needs more than one specialist, or must survive a context/session boundary, **READ** `references/progressive-workflow.md` because it defines the work-packet graph, immediate rolling notes, just-in-time specialist activation and reasoning-shape representation compiler. Use `templates/work-plan.json` plus `scripts/work-plan.mjs` when durable state materially reduces omission or context loss.
+When the job has several independent decision/proof boundaries, needs more than one specialist, or must survive a context/session boundary, **READ** `references/progressive-workflow.md` because it defines the work-packet graph, immediate rolling notes, just-in-time specialist activation and reasoning-shape representation compiler. Use `templates/work-plan.json` plus `scripts/work-plan.mjs` when durable state materially reduces omission or context loss. WHEN another tool generates or consumes the plan, READ `schemas/work-plan.schema.json` because it is the canonical machine contract for that durable state.
 
 Do not preload every possibly relevant Figma Skill. Keep one active packet, load only the specialist depth that can change its decision, note the mechanism/fact/failure/evidence immediately, execute or inspect, then shed that depth before activating the next packet. A small direct edit remains direct and does not earn planning ceremony.
 

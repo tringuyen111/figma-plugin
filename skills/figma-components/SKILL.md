@@ -1,6 +1,6 @@
 ---
 name: figma-components
-description: Design, audit, repair, and evolve reusable Figma components and instance APIs. Use for Components, Component Sets, variants, states, text/boolean/instance-swap/slot properties, nested components, preferred instances, overrides, descriptions, naming, component reuse, variant explosion, detach cleanup, and propagation across consumers. Own the reusable semantic component contract and its Figma representation, not product behavior, token architecture, general layout, or code implementation.
+description: "Design, audit, repair, or evolve reusable Figma components and instance APIs. Use for component sets, variants, slots, properties, overrides, preferred instances, reuse, propagation, variant explosion, or detach cleanup. Own the semantic component contract; not product behavior, tokens, general layout, or code."
 ---
 
 # Figma Components
@@ -144,7 +144,7 @@ Before creating a new component:
 
 Do not merge three visually similar blocks if their jobs/state/evolution differ materially.
 
-When reuse identity must survive another operation, context/session, file, or library boundary, **READ** `references/reuse-registry.md` and persist the selected identity with `references/reuse-registry.schema.json`. Validate it using `scripts/validate-reuse-registry.mjs`. Keep `LOCAL_VERIFIED`, library discovery, imported cross-file proof, stale identity and `NOT_RUN` distinct; appearance alone never upgrades a registry entry.
+When reuse identity must survive another operation, context/session, file, or library boundary, **READ** `references/reuse-registry.md` and persist the selected identity with `references/reuse-registry.schema.json`. WHEN initializing that durable registry, start from `templates/reuse-registry.json` because it preserves the schema's required starter shape before validation. Validate it using `scripts/validate-reuse-registry.mjs`. Keep `LOCAL_VERIFIED`, library discovery, imported cross-file proof, stale identity and `NOT_RUN` distinct; appearance alone never upgrades a registry entry.
 
 ## Native execution discipline
 

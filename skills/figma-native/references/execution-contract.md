@@ -6,29 +6,30 @@ Move computation to Figma; move only decision-relevant evidence back to the mode
 
 ## Call shape
 
-Use one `figma_exec` call with a JavaScript body. Prefix normal calls with a lightweight telemetry annotation so the companion UI can show an honest request kind and human-readable label without parsing JavaScript semantics:
+Use one `figma_exec` call with a JavaScript body plus required MCP `traceId + operation` context. A source comment may provide a compatibility label inside the local bridge, but it cannot replace accountable MCP context:
 
 ```js
 // @controlmux read Inspect text nodes
 const nodes = figma.currentPage.findAllWithCriteria({ types: ["TEXT"] })
 return nodes.slice(0, 20).map(n => ({ id: n.id, name: n.name, characters: n.characters.slice(0, 80) }))
 ```
-Use `read` for inspect/list/get-only work, `write` whenever the call mutates Figma (including read-modify-verify), and `export` for image/artifact export. The runtime treats unannotated calls as `Other`; it never guesses from source text.
+Use `read` for inspect/list/get-only work, `write` whenever the call mutates Figma (including read-modify-verify), and `export` for image/artifact export. The MCP runtime rejects mutation-capable tool calls without structured context; it never guesses intent from JavaScript source.
 
 
 Top-level `await` and `return` are supported by the local runtime. Do not wrap in an IIFE.
 
-## Optional measurement attribution
+## Accountable operation context
 
-When the active host uses ControlMux local `figma_exec`, measurement metadata may be supplied outside the JavaScript body:
+For `figma_exec`, `figma_apply`, and `figma_export`, supply context outside the JavaScript/body parameters:
 
 ```text
 capability  primary ControlMux Figma Skill responsible for the operation
 traceId     stable id for one logical operation across retries
 attempt     1 for the first attempt; increment only when retrying that same operation
+operation   label + kind + phase + target + expected postconditions
 ```
 
-These fields do not authorize work and do not change execution semantics. They exist only so telemetry can correlate request/response bytes, queue/execution latency, and retries with the primary capability. Normal sequential steps are separate logical operations and should not be mislabeled as retries.
+`traceId + operation` are required; `capability` and `attempt` are optional. Non-read operation context must include postconditions, which remain unverified until matching readback/evidence exists. These fields do not authorize work or change Figma semantics. Normal sequential steps are separate logical operations and must not be mislabeled as retries.
 
 Do not add attribution when the primary owner is genuinely unresolved; inaccurate telemetry is worse than missing telemetry.
 

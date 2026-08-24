@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Native"
   short_description: "ControlMux connection and native Plugin API execution"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

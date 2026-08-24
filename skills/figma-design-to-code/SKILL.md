@@ -1,6 +1,6 @@
 ---
 name: figma-design-to-code
-description: Implement or translate a Figma design into an existing production codebase while preserving the project's real components, tokens, assets, states, motion, and conventions. Use when building code from Figma, porting a Figma screen/component, extracting design semantics for implementation, or verifying design-code parity. Own design-to-code interpretation and integration, not Figma redesign, product behavior invention, or Code Connect mapping authoring itself.
+description: "Implement or translate a Figma design into the real production codebase while preserving existing components, tokens, assets, states, motion, and conventions. Use for Figma-to-code screens/components or parity work. Own design interpretation and integration; not Figma redesign, behavior invention, or Code Connect authoring."
 ---
 
 # Figma Design to Code

@@ -1,6 +1,6 @@
 ---
 name: figma-design-system
-description: Build, reconcile, audit, and evolve a coherent Figma Design System across variables/tokens, typography, visual styles, components, layout conventions, motion, libraries, naming, reuse, publishing, and code alignment. Use when the terminal outcome is a reusable system or library rather than one local screen/object. Own cross-capability system composition, conflict resolution, source-of-truth, propagation, and proof; delegate deep local decisions to the relevant Figma capability instead of inventing a second methodology.
+description: "Build, reconcile, audit, or evolve a reusable Figma Design System across foundations, components, layout, motion, libraries, naming, publishing, and code alignment. Use when the terminal outcome is a shared system/library rather than one object. Own cross-capability governance; delegate local specialist decisions."
 ---
 
 # Figma Design System
@@ -25,6 +25,8 @@ This Skill earns its place by governing **cross-capability reuse, authority, pro
 **Escalate input only when** a conflict or blast radius crosses the current scope: expand from item -> semantic role -> foundation -> distribution deliberately. Prefer inventories/diffs over full node trees or screenshots of every page.
 
 **Return** reconciliation decisions (`reuse/update/create/conflict/deprecate`), ownership/source, propagation/publication impact, unresolved authority conflicts, and proof by relevant evidence dimension. See `references/inventory-recipes.md` for bounded inventory shapes.
+
+WHEN establishing a system audit or reconciliation baseline, READ `references/system-audit.md` because it defines bounded inventory, conflict, propagation, and proof dimensions before system-level decisions widen.
 
 ## Distillation and provider authority
 

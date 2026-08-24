@@ -4,11 +4,13 @@
   "candidate": "progressive-work-plan-runtime-sdk-plan-telemetry-reuse-registry-v1",
   "claims": {
     "planningMechanism": "IMPLEMENTED_TESTED",
+    "obligationLedgerMechanism": "IMPLEMENTED_TESTED_V2",
     "progressiveContextMechanism": "IMPLEMENTED_TESTED",
     "representationSelectionMechanism": "IMPLEMENTED_TESTED",
     "runtimeSdkMechanism": "IMPLEMENTED_TESTED_LOCAL_V2",
     "typedRuntimePlatform": "LIVE_PASS_WITH_PROVIDER_LIMIT",
     "planTelemetryMechanism": "IMPLEMENTED_TESTED_LOCAL",
+    "accountableMcpContext": "IMPLEMENTED_TESTED_LOCAL",
     "telemetryDeltaProtocol": "IMPLEMENTED_TESTED_LIVE_BRIDGE",
     "smoothTelemetryLifecycle": "IMPLEMENTED_TESTED_LIVE_PRESSURE",
     "coreRuntimeSmoke": "EXECUTED_PASS_V2",
@@ -25,6 +27,8 @@
     "noteAfterEachLoad": true,
     "distillBeforeNextLoad": true,
     "smallDirectWorkNeedsPlan": false,
+    "requiredObligationsMayDisappear": false,
+    "mutationMayOmitOperationContext": false,
     "telemetryOwnsCanonicalPlan": false,
     "declaredPostconditionsAutoPass": false
   },
@@ -132,6 +136,32 @@
       },
       "failureSignals": ["visual similarity counted as reuse", "LOCAL_VERIFIED called cross-file proof", "detached copy accepted"],
       "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "required-obligation-closure",
+      "trigger": "Complete a five-clause Figma request whose visual, system, interaction, export, and verification obligations all remain required.",
+      "expected": {
+        "planning": "work-graph-v2",
+        "primaryOwner": "figma-design-authoring",
+        "activateJustInTime": ["figma-components", "figma-prototype", "figma-verification"],
+        "representation": "table",
+        "context": "every source clause has an obligation id and terminal evidence state"
+      },
+      "failureSignals": ["a required clause disappears from output", "overall PASS with an unresolved obligation", "declared postcondition counted as evidence"],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "mutation-context-omission",
+      "trigger": "Attempt a raw or typed Figma mutation without traceId, operation intent, or postconditions.",
+      "expected": {
+        "planning": "direct-rejection",
+        "primaryOwner": "figma-native",
+        "activateJustInTime": [],
+        "representation": "text",
+        "context": "MCP rejects before dispatch and returns structured INVALID_PARAMS"
+      },
+      "failureSignals": ["untracked mutation reaches Figma", "server guesses intent from JavaScript", "missing postconditions are treated as verified"],
+      "status": "FROZEN_NOT_RUN"
     }
   ],
   "mechanismEvidence": [
@@ -140,6 +170,7 @@
     "tests/plugin/execute-js.test.ts",
     "tests/server/runtime-telemetry.test.ts",
     "tests/server/surface.test.ts",
+    "scripts/smoke-mcp-operation.mjs",
     "tests/plugin/ui.test.ts"
   ]
 }

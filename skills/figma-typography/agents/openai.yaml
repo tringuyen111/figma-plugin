@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Typography"
   short_description: "Fonts, Text Styles, hierarchy, and text geometry"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

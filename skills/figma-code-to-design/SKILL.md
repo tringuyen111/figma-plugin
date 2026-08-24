@@ -1,6 +1,6 @@
 ---
 name: figma-code-to-design
-description: Translate an existing production codebase or design-system implementation into reusable native Figma design-system objects and composed views. Use when syncing code tokens, themes, typography, components, states, or screens into Figma; reconciling code-vs-Figma drift; rebuilding Figma from the current implementation; or creating a design library that matches code. Own code-to-design semantic extraction and reconciliation, not production code changes or independent product redesign.
+description: "Translate a real codebase or design-system implementation into reusable native Figma objects and views. Use to sync code tokens, themes, typography, components, states, or screens; reconcile code/Figma drift; or rebuild a library from current code. Own code-to-design semantics; not code changes or independent redesign."
 ---
 
 # Figma Code to Design

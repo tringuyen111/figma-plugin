@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Layout"
   short_description: "Auto Layout, Grid, sizing, and responsive geometry"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

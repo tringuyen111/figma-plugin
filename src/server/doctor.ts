@@ -33,6 +33,17 @@ interface ManifestShape {
   ui?: unknown;
 }
 
+interface PackageShape {
+  version?: unknown;
+}
+
+export const REQUIRED_PLUGIN_PACKAGE_FILES = [
+  "package.json",
+  ".codex-plugin/plugin.json",
+  ".claude-plugin/plugin.json",
+  ".mcp.json",
+] as const;
+
 export function defaultProjectRoot(): string {
   return fileURLToPath(new URL("../../", import.meta.url));
 }
@@ -45,7 +56,8 @@ export function buildDoctorReport(projectRoot = defaultProjectRoot()): DoctorRep
   checks.push(checkNodeVersion());
   checks.push(checkFile("server-bundle", "MCP runtime bundle", resolve(root, "dist/server/index.js")));
   checks.push(checkFile("plugin-ui", "Figma plugin UI", resolve(root, "plugin/ui.html")));
-  checks.push(checkFile("mcp-config", "MCP configuration", resolve(root, ".mcp.json")));
+  checks.push(checkPluginPackageFiles(root));
+  checks.push(checkReleaseVersionAlignment(root));
   checks.push(checkSkillTopology(root));
   checks.push(checkProviderEvidence());
   checks.push(checkManifest(root, manifestPath));
@@ -105,6 +117,75 @@ function checkFile(id: string, label: string, path: string): DoctorCheck {
   return existsSync(path)
     ? { id, label, status: "ok", detail: path }
     : { id, label, status: "fail", detail: `Missing: ${path}` };
+}
+
+function checkPluginPackageFiles(root: string): DoctorCheck {
+  const missing = REQUIRED_PLUGIN_PACKAGE_FILES.filter((path) => !existsSync(resolve(root, path)));
+  return missing.length === 0
+    ? {
+        id: "plugin-package-files",
+        label: "Plugin/MCP package files",
+        status: "ok",
+        detail: `${REQUIRED_PLUGIN_PACKAGE_FILES.length} required files present`,
+      }
+    : {
+        id: "plugin-package-files",
+        label: "Plugin/MCP package files",
+        status: "fail",
+        detail: `Missing: ${missing.join(", ")}`,
+      };
+}
+
+function checkReleaseVersionAlignment(root: string): DoctorCheck {
+  const versionFiles = ["package.json", ".codex-plugin/plugin.json", ".claude-plugin/plugin.json"] as const;
+  const versions: Array<{ path: string; version: string }> = [];
+
+  for (const relativePath of versionFiles) {
+    const path = resolve(root, relativePath);
+    if (!existsSync(path)) {
+      return {
+        id: "release-version-alignment",
+        label: "Package/manifest versions",
+        status: "fail",
+        detail: `Cannot compare versions; missing: ${relativePath}`,
+      };
+    }
+    try {
+      const parsed = JSON.parse(readFileSync(path, "utf8")) as PackageShape;
+      if (typeof parsed.version !== "string" || parsed.version.length === 0) {
+        return {
+          id: "release-version-alignment",
+          label: "Package/manifest versions",
+          status: "fail",
+          detail: `Missing string version in ${relativePath}`,
+        };
+      }
+      versions.push({ path: relativePath, version: parsed.version });
+    } catch (error) {
+      return {
+        id: "release-version-alignment",
+        label: "Package/manifest versions",
+        status: "fail",
+        detail: `Invalid JSON in ${relativePath}: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+  }
+
+  const packageVersion = versions[0]!.version;
+  const mismatches = versions.filter((item) => item.version !== packageVersion);
+  return mismatches.length === 0
+    ? {
+        id: "release-version-alignment",
+        label: "Package/manifest versions",
+        status: "ok",
+        detail: `All release manifests match package.json v${packageVersion}`,
+      }
+    : {
+        id: "release-version-alignment",
+        label: "Package/manifest versions",
+        status: "fail",
+        detail: versions.map((item) => `${item.path}=${item.version}`).join("; "),
+      };
 }
 
 

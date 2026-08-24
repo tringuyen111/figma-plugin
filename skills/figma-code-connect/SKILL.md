@@ -1,6 +1,6 @@
 ---
 name: figma-code-connect
-description: Create, audit, migrate, and maintain Figma Code Connect mappings between published Figma components and real code components. Use for `.figma.ts` template files, component/property mapping, nested components, variants, slots, instance swaps, import/snippet accuracy, Code Connect UI/CLI reconciliation, legacy parser migration, or improving Figma MCP design-to-code context. Own deterministic design-component-to-code-component mapping; do not create product components, redesign Figma, or implement production UI.
+description: "Create, audit, or migrate verified Figma Code Connect mappings between published components and real code. Use for `.figma.ts` templates, property/variant/slot mapping, import or snippet accuracy, CLI/UI drift, and parser migration. Own mapping fidelity; not component design, Figma redesign, or production UI implementation."
 ---
 
 # Figma Code Connect

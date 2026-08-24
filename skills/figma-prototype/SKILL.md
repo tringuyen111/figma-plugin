@@ -1,6 +1,6 @@
 ---
 name: figma-prototype
-description: Design, inspect, author, and verify interaction/state progression in Figma prototypes. Use for prototype reactions, triggers, actions, navigation, overlays, interactive components, variable-driven conditions, state paths, focus/return behavior, and recovery flows. Own the executable interaction graph and state-transition wiring in Figma; do not own Motion timelines/keyframes/easing choreography, static layout/visual polish, unresolved product behavior invention, or production implementation.
+description: "Design, inspect, author, or verify Figma prototype interaction graphs. Use for reactions, triggers, navigation, overlays, interactive components, variable conditions, focus/return, and recovery paths. Own state-transition wiring; not Motion choreography, static visual/layout polish, product-behavior invention, or production code."
 ---
 
 # Figma Prototype

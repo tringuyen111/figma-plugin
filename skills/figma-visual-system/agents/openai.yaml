@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Visual System"
   short_description: "Color, material, shape, depth, and visual reuse"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

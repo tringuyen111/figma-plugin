@@ -1,6 +1,6 @@
 ---
 name: figma-visual-system
-description: "Design, inspect, repair, and systematize Figma visual composition: color, paints, Paint/Effect Styles, surfaces, borders, radius, shadows, scrims, opacity, blur, material, shape language, icon/image treatment, and perceptual depth. Use when a Figma UI must establish hierarchy, brand character, plane separation, or coherent visual reuse. Own perceptual color/material/shape decisions and their Figma style representation; do not own token taxonomy, typography roles, component anatomy, or product behavior."
+description: "Design, inspect, repair, or systematize Figma visual composition. Use for color, paints/styles, surfaces, borders, radius, shadows, blur, material, shape, imagery, and depth when hierarchy or brand character is the main problem. Own perceptual visual decisions; not token taxonomy, type roles, component anatomy, or behavior."
 ---
 
 # Figma Visual System

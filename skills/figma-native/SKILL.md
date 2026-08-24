@@ -1,6 +1,6 @@
 ---
 name: figma-native
-description: Set up, connect, diagnose, and execute low-level native Figma Plugin API work through Figma Plugin's `figma_status`, `figma_query`, `figma_apply`, `figma_exec`, and `figma_export` MCP tools. Use typed query/apply for common read/mutation contracts and raw execution only for uncovered provider APIs. Use when MCP/plugin setup or target routing is unclear, when direct Plugin API inspection/mutation or typed artifact export is required, or when another Figma capability needs precise runtime/API execution rules. Own connection recovery, editor/runtime gating, API authority, safe JavaScript execution, page/window targeting, error recovery, and compact evidence returns. Do not own Product Design, layout/system/component/token/typography/prototype/motion decisions or fixed-artifact verification verdicts.
+description: "Connect, diagnose, and execute low-level Figma Plugin API work through the bundled MCP tools. Use when MCP/runtime routing is unclear, typed query/apply or export is needed, or provider APIs require raw execution. Own connection, targeting, API authority, safe execution, and recovery; not design decisions or verification verdicts."
 ---
 
 # Figma Native
@@ -24,7 +24,7 @@ Optimize the execution boundary, not the methodology.
 - one bounded native operation and its expected postcondition;
 - only the API/type authority needed for that operation.
 
-**Escalate input only when** target, editor support, page loading, font/API availability, or visible proof is unresolved. Prefer a narrow structural projection over returning node graphs. For local `figma_exec`, set `capability` to the active primary Skill when known; reuse one `traceId` across retries of the same logical operation and increment `attempt` only for retries.
+**Escalate input only when** target, editor support, page loading, font/API availability, or visible proof is unresolved. Prefer a narrow structural projection over returning node graphs. For `figma_exec`, `figma_apply`, and `figma_export`, always send stable `traceId + operation`; non-read operations require explicit postconditions that must later be verified. Set `capability` when the primary Skill is known and increment `attempt` only for a retry of the same operation.
 
 **Return** a compact packet: target identity, operation/result or typed error, affected IDs, material warnings, and only the evidence needed by the caller. Use `maxOutputChars` as an output guardrail, not as a reason to omit required proof.
 

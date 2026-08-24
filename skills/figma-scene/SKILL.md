@@ -1,6 +1,6 @@
 ---
 name: figma-scene
-description: Model, inspect, repair, and author Figma scene structure and 2.5D plane relationships. Use for Frame vs Group vs Section decisions, layer ownership, clipping, masks, z-order, overlays, fixed/scroll relations, surfaces, silhouettes, radius nesting, shadows, scrims, opacity, blur, transforms, or scene cleanup where the visible result depends on structural or depth semantics. Do not own responsive child layout, token architecture, component APIs, typography systems, or product behavior; hand those to their dedicated capabilities.
+description: "Model, inspect, repair, or author Figma scene structure and 2.5D plane relationships. Use for Frame/Group/Section choice, layer ownership, clipping, masks, z-order, overlays, fixed/scroll relations, silhouettes, or transforms. Own structural/depth semantics; not child layout, tokens, component APIs, typography, or product behavior."
 ---
 
 # Figma Scene

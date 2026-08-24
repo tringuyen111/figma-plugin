@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Verification"
   short_description: "Evidence-backed Figma audit, lint, accessibility, and parity"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

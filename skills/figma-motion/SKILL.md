@@ -1,6 +1,6 @@
 ---
 name: figma-motion
-description: Design, inspect, author, and systematize Motion timelines and animation behavior in Figma. Use for manual keyframes, timeline coordination, animation styles, animated components, timing/easing variables, springs, property animation, temporal salience, reduced-motion alternatives, and motion handoff. Own Motion choreography and reusable temporal language; do not own prototype reactions/navigation/conditions, static layout/visual-system decisions, product behavior invention, or production implementation.
+description: "Design, inspect, author, or systematize Motion timelines and animation behavior in Figma. Use for keyframes, timing/easing, springs, animated components, temporal salience, reduced-motion alternatives, or handoff. Own temporal choreography; not prototype navigation/conditions, static design, product behavior invention, or production code."
 ---
 
 # Figma Motion

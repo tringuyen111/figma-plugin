@@ -1,3 +1,9 @@
 interface:
   display_name: "Figma Code to Design"
   short_description: "Reconcile production code into native Figma design truth"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma-plugin"
+      description: "Bundled Figma Plugin MCP server"

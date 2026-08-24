@@ -17,7 +17,8 @@
     ".codex-plugin",
     ".mcp.json",
     ".claude-plugin",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
     "build": "npm run check:capabilities && npm run typecheck && npm run test && npm run build:bundle && npm run test:bundle",
@@ -27,7 +28,7 @@
     "start": "node dist/server/index.js",
     "build:bundle": "node scripts/build.mjs",
     "prepack": "npm run build",
-    "test:bundle": "node scripts/smoke-native-exec.mjs",
+    "test:bundle": "node scripts/smoke-native-exec.mjs && node scripts/smoke-self-contained-server.mjs",
     "test:mcp-operation": "node scripts/smoke-mcp-operation.mjs",
     "test:typed-tools-live": "node scripts/smoke-typed-tools-live.mjs",
     "test:library-api-live": "node scripts/smoke-library-api-live.mjs",

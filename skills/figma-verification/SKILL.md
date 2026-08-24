@@ -1,6 +1,6 @@
 ---
 name: figma-verification
-description: Audit, review, lint, and verify a fixed Figma artifact against explicit design, system, accessibility, interaction, motion, or design-code obligations. Use when the terminal job is an evidence-backed verdict/findings report rather than redesign or authoring. Inspect only the dimensions the claim requires, preserve PASS/FAIL/NOT_RUN/INCONCLUSIVE/MISSING/BLOCKED per dimension, and remain read-only unless the user separately authorizes repair.
+description: "Audit or verify a fixed Figma artifact against explicit design, system, accessibility, interaction, motion, or design-code obligations. Use when the terminal result is an evidence-backed verdict or findings report. Stay read-only unless repair is separately authorized; do not redesign, author, or infer unproved PASS."
 ---
 
 # Figma Verification

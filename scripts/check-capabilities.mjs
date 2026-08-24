@@ -3,6 +3,47 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
+const requiredPluginPackageFiles = [
+  "package.json",
+  ".codex-plugin/plugin.json",
+  ".claude-plugin/plugin.json",
+  ".mcp.json",
+  "THIRD_PARTY_NOTICES.md",
+];
+for (const relativePath of requiredPluginPackageFiles) {
+  if (!existsSync(resolve(root, relativePath))) throw new Error(`Required plugin/MCP package file missing: ${relativePath}`);
+}
+
+const packageManifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+if (!Array.isArray(packageManifest.files) || !packageManifest.files.includes("THIRD_PARTY_NOTICES.md")) {
+  throw new Error("package.json must ship THIRD_PARTY_NOTICES.md with the self-contained server bundle.");
+}
+const thirdPartyNotices = readFileSync(resolve(root, "THIRD_PARTY_NOTICES.md"), "utf8");
+for (const dependency of ["@modelcontextprotocol/sdk", "ajv", "ajv-formats", "fast-deep-equal", "fast-uri", "json-schema-traverse", "ws", "zod", "zod-to-json-schema"]) {
+  if (!thirdPartyNotices.includes(`## ${dependency}@`)) throw new Error(`THIRD_PARTY_NOTICES.md is missing bundled runtime dependency ${dependency}.`);
+}
+const codexManifest = JSON.parse(readFileSync(resolve(root, ".codex-plugin/plugin.json"), "utf8"));
+const claudeManifest = JSON.parse(readFileSync(resolve(root, ".claude-plugin/plugin.json"), "utf8"));
+if (typeof packageManifest.version !== "string" || packageManifest.version.length === 0) {
+  throw new Error("package.json must declare a non-empty string version.");
+}
+for (const [relativePath, manifest] of [[".codex-plugin/plugin.json", codexManifest], [".claude-plugin/plugin.json", claudeManifest]]) {
+  if (manifest.version !== packageManifest.version) {
+    throw new Error(`Plugin version drift: package.json=${packageManifest.version}; ${relativePath}=${String(manifest.version)}`);
+  }
+}
+
+const mcpConfig = JSON.parse(readFileSync(resolve(root, ".mcp.json"), "utf8"));
+const mcpServer = mcpConfig?.mcpServers?.["figma-plugin"];
+if (mcpServer?.command !== "node" || !Array.isArray(mcpServer.args) || !mcpServer.args.includes("./dist/server/index.js")) {
+  throw new Error(".mcp.json must register figma-plugin with the bundled ./dist/server/index.js entrypoint.");
+}
+if (codexManifest.mcpServers !== "./.mcp.json") throw new Error("Codex plugin manifest must reference ./.mcp.json.");
+const claudeServer = claudeManifest?.mcpServers?.["figma-plugin"];
+if (claudeServer?.command !== "node" || !Array.isArray(claudeServer.args) || !claudeServer.args.includes("${CLAUDE_PLUGIN_ROOT}/dist/server/index.js")) {
+  throw new Error("Claude plugin manifest must register the bundled dist/server/index.js entrypoint.");
+}
+
 const registryPath = resolve(root, "src/capabilities/skill-registry.ts");
 const registrySource = readFileSync(registryPath, "utf8");
 const registryLines = registrySource.split("\n").filter((line) => /^\s*\{ id: "[a-z0-9-]+"/.test(line));
@@ -99,9 +140,23 @@ if (!Array.isArray(valueEvals.ioMetrics) || !valueEvals.ioMetrics.includes("brid
 
 const protocolSource = readFileSync(resolve(root, "src/shared/protocol.ts"), "utf8");
 const mcpSource = readFileSync(resolve(root, "src/server/mcp-surface.ts"), "utf8");
+const buildSource = readFileSync(resolve(root, "scripts/build.mjs"), "utf8");
 const manifestSource = readFileSync(resolve(root, "plugin/manifest.json"), "utf8");
-for (const required of ['"export_node"', 'PROTOCOL_VERSION = 9', 'MAX_BINARY_ARTIFACT_BYTES']) if (!protocolSource.includes(required)) throw new Error(`Protocol is missing 0.5.6 export marker: ${required}`);
+for (const required of ['"export_node"', 'PROTOCOL_VERSION = 9', 'MAX_BINARY_ARTIFACT_BYTES']) if (!protocolSource.includes(required)) throw new Error(`Protocol is missing 0.6.0 export marker: ${required}`);
 for (const required of ['name: "figma_status"', 'name: "figma_query"', 'name: "figma_apply"', 'name: "figma_exec"', 'name: "figma_export"']) if (!mcpSource.includes(required)) throw new Error(`MCP surface is missing tool marker: ${required}`);
+for (const required of [
+  'outputSchema: toolOutputSchema',
+  'structuredContent: structuredSuccess',
+  'requiredOperation(',
+  'possiblyCommitted',
+  'providerStateUnknown',
+  'MCP_SERVER_INSTRUCTIONS',
+  'readOnlyHint: true',
+  'destructiveHint: true',
+]) if (!mcpSource.includes(required)) throw new Error(`MCP accountable I/O contract marker missing: ${required}`);
+if (buildSource.includes('packages: "external"') || !existsSync(resolve(root, "scripts/smoke-self-contained-server.mjs"))) {
+  throw new Error("Packaged MCP server must bundle runtime dependencies and retain a standalone bundle smoke.");
+}
 if (!manifestSource.includes('"teamlibrary"')) throw new Error("Figma manifest is missing teamlibrary permission required by local library inspection.");
 
 const craftDocPath = resolve(root, "docs/CRAFT-EXEMPLARS.md");
@@ -198,6 +253,9 @@ for (const requiredPath of [
   "evals/agent-execution.json",
   "work/agent-capability-upgrade/plan.json",
   "work/agent-capability-upgrade/NOTES.md",
+  "work/full-plugin-upgrade/plan.json",
+  "work/full-plugin-upgrade/NOTES.md",
+  "work/full-plugin-upgrade/plan.svg",
   "output/figma-evidence/reuse-registry.json",
 ]) {
   if (!existsSync(resolve(root, requiredPath))) throw new Error(`Agent execution upgrade artifact missing: ${requiredPath}`);
@@ -217,6 +275,12 @@ const { validateWorkPlan } = await import(pathToFileURL(resolve(root, "skills/fi
 const workPlan = JSON.parse(readFileSync(resolve(root, "work/agent-capability-upgrade/plan.json"), "utf8"));
 const planErrors = validateWorkPlan(workPlan);
 if (planErrors.length) throw new Error(`Canonical upgrade work plan is invalid: ${planErrors.join("; ")}`);
+const workPlanTemplate = JSON.parse(readFileSync(resolve(root, "skills/figma-design-authoring/templates/work-plan.json"), "utf8"));
+const templateErrors = validateWorkPlan(workPlanTemplate);
+if (workPlanTemplate.schemaVersion !== 2 || templateErrors.length) throw new Error(`Obligation-ledger v2 template is invalid: ${templateErrors.join("; ")}`);
+const fullPluginPlan = JSON.parse(readFileSync(resolve(root, "work/full-plugin-upgrade/plan.json"), "utf8"));
+const fullPluginPlanErrors = validateWorkPlan(fullPluginPlan);
+if (fullPluginPlan.schemaVersion !== 2 || fullPluginPlanErrors.length) throw new Error(`Full-plugin obligation plan is invalid: ${fullPluginPlanErrors.join("; ")}`);
 
 const { validateReuseRegistry } = await import(pathToFileURL(resolve(root, "skills/figma-components/scripts/validate-reuse-registry.mjs")).href);
 const reuseRegistry = JSON.parse(readFileSync(resolve(root, "output/figma-evidence/reuse-registry.json"), "utf8"));
@@ -233,4 +297,4 @@ for (const item of agentExecution.cases ?? []) {
 }
 for (const evidencePath of agentExecution.mechanismEvidence ?? []) if (!existsSync(resolve(root, evidencePath))) throw new Error(`Agent execution mechanism evidence missing: ${evidencePath}`);
 
-console.log(`capability registry OK: ${ids.length} Skills, progressive work graph, runtime SDK, typed query/apply kernel, plan-aware telemetry, Reuse Registry, 5-tool runtime/egress surface, lifecycle packets, and frozen behavioral/value eval boundaries aligned`);
+console.log(`capability registry OK: package/plugin manifests aligned at ${packageManifest.version}; required MCP files present; ${ids.length} Skills, progressive work graph, runtime SDK, typed query/apply kernel, plan-aware telemetry, Reuse Registry, 5-tool runtime/egress surface, lifecycle packets, and frozen behavioral/value eval boundaries aligned`);
