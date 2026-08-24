@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "kind": "live-full-plugin-upgrade-proof",
+  "observedAt": "2026-08-24T02:42:20.634Z",
+  "candidate": {
+    "packageVersion": "0.6.0",
+    "bundleRevision": "d7e97ac5655b595c",
+    "protocolVersion": 9
+  },
+  "target": {
+    "instanceId": "instance-mt6mqofo-z0ymzq1nwc7vs",
+    "fileName": "Untitled",
+    "pageId": "0:1",
+    "pageName": "01 - Foundations",
+    "editorType": "figma"
+  },
+  "traceRoot": "full-plugin-upgrade-live:1787539337743",
+  "fixture": {
+    "marker": "ControlMux Live Proof controlmux-live-proof-1787539337743",
+    "proofId": "controlmux-live-proof-1787539337743",
+    "inventoryBefore": {
+      "editorType": "figma",
+      "fileName": "Untitled",
+      "pages": [
+        {
+          "id": "0:1",
+          "name": "01 - Foundations",
+          "childCount": 0,
+          "descendantCount": 0,
+          "components": 0,
+          "componentSets": 0,
+          "instances": 0,
+          "topLevel": []
+        },
+        {
+          "id": "45:69",
+          "name": "02 - Components",
+          "childCount": 0,
+          "descendantCount": 0,
+          "components": 0,
+          "componentSets": 0,
+          "instances": 0,
+          "topLevel": []
+        },
+        {
+          "id": "45:70",
+          "name": "03 - Playground",
+          "childCount": 3,
+          "descendantCount": 72,
+          "components": 1,
+          "componentSets": 0,
+          "instances": 3,
+          "topLevel": [
+            {
+              "id": "77:2253",
+              "name": "Personal Homepage / Paper / 1440x1024",
+              "type": "FRAME"
+            },
+            {
+              "id": "77:2287",
+              "name": "Work Card / Default",
+              "type": "COMPONENT"
+            },
+            {
+              "id": "78:2314",
+              "name": "Selected Work / Prototype Destination / 1440x1024",
+              "type": "FRAME"
+            }
+          ]
+        }
+      ],
+      "components": {
+        "total": 4,
+        "components": 1,
+        "componentSets": 0,
+        "instances": 3
+      },
+      "localStyles": {
+        "paint": 14,
+        "text": 10,
+        "effect": 0,
+        "grid": 0
+      },
+      "variables": {
+        "collections": 0,
+        "variables": 0,
+        "names": []
+      },
+      "enabledLibraries": {
+        "variableCollections": 0,
+        "error": null
+      }
+    },
+    "created": {
+      "created": true,
+      "nodeId": "83:17",
+      "pageId": "0:1",
+      "name": "ControlMux Live Proof controlmux-live-proof-1787539337743",
+      "width": 360,
+      "height": 220,
+      "childCount": 2,
+      "proofId": "controlmux-live-proof-1787539337743",
+      "position": {
+        "x": 120,
+        "y": 0
+      },
+      "undoCheckpoint": {
+        "label": "full-plugin-upgrade-live-proof-create",
+        "at": 1787539339569,
+        "evidence": {
+          "nodeId": "83:17",
+          "proofId": "controlmux-live-proof-1787539337743"
+        }
+      }
+    },
+    "readback": {
+      "id": "83:17",
+      "name": "ControlMux Live Proof controlmux-live-proof-1787539337743",
+      "type": "FRAME",
+      "pageId": "0:1",
+      "width": 360,
+      "height": 220,
+      "layoutMode": "VERTICAL",
+      "proofId": "controlmux-live-proof-1787539337743",
+      "children": [
+        {
+          "id": "83:18",
+          "name": "Accountable MCP Contract",
+          "type": "RECTANGLE"
+        },
+        {
+          "id": "83:19",
+          "name": "IN PROCESS OUT",
+          "type": "FRAME"
+        }
+      ]
+    },
+    "structure": {
+      "rootId": "83:17",
+      "descendantCount": 5,
+      "componentCount": 0,
+      "componentSetCount": 0,
+      "instanceCount": 0,
+      "linkedInstanceCount": 0,
+      "autoLayoutNodeCount": 2,
+      "links": []
+    },
+    "cleanup": {
+      "removed": true,
+      "alreadyAbsent": false,
+      "nodeId": "83:17",
+      "undoCheckpoint": {
+        "label": "full-plugin-upgrade-live-proof-cleanup",
+        "at": 1787539340037,
+        "evidence": {
+          "nodeId": "83:17",
+          "proofId": "controlmux-live-proof-1787539337743"
+        }
+      }
+    },
+    "absence": {
+      "exists": false,
+      "markerMatches": 0,
+      "pageId": "0:1"
+    },
+    "inventoryAfter": {
+      "editorType": "figma",
+      "fileName": "Untitled",
+      "pages": [
+        {
+          "id": "0:1",
+          "name": "01 - Foundations",
+          "childCount": 0,
+          "descendantCount": 0,
+          "components": 0,
+          "componentSets": 0,
+          "instances": 0,
+          "topLevel": []
+        },
+        {
+          "id": "45:69",
+          "name": "02 - Components",
+          "childCount": 0,
+          "descendantCount": 0,
+          "components": 0,
+          "componentSets": 0,
+          "instances": 0,
+          "topLevel": []
+        },
+        {
+          "id": "45:70",
+          "name": "03 - Playground",
+          "childCount": 3,
+          "descendantCount": 72,
+          "components": 1,
+          "componentSets": 0,
+          "instances": 3,
+          "topLevel": [
+            {
+              "id": "77:2253",
+              "name": "Personal Homepage / Paper / 1440x1024",
+              "type": "FRAME"
+            },
+            {
+              "id": "77:2287",
+              "name": "Work Card / Default",
+              "type": "COMPONENT"
+            },
+            {
+              "id": "78:2314",
+              "name": "Selected Work / Prototype Destination / 1440x1024",
+              "type": "FRAME"
+            }
+          ]
+        }
+      ],
+      "components": {
+        "total": 4,
+        "components": 1,
+        "componentSets": 0,
+        "instances": 3
+      },
+      "localStyles": {
+        "paint": 14,
+        "text": 10,
+        "effect": 0,
+        "grid": 0
+      },
+      "variables": {
+        "collections": 0,
+        "variables": 0,
+        "names": []
+      },
+      "enabledLibraries": {
+        "variableCollections": 0,
+        "error": null
+      }
+    }
+  },
+  "export": {
+    "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\figma-live-upgrade-proof-2026-08-24.png",
+    "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/figma-live-upgrade-proof-2026-08-24.png",
+    "filename": "figma-live-upgrade-proof-2026-08-24.png",
+    "format": "PNG",
+    "mimeType": "image/png",
+    "byteLength": 3790,
+    "retention": "ephemeral-24h",
+    "nodeId": "83:17",
+    "nodeName": "ControlMux Live Proof controlmux-live-proof-1787539337743",
+    "nodeType": "FRAME",
+    "editorType": "figma",
+    "naturalWidth": 360,
+    "naturalHeight": 220,
+    "requestedConstraint": {
+      "type": "SCALE",
+      "value": 1
+    },
+    "evidenceImagePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\live-upgrade-proof-2026-08-24.png",
+    "imageSha256": "d4cda43f3cb0b73f01f7f96051281ba1f85403c6bc8c0db05ef9a8d8690462ab"
+  },
+  "finalRuntime": {
+    "pluginConnected": true,
+    "queueLength": 0,
+    "pendingCount": 0,
+    "instanceInFlight": 0
+  },
+  "scope": {
+    "liveReadWriteReadbackExport": "PASS",
+    "visualInspection": "PASS",
+    "secureMcpTunnel": "NOT_RUN",
+    "behavioralComparison": "NOT_RUN"
+  },
+  "visualObservation": {
+    "inspectedFrom": "output/figma-evidence/live-upgrade-proof-2026-08-24.png",
+    "imageSha256": "d4cda43f3cb0b73f01f7f96051281ba1f85403c6bc8c0db05ef9a8d8690462ab",
+    "dimensions": "360x220",
+    "observed": [
+      "dark rounded container is fully rendered without clipping",
+      "blue header block is present with consistent inset spacing",
+      "green, amber, and red process blocks are present in one aligned row",
+      "exported pixels match the fixture structure and declared color roles"
+    ],
+    "limitations": [
+      "screenshot does not prove keyboard behavior, animation, tunnel transport, or behavioral omission reduction"
+    ]
+  }
+}

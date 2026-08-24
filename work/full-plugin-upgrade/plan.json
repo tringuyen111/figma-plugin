@@ -82,7 +82,7 @@
       "owner": "plugin-runtime",
       "proofRequired": true,
       "status": "BLOCKED",
-      "evidenceRefs": [],
+      "evidenceRefs": ["output/figma-evidence/live-upgrade-proof-2026-08-24.json"],
       "blocker": "No tunnel_id, runtime API key, Platform tunnel RBAC, workspace association, or installed tunnel-client is available in the current environment."
     },
     {
@@ -205,7 +205,7 @@
       "dependsOn": ["fresh-install"],
       "entrypoint": "OpenAI Platform tunnel settings, tunnel-client, ChatGPT developer-mode connection, and live Figma",
       "proof": ["Tunnel health/readiness", "Workspace association and denial tests", "Live read/write/readback/export with final queues zero"],
-      "evidenceRefs": [],
+      "evidenceRefs": ["output/figma-evidence/live-upgrade-proof-2026-08-24.json"],
       "nonGoals": ["No public plugin submission claim", "No public exposure of raw figma_exec"],
       "recovery": "Obtain tunnel RBAC, runtime key, tunnel id, workspace association, and live companion; do not substitute a local smoke.",
       "blocker": "External OpenAI tunnel identity, permissions, credential, workspace association, and live Figma connection are unavailable."
