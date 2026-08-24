@@ -1,0 +1,326 @@
+{
+  "schemaVersion": 1,
+  "kind": "responsive-design-probe",
+  "observedAt": "2026-08-24T03:37:12.877Z",
+  "candidate": {
+    "packageVersion": "0.6.0",
+    "bundleRevision": "d7e97ac5655b595c",
+    "protocolVersion": 9
+  },
+  "target": {
+    "instanceId": "instance-mt6om65z-eonvkmmu61kl",
+    "fileName": "Untitled",
+    "pageId": "45:69",
+    "pageName": "02 - Components",
+    "editorType": "figma"
+  },
+  "traceRoot": "responsive-design-probe:1787542575825",
+  "probe": {
+    "probeId": "codex-responsive-probe-1787542575825",
+    "marker": "Codex Responsive Probe / Component Library",
+    "recoveryNodeIds": [
+      "91:23",
+      "91:95",
+      "91:138",
+      "91:139"
+    ],
+    "inventory": {
+      "editorType": "figma",
+      "fileName": "Untitled",
+      "pages": [
+        {
+          "id": "0:1",
+          "name": "01 - Foundations",
+          "childCount": 0,
+          "descendantCount": 0,
+          "components": 0,
+          "componentSets": 0,
+          "instances": 0,
+          "topLevel": []
+        },
+        {
+          "id": "45:69",
+          "name": "02 - Components",
+          "childCount": 4,
+          "descendantCount": 235,
+          "components": 0,
+          "componentSets": 0,
+          "instances": 0,
+          "topLevel": [
+            {
+              "id": "91:23",
+              "name": "Codex Responsive Probe / Component Library",
+              "type": "FRAME"
+            },
+            {
+              "id": "91:95",
+              "name": "Mobile / 360 x 820",
+              "type": "FRAME"
+            },
+            {
+              "id": "91:138",
+              "name": "Mobile bottom nav",
+              "type": "FRAME"
+            },
+            {
+              "id": "91:139",
+              "name": "Codex Responsive Probe / Component Library",
+              "type": "FRAME"
+            }
+          ]
+        },
+        {
+          "id": "45:70",
+          "name": "03 - Playground",
+          "childCount": 3,
+          "descendantCount": 72,
+          "components": 1,
+          "componentSets": 0,
+          "instances": 3,
+          "topLevel": [
+            {
+              "id": "77:2253",
+              "name": "Personal Homepage / Paper / 1440x1024",
+              "type": "FRAME"
+            },
+            {
+              "id": "77:2287",
+              "name": "Work Card / Default",
+              "type": "COMPONENT"
+            },
+            {
+              "id": "78:2314",
+              "name": "Selected Work / Prototype Destination / 1440x1024",
+              "type": "FRAME"
+            }
+          ]
+        }
+      ],
+      "components": {
+        "total": 4,
+        "components": 1,
+        "componentSets": 0,
+        "instances": 3
+      },
+      "localStyles": {
+        "paint": 14,
+        "text": 10,
+        "effect": 0,
+        "grid": 0
+      },
+      "variables": {
+        "collections": 0,
+        "variables": 0,
+        "names": []
+      },
+      "enabledLibraries": {
+        "variableCollections": 0,
+        "error": null
+      }
+    },
+    "clearDryRun": {
+      "action": "clear_file_owned_assets",
+      "dryRun": true,
+      "plan": {
+        "pages": [
+          {
+            "id": "0:1",
+            "name": "01 - Foundations",
+            "childCount": 0
+          },
+          {
+            "id": "45:69",
+            "name": "02 - Components",
+            "childCount": 4
+          },
+          {
+            "id": "45:70",
+            "name": "03 - Playground",
+            "childCount": 3
+          }
+        ],
+        "removeLocalAssets": true,
+        "localStyles": {
+          "paint": 14,
+          "text": 10,
+          "effect": 0,
+          "grid": 0
+        },
+        "variables": {
+          "collections": 0,
+          "variables": 0,
+          "names": []
+        }
+      },
+      "before": {
+        "editorType": "figma",
+        "fileName": "Untitled",
+        "pages": [
+          {
+            "id": "0:1",
+            "name": "01 - Foundations",
+            "childCount": 0,
+            "descendantCount": 0,
+            "components": 0,
+            "componentSets": 0,
+            "instances": 0,
+            "topLevel": []
+          },
+          {
+            "id": "45:69",
+            "name": "02 - Components",
+            "childCount": 4,
+            "descendantCount": 235,
+            "components": 0,
+            "componentSets": 0,
+            "instances": 0,
+            "topLevel": [
+              {
+                "id": "91:23",
+                "name": "Codex Responsive Probe / Component Library",
+                "type": "FRAME"
+              },
+              {
+                "id": "91:95",
+                "name": "Mobile / 360 x 820",
+                "type": "FRAME"
+              },
+              {
+                "id": "91:138",
+                "name": "Mobile bottom nav",
+                "type": "FRAME"
+              },
+              {
+                "id": "91:139",
+                "name": "Codex Responsive Probe / Component Library",
+                "type": "FRAME"
+              }
+            ]
+          },
+          {
+            "id": "45:70",
+            "name": "03 - Playground",
+            "childCount": 3,
+            "descendantCount": 72,
+            "components": 1,
+            "componentSets": 0,
+            "instances": 3,
+            "topLevel": [
+              {
+                "id": "77:2253",
+                "name": "Personal Homepage / Paper / 1440x1024",
+                "type": "FRAME"
+              },
+              {
+                "id": "77:2287",
+                "name": "Work Card / Default",
+                "type": "COMPONENT"
+              },
+              {
+                "id": "78:2314",
+                "name": "Selected Work / Prototype Destination / 1440x1024",
+                "type": "FRAME"
+              }
+            ]
+          }
+        ],
+        "components": {
+          "total": 4,
+          "components": 1,
+          "componentSets": 0,
+          "instances": 3
+        },
+        "localStyles": {
+          "paint": 14,
+          "text": 10,
+          "effect": 0,
+          "grid": 0
+        },
+        "variables": {
+          "collections": 0,
+          "variables": 0,
+          "names": []
+        },
+        "enabledLibraries": {
+          "variableCollections": 0,
+          "error": null
+        }
+      }
+    },
+    "build": {
+      "rootId": "91:258",
+      "created": true,
+      "marker": "Codex Responsive Probe / Component Library",
+      "childCount": 2,
+      "probeId": "codex-responsive-probe-1787542575825",
+      "pageId": "45:69",
+      "recovered": [
+        {
+          "id": "91:23",
+          "name": "Codex Responsive Probe / Component Library",
+          "reason": "owned-probe-replacement"
+        },
+        {
+          "id": "91:95",
+          "name": "Mobile / 360 x 820",
+          "reason": "failed-probe-recovery"
+        },
+        {
+          "id": "91:138",
+          "name": "Mobile bottom nav",
+          "reason": "failed-probe-recovery"
+        },
+        {
+          "id": "91:139",
+          "name": "Codex Responsive Probe / Component Library",
+          "reason": "failed-probe-recovery"
+        }
+      ]
+    },
+    "structure": {
+      "rootId": "91:258",
+      "descendantCount": 118,
+      "componentCount": 0,
+      "componentSetCount": 0,
+      "instanceCount": 0,
+      "linkedInstanceCount": 0,
+      "autoLayoutNodeCount": 56,
+      "links": []
+    }
+  },
+  "export": {
+    "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\responsive-design-probe-2026-08-24-2.png",
+    "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/responsive-design-probe-2026-08-24-2.png",
+    "filename": "responsive-design-probe-2026-08-24-2.png",
+    "format": "PNG",
+    "mimeType": "image/png",
+    "byteLength": 104778,
+    "retention": "ephemeral-24h",
+    "nodeId": "91:258",
+    "nodeName": "Codex Responsive Probe / Component Library",
+    "nodeType": "FRAME",
+    "editorType": "figma",
+    "naturalWidth": 1900,
+    "naturalHeight": 980,
+    "requestedConstraint": {
+      "type": "SCALE",
+      "value": 1
+    },
+    "evidenceImagePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\responsive-design-probe-2026-08-24.png",
+    "imageSha256": "66c77711352e3f8dbc48040caf202776f23701dbef6e482bc2ebf3e2301afec1"
+  },
+  "finalRuntime": {
+    "pluginConnected": true,
+    "queueLength": 0,
+    "pendingCount": 0,
+    "instanceInFlight": 0
+  },
+  "scope": {
+    "libraryInventory": "PASS",
+    "fullCleanup": "DRY_RUN_ONLY",
+    "responsiveComposition": "PASS_EXPLORATORY",
+    "visualInspection": "PASS",
+    "visualInspectionNote": "Inspected exported PNG: desktop sidebar/main comparison and mobile recomposition are legible without clipping; identity, status, primary content, and navigation remain recognizable.",
+    "preExistingNodesRemoved": false
+  }
+}

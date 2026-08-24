@@ -14,6 +14,9 @@ Already proven locally and in the live Figma companion:
 - private GitHub publication of the `figma-plugin/` subtree;
 - live Figma write -> raw/typed readback -> PNG export -> exact cleanup on bundle
   `d7e97ac5655b595c` (see `output/figma-evidence/live-upgrade-proof-2026-08-24.json`).
+- responsive mobile/desktop exploratory composition with typed inventory, cleanup
+  dry-run, structure readback, PNG export, and visual inspection (see
+  `output/figma-evidence/responsive-design-probe-2026-08-24.json`).
 
 Still open, and intentionally not reported as PASS:
 
