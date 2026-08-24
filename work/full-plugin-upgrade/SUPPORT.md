@@ -1,7 +1,7 @@
 # Completion support packet
 
-This packet records the smallest external inputs needed to close the two remaining
-frontier obligations. It is deliberately kept under `work/`, so it does not change
+This packet records the smallest external inputs needed to close the remaining
+behavioral obligation and documents the future-only tunnel option. It is deliberately kept under `work/`, so it does not change
 the npm archive or the published plugin runtime.
 
 ## Current evidence boundary
@@ -17,13 +17,18 @@ Already proven locally and in the live Figma companion:
 
 Still open, and intentionally not reported as PASS:
 
-1. Secure MCP Tunnel end-to-end connection into the intended ChatGPT workspace.
-2. Same-task behavioral comparison of the upgraded agent against a frozen baseline.
+1. Same-task behavioral comparison of the upgraded agent against a frozen baseline.
 
-## Support needed for Secure MCP Tunnel
+Secure MCP Tunnel is intentionally deferred by the user for this candidate. It is
+not a prerequisite for the local package/Figma proof and does not require an API key
+or Platform setup now.
 
-Please provide or authorize these items in the local/runtime environment. Do not
-paste secrets into chat, Git, issue comments, or this file.
+## Future-only support for Secure MCP Tunnel
+
+This section is retained only so a future pilot has a clear boundary. No action is
+needed for the current candidate. If the tunnel is reopened later, the following
+items will be required; do not paste secrets into chat, Git, issue comments, or this
+file.
 
 - an OpenAI Secure MCP `tunnel_id` for the target workspace;
 - a runtime API key/credential available through a local secret or environment
@@ -83,4 +88,3 @@ and same-environment authority exist, the truthful state remains `NOT_RUN`.
 4. Run the frozen behavioral suite against baseline and candidate.
 5. Update `plan.json` only from the resulting evidence; do not convert a missing
    provider or missing behavioral run into PASS.
-

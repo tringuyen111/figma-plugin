@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "planId": "figma-full-plugin-upgrade-2026-08-24",
-  "objective": "Make the Figma package release-coherent, omission-resistant, API-efficient, installable, and ready for a truthful private OpenAI tunnel pilot.",
-  "terminalTruth": "Exact changed package bytes, validated Skills and plugin manifests, structured MCP request-response proof, fresh-install proof, and truthful tunnel/behavioral evidence states.",
+  "objective": "Make the Figma package release-coherent, omission-resistant, API-efficient, installable, and ready for local/live Figma use, while keeping Secure MCP Tunnel as an optional future pilot.",
+  "terminalTruth": "Exact changed package bytes, validated Skills and plugin manifests, structured MCP request-response proof, fresh-install proof, live local Figma evidence, and truthful states for optional tunnel and pending behavioral proof.",
   "state": "ACTIVE",
   "contextPolicy": {
     "mode": "progressive",
@@ -77,13 +77,13 @@
     },
     {
       "id": "req-private-tunnel",
-      "sourceText": "Connect the private stdio MCP through OpenAI Secure MCP Tunnel and prove ChatGPT or Codex to live Figma end to end.",
-      "required": true,
+      "sourceText": "Optional future pilot: connect the private stdio MCP through OpenAI Secure MCP Tunnel and prove ChatGPT or Codex to live Figma end to end.",
+      "required": false,
       "owner": "plugin-runtime",
-      "proofRequired": true,
-      "status": "BLOCKED",
-      "evidenceRefs": ["output/figma-evidence/live-upgrade-proof-2026-08-24.json"],
-      "blocker": "No tunnel_id, runtime API key, Platform tunnel RBAC, workspace association, or installed tunnel-client is available in the current environment."
+      "proofRequired": false,
+      "status": "NOT_RUN",
+      "evidenceRefs": [],
+      "blocker": ""
     },
     {
       "id": "req-behavioral-proof",
@@ -196,19 +196,18 @@
     {
       "id": "private-tunnel-e2e",
       "type": "VERIFICATION",
-      "label": "Private Secure MCP Tunnel E2E",
-      "outcome": "A workspace-authorized tunnel carries an accountable request through the exact packaged MCP and live Figma companion with readback evidence.",
-      "status": "BLOCKED",
+      "label": "Optional Secure MCP Tunnel E2E",
+      "outcome": "Deferred optional path: a workspace-authorized tunnel may later carry an accountable request through the exact packaged MCP and live Figma companion with readback evidence.",
+      "status": "NOT_RUN",
       "owner": "plugin-runtime",
       "specialists": ["figma-native"],
       "obligationIds": ["req-private-tunnel"],
       "dependsOn": ["fresh-install"],
       "entrypoint": "OpenAI Platform tunnel settings, tunnel-client, ChatGPT developer-mode connection, and live Figma",
       "proof": ["Tunnel health/readiness", "Workspace association and denial tests", "Live read/write/readback/export with final queues zero"],
-      "evidenceRefs": ["output/figma-evidence/live-upgrade-proof-2026-08-24.json"],
-      "nonGoals": ["No public plugin submission claim", "No public exposure of raw figma_exec"],
-      "recovery": "Obtain tunnel RBAC, runtime key, tunnel id, workspace association, and live companion; do not substitute a local smoke.",
-      "blocker": "External OpenAI tunnel identity, permissions, credential, workspace association, and live Figma connection are unavailable."
+      "evidenceRefs": [],
+      "recovery": "Reopen this optional packet only when OpenAI account authority, cost acceptance, tunnel RBAC, runtime key, workspace association, and a live companion are explicitly approved.",
+      "nonGoals": ["No public plugin submission claim", "No public exposure of raw figma_exec", "Out of scope for the current candidate; no API key or Platform tunnel setup is required"]
     }
   ],
   "edges": [
