@@ -25,6 +25,8 @@
     generation: 0,
     handshake: null,
     hello: null,
+    sync: null,
+    changes: [],
     selfInstanceId: null,
     snapshot: null,
     telemetry: null,
@@ -52,6 +54,12 @@
   ].forEach(function (id) { el[id] = document.getElementById(id); });
 
   function toMain(message) { parent.postMessage({ pluginMessage: message }, "*"); }
+  function applyChangeFeed(message) {
+    if (!message || !message.change) return;
+    state.sync = message.sync || state.sync;
+    state.changes = state.changes.concat([message.change]).slice(-200);
+    renderConnection();
+  }
   function currentPort() { return DEFAULT_PORT + (state.portIndex % PORT_RANGE); }
   function selfSnapshot() {
     if (!state.snapshot || !Array.isArray(state.snapshot.instances)) return null;

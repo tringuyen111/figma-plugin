@@ -19,9 +19,9 @@ const fixtureBootstrap = `
 <script>
 window.__SYNTHETIC_OPERATION_FIXTURE__ = true;
 setTimeout(function () {
-  window.postMessage({ pluginMessage: { kind: "handshake", protocolVersion: 9, pluginVersion: "0.5.6" } }, "*");
+  window.postMessage({ pluginMessage: { kind: "handshake", protocolVersion: 10, pluginVersion: "0.7.0" } }, "*");
   window.postMessage({ pluginMessage: { kind: "hello", hello: {
-    protocolVersion: 9,
+    protocolVersion: 10,
     pluginVersion: "0.5.6",
     bundleRevision: "fixture",
     runtimeSdks: ["v1", "v2"],

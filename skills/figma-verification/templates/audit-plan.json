@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "kind": "AuditPlan",
+  "profileId": "replace-me",
+  "target": {
+    "fileName": "Untitled",
+    "instanceId": "replace-me",
+    "pageIds": [],
+    "nodeIds": [],
+    "bundleRevision": "replace-me",
+    "snapshotId": "PLANNED_NOT_RUN"
+  },
+  "expectedTruth": [],
+  "requestedDimensions": [],
+  "claims": [],
+  "status": "PLANNED"
+}

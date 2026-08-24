@@ -59,7 +59,7 @@ node /absolute/path/to/figma-plugin/dist/server/index.js
 
 Nếu cần đổi port bắt đầu, `CONTROLMUX_FIGMA_PORT` phải nằm trong `38470-38479`. Runtime sẽ thử các port còn lại theo vòng trong đúng dải này để Figma plugin luôn có thể discover server.
 
-Khi nâng từ bản cũ lên `0.6.0`, hãy dừng các process Figma Plugin cũ đang chạy trước khi start runtime mới để tránh giữ leader/runtime state của bundle trước.
+Khi nâng từ bản cũ lên `0.7.0`, hãy dừng các process Figma Plugin cũ đang chạy và reload companion từ `plugin/manifest.json` trước khi start runtime mới. Protocol 10 từ chối typed work khi bundle/capability negotiation còn stale.
 
 ### Codex
 
@@ -148,7 +148,7 @@ Dùng `figma_export` khi cần artifact durable thay vì immediate visual eviden
 
 ### Operation contract bắt buộc cho mutation/export
 
-Từ candidate `0.6.0`, `figma_exec`, `figma_apply` và `figma_export` bắt buộc gửi `traceId + operation`; `capability` và `attempt` vẫn tùy chọn. Đây là omission gate ở MCP boundary: raw JavaScript, mutation typed và artifact export không được chạy khi thiếu intent có trách nhiệm. `figma_query` read-only vẫn có thể chạy không cần operation metadata.
+Từ candidate `0.7.0`, `figma_exec`, `figma_apply` và `figma_export` bắt buộc gửi `traceId + operation`; `capability` và `attempt` vẫn tùy chọn. Đây là omission gate ở MCP boundary: raw JavaScript, mutation typed và artifact export không được chạy khi thiếu intent có trách nhiệm. `figma_query` read-only vẫn có thể chạy không cần operation metadata.
 
 ```json
 {
@@ -302,3 +302,12 @@ MIT License — xem `LICENSE`.
 ## 0.6.0 — Typed Figma library lifecycle
 
 0.6.0 thêm `figma_query(kind=library_inventory)` để đọc exact component/style/variable identity, publish status, remote state, enabled library-variable descriptors và publish/enable boundary. `figma_apply(action=import_library_asset)` hỗ trợ import component, component set, style và variable theo published key với dry-run mặc định, `confirm:true`, undo boundary, idempotency theo source identity và typed readback. Preflight/import recipes đã chuyển khỏi raw JavaScript sang typed query/apply. Library publish/enable vẫn không được giả lập: khi source còn `UNPUBLISHED`, workflow dừng ở `READY_FOR_PUBLISH`.
+
+
+## 0.7.0 — Typed entity graph, sync và strict audit
+
+0.7.0 giữ nguyên đúng năm public tools nhưng nâng protocol lên 10. `figma_query` có artifact manifest, paginated entity graph, change feed, component/binding/prototype/motion/accessibility design facts; `figma_apply(action=apply_entity_patch)` hỗ trợ create/update/move/clone/delete và typed command groups với dry-run `planHash`, optimistic preconditions, non-overlapping rebase, delete guard, undo/readback và rollback state. Plugin-managed node identity dùng `controlId` trong shared plugin data; duplicate IDs được fork có quan hệ `forkedFrom`.
+
+Companion đăng ký document/style change events, coalesce journal tối đa 2.000 records, phân loại agent/local/remote theo mức Figma cho phép, fingerprint variables định kỳ và buộc cursor resync sau reconnect. Figma vẫn là source of truth; graph/journal chỉ là cache/evidence. `figma_exec` là escape hatch cuối cùng và luôn đi qua rescan/readback.
+
+Strict audit tách `AuditProfile`, `AuditReport` và `UpgradeRun`. Runtime chỉ trả facts; `figma-verification` là owner duy nhất của verdict và validator từ chối false-PASS, evidence thiếu target/snapshot/hash, checklist có verdict, hoặc lẫn local reuse với cross-file publication. Fixture Luma Bank nằm ở `evals/fixtures/luma-bank-strict-audit.profile.json`; profile chưa phải report đã chạy. Live UI two-way proof và behavioral uplift comparison vẫn phải được chạy trên companion bundle đúng revision mới được claim.

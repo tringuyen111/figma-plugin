@@ -1,15 +1,20 @@
 /// <reference types="@figma/plugin-typings" />
 import {
+  APPLY_ACTIONS,
   ErrorCode,
   PROTOCOL_VERSION,
+  QUERY_KINDS,
   type BridgeRequest,
   type BridgeResponse,
+  type ChangeRecordWire,
+  type FeatureCapabilitiesWire,
   type PageSummaryWire,
 } from "../shared/protocol.js";
 import { executeJs, PluginExecError, type BinaryExecResult } from "./handlers/execute-js.js";
 import { exportNode, type ExportBinaryResult } from "./handlers/export-node.js";
 import { applyDocument, queryDocument } from "./handlers/document-operations.js";
 import { FIGMA_RUNTIME_SDK_VERSIONS } from "./runtime-sdk.js";
+import { initializeSync, refreshSync, subscribePage, syncState } from "./sync-engine.js";
 
 declare const __VERSION__: string;
 declare const __BUNDLE_REVISION__: string;
@@ -28,6 +33,8 @@ interface HelloData {
   pluginVersion: string;
   bundleRevision: string;
   runtimeSdks: string[];
+  features: FeatureCapabilitiesWire;
+  sync: ReturnType<typeof syncState>;
   instanceId: string;
   clientId: string;
   fileKey: string | null;
@@ -49,7 +56,15 @@ type MainToUi =
   | { kind: "handshake"; pluginVersion: string; protocolVersion: number }
   | { kind: "hello"; hello: HelloData }
   | { kind: "response"; payload: BridgeResponse }
+  | { kind: "change-feed"; change: ChangeRecordWire; sync: ReturnType<typeof syncState> }
   | { kind: "binary-response"; id: string; format: BinaryExecResult["format"] | ExportBinaryResult["format"]; bytes: Uint8Array; metadata: Record<string, unknown>; warnings?: string[] };
+
+const FEATURES: FeatureCapabilitiesWire = {
+  queryKinds: [...QUERY_KINDS],
+  applyActions: [...APPLY_ACTIONS],
+  sync: { documentChange: true, styleChange: true, variableFingerprint: true, maxJournalEntries: 2_000 },
+  entityGraph: { maxPatchOperations: 100, supportedEditors: ["figma"] },
+};
 
 let clientId = "";
 const clientReady = loadClientId();
@@ -91,6 +106,8 @@ async function helloData(): Promise<HelloData> {
     pluginVersion: PLUGIN_VERSION,
     bundleRevision: PLUGIN_BUNDLE_REVISION,
     runtimeSdks: [...FIGMA_RUNTIME_SDK_VERSIONS],
+    features: FEATURES,
+    sync: syncState(),
     instanceId: INSTANCE_ID,
     clientId,
     fileKey: (figma as unknown as { fileKey?: string }).fileKey ?? null,
@@ -118,11 +135,21 @@ async function switchPage(pageId: string): Promise<void> {
 async function dispatch(req: BridgeRequest): Promise<void> {
   try {
     if (req.targetPageId) await switchPage(req.targetPageId);
+    const params = (req.op === "query_document" || req.op === "apply_document") ? { ...req.params, instanceId: INSTANCE_ID } : req.params;
     let result: unknown;
-    if (req.op === "execute_js") result = await executeJs(req.params ?? {});
-    else if (req.op === "query_document") result = await queryDocument(req.params ?? {});
-    else if (req.op === "apply_document") result = await applyDocument(req.params ?? {});
-    else if (req.op === "export_node") result = await exportNode(req.params ?? {});
+    if (req.op === "execute_js") {
+      result = await executeJs(params ?? {});
+      await initializeSync();
+      await refreshSync();
+    }
+    else if (req.op === "query_document") result = await queryDocument(params ?? {});
+    else if (req.op === "apply_document") {
+      await initializeSync();
+      await refreshSync();
+      result = await applyDocument(params ?? {});
+      await refreshSync();
+    }
+    else if (req.op === "export_node") result = await exportNode(params ?? {});
     else throw new PluginExecError({ code: ErrorCode.UNSUPPORTED_OPERATION, message: `Unsupported operation "${String(req.op)}".` });
     if (isBinary(result)) {
       post({ kind: "binary-response", id: req.id, format: result.format, bytes: result.bytes, metadata: result.metadata });
@@ -176,5 +203,11 @@ figma.ui.onmessage = async (msg: UiToMain) => {
 };
 
 figma.on("currentpagechange", () => {
-  void helloData().then((hello) => post({ kind: "hello", hello }));
+  void subscribePage(figma.currentPage).catch(() => undefined).finally(() => {
+    void helloData().then((hello) => post({ kind: "hello", hello }));
+  });
+});
+
+void initializeSync((change: ChangeRecordWire) => {
+  post({ kind: "change-feed", change, sync: syncState() });
 });

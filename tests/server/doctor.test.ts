@@ -10,9 +10,9 @@ function readyFixture(): string {
   writeFileSync(join(root, "dist/server/index.js"), "// bundle");
   writeFileSync(join(root, "plugin/code.js"), "// plugin");
   writeFileSync(join(root, "plugin/ui.html"), "<div>Figma Plugin</div>");
-  writeFileSync(join(root, "package.json"), JSON.stringify({ name: "figma-plugin", version: "0.6.0" }));
-  writeFileSync(join(root, ".codex-plugin/plugin.json"), JSON.stringify({ name: "figma-plugin", version: "0.6.0" }));
-  writeFileSync(join(root, ".claude-plugin/plugin.json"), JSON.stringify({ name: "figma-plugin", version: "0.6.0" }));
+  writeFileSync(join(root, "package.json"), JSON.stringify({ name: "figma-plugin", version: "0.7.0" }));
+  writeFileSync(join(root, ".codex-plugin/plugin.json"), JSON.stringify({ name: "figma-plugin", version: "0.7.0" }));
+  writeFileSync(join(root, ".claude-plugin/plugin.json"), JSON.stringify({ name: "figma-plugin", version: "0.7.0" }));
   writeFileSync(join(root, ".mcp.json"), JSON.stringify({ mcpServers: { "figma-plugin": { command: "node", args: ["./dist/server/index.js"] } } }));
   for (const name of REQUIRED_FIGMA_SKILLS) writeFileSync(join(root, `skills/${name}/SKILL.md`), `# ${name}`);
   writeFileSync(join(root, "plugin/manifest.json"), JSON.stringify({
@@ -72,5 +72,38 @@ describe("Figma Plugin doctor", () => {
     const report = buildDoctorReport(root);
     expect(report.status).toBe("ACTION_REQUIRED");
     expect(report.checks.find((check) => check.id === "release-version-alignment")?.detail).toContain(".codex-plugin/plugin.json=0.5.6");
+  });
+
+  it("accepts the official Codex cachebuster suffix for the Codex manifest", () => {
+    const root = readyFixture();
+    writeFileSync(
+      join(root, ".codex-plugin/plugin.json"),
+      JSON.stringify({ name: "figma-plugin", version: "0.7.0+codex.local-20260824-080809" }),
+    );
+    const report = buildDoctorReport(root);
+    expect(report.status).toBe("READY");
+    expect(report.checks.find((check) => check.id === "release-version-alignment")?.detail).toContain("Codex cachebuster");
+  });
+
+  it("rejects non-Codex build metadata drift in the Codex manifest", () => {
+    const root = readyFixture();
+    writeFileSync(
+      join(root, ".codex-plugin/plugin.json"),
+      JSON.stringify({ name: "figma-plugin", version: "0.7.0+other.local" }),
+    );
+    const report = buildDoctorReport(root);
+    expect(report.status).toBe("ACTION_REQUIRED");
+    expect(report.checks.find((check) => check.id === "release-version-alignment")?.detail).toContain("0.7.0+other.local");
+  });
+
+  it("fails when aligned manifests are stale relative to the running candidate", () => {
+    const root = readyFixture();
+    for (const relativePath of ["package.json", ".codex-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
+      const path = join(root, relativePath);
+      writeFileSync(path, JSON.stringify({ name: "figma-plugin", version: "0.6.0" }));
+    }
+    const report = buildDoctorReport(root);
+    expect(report.status).toBe("ACTION_REQUIRED");
+    expect(report.checks.find((check) => check.id === "release-version-alignment")?.detail).toContain("expected running candidate v0.7.0");
   });
 });

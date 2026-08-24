@@ -460,6 +460,8 @@
     generation: 0,
     handshake: null,
     hello: null,
+    sync: null,
+    changes: [],
     selfInstanceId: null,
     snapshot: null,
     telemetry: null,
@@ -487,6 +489,12 @@
   ].forEach(function (id) { el[id] = document.getElementById(id); });
 
   function toMain(message) { parent.postMessage({ pluginMessage: message }, "*"); }
+  function applyChangeFeed(message) {
+    if (!message || !message.change) return;
+    state.sync = message.sync || state.sync;
+    state.changes = state.changes.concat([message.change]).slice(-200);
+    renderConnection();
+  }
   function currentPort() { return DEFAULT_PORT + (state.portIndex % PORT_RANGE); }
   function selfSnapshot() {
     if (!state.snapshot || !Array.isArray(state.snapshot.instances)) return null;
@@ -614,7 +622,15 @@
     el.liveText.textContent = ready ? "LIVE" : connecting ? "LINKING" : "OFFLINE";
     el.connectionIcon.className = "connection-icon " + (ready ? "" : connecting ? "connecting" : "offline");
     el.connectionTitle.textContent = ready ? "Connected" : connecting ? "Connecting…" : "Disconnected";
-    el.connectionNote.textContent = ready ? (sdkReady ? "" : "SDK update — reload plugin") : connecting ? "Finding bridge…" : "";
+    var sync = (self && self.sync) || state.sync || (state.hello && state.hello.sync);
+    var syncNote = sync && sync.state ? ("Sync " + String(sync.state).replace(/_/g, " ") + " · " + (sync.changeSeq || 0) + " changes") : "";
+    if (Array.isArray(state.changes) && state.changes.length) {
+      var externalChanges = state.changes.filter(function (item) { return item && item.actor !== "agent"; }).length;
+      var dirtyEntities = Object.create(null);
+      state.changes.forEach(function (item) { if (item && item.entityId) dirtyEntities[item.controlId || item.entityId] = true; });
+      syncNote += " · " + externalChanges + " external · " + Object.keys(dirtyEntities).length + " dirty";
+    }
+    el.connectionNote.textContent = ready ? ((sdkReady ? "" : "SDK update — reload plugin") + (syncNote ? (sdkReady ? "" : " · ") + syncNote : "")) : connecting ? "Finding bridge…" : "";
     var heartbeatMs = self && typeof self.lastHeartbeatMs === "number" ? self.lastHeartbeatMs : (state.lastHeartbeatAt ? Date.now() - state.lastHeartbeatAt : null);
     var uptime = ready && state.connectedAt ? Date.now() - state.connectedAt : null;
     var agentCount = ready ? sessions().length : null;
@@ -926,6 +942,8 @@
       pluginVersion: state.handshake && state.handshake.pluginVersion || state.hello.pluginVersion || "0.0.0",
       bundleRevision: state.hello.bundleRevision || "unknown",
       runtimeSdks: Array.isArray(state.hello.runtimeSdks) ? state.hello.runtimeSdks : [],
+      features: state.hello.features || undefined,
+      sync: state.hello.sync || undefined,
       instanceId: state.hello.instanceId,
       clientId: state.hello.clientId,
       fileKey: state.hello.fileKey == null ? null : state.hello.fileKey,
@@ -1060,8 +1078,13 @@
     }
     if (message.kind === "hello") {
       state.hello = message.hello;
+      state.sync = message.hello && message.hello.sync ? message.hello.sync : state.sync;
       renderContext();
       if (state.ws && state.ws.readyState === 1) sendHello();
+      return;
+    }
+    if (message.kind === "change-feed") {
+      applyChangeFeed(message);
       return;
     }
     if (message.kind === "response") {

@@ -1,7 +1,7 @@
 import { chmod, lstat, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { basename, extname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { ExportFormat } from "../shared/protocol.js";
 import { ErrorCode, OpError } from "./errors.js";
 import { baseDir } from "./paths.js";
@@ -16,6 +16,7 @@ export interface ExportArtifactResult {
     format: ExportFormat;
     mimeType: string;
     byteLength: number;
+    sha256: string;
     retention: "ephemeral-24h" | "user-managed";
     nodeId?: string;
     nodeName?: string;
@@ -23,7 +24,13 @@ export interface ExportArtifactResult {
     editorType?: string;
     naturalWidth?: number;
     naturalHeight?: number;
+    actualPixelWidth?: number;
+    actualPixelHeight?: number;
     requestedConstraint?: unknown;
+    snapshotId?: string;
+    bundleRevision?: string;
+    pageId?: string | null;
+    colorProfile?: string;
   };
 }
 
@@ -47,6 +54,7 @@ export async function persistExportArtifact(
   const format = requireFormat(record["format"]);
   const bytes = requireBytes(record["bytes"]);
   const info = FORMAT_INFO[format];
+  const actualPixels = format === "PNG" ? validatePngArtifact(bytes, record) : undefined;
   const { dir, ephemeral } = resolveExportLocation(env);
   if (ephemeral) await ensurePrivateDirectory(baseDir(env), true);
   await ensurePrivateDirectory(dir, ephemeral);
@@ -63,6 +71,7 @@ export async function persistExportArtifact(
       format,
       mimeType: info.mimeType,
       byteLength: bytes.byteLength,
+      sha256: createHash("sha256").update(bytes).digest("hex"),
       retention: ephemeral ? "ephemeral-24h" : "user-managed",
       ...(typeof record["nodeId"] === "string" ? { nodeId: record["nodeId"] as string } : {}),
       ...(typeof record["nodeName"] === "string" ? { nodeName: record["nodeName"] as string } : {}),
@@ -70,7 +79,12 @@ export async function persistExportArtifact(
       ...(typeof record["editorType"] === "string" ? { editorType: record["editorType"] as string } : {}),
       ...(finiteNumber(record["naturalWidth"]) ? { naturalWidth: record["naturalWidth"] as number } : {}),
       ...(finiteNumber(record["naturalHeight"]) ? { naturalHeight: record["naturalHeight"] as number } : {}),
+      ...(actualPixels ? { actualPixelWidth: actualPixels.width, actualPixelHeight: actualPixels.height } : {}),
       ...(record["constraint"] !== undefined ? { requestedConstraint: record["constraint"] } : {}),
+      ...(typeof record["snapshotId"] === "string" ? { snapshotId: record["snapshotId"] } : {}),
+      ...(typeof record["bundleRevision"] === "string" ? { bundleRevision: record["bundleRevision"] } : {}),
+      ...(typeof record["pageId"] === "string" ? { pageId: record["pageId"] } : record["pageId"] === null ? { pageId: null } : {}),
+      ...(typeof record["colorProfile"] === "string" ? { colorProfile: record["colorProfile"] } : {}),
     },
   };
 }
@@ -140,6 +154,66 @@ function requireBytes(value: unknown): Uint8Array {
 
 function finiteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function validatePngArtifact(
+  bytes: Uint8Array,
+  record: Record<string, unknown>,
+): { width: number; height: number } {
+  const dimensions = parsePngIhdrDimensions(bytes);
+  const naturalWidth = finiteNumber(record["naturalWidth"]) ? record["naturalWidth"] : undefined;
+  const naturalHeight = finiteNumber(record["naturalHeight"]) ? record["naturalHeight"] : undefined;
+  const materiallyLargerNode = (naturalWidth !== undefined && naturalWidth > 1)
+    || (naturalHeight !== undefined && naturalHeight > 1);
+
+  if (dimensions.width <= 1 && dimensions.height <= 1 && materiallyLargerNode) {
+    const nodeLabel = typeof record["nodeName"] === "string" && record["nodeName"].trim()
+      ? ` for node "${record["nodeName"]}"`
+      : "";
+    const reportedSize = `${naturalWidth ?? "unknown"}x${naturalHeight ?? "unknown"}`;
+    throw new OpError(
+      ErrorCode.INTERNAL,
+      `Figma returned a ${dimensions.width}x${dimensions.height} PNG${nodeLabel}, but the node metadata reports ${reportedSize}; the artifact was not persisted.`,
+      "Treat this export as failed. Inspect the target node and provider export result before retrying; do not use the reported node dimensions as proof of PNG dimensions.",
+    );
+  }
+
+  return dimensions;
+}
+
+function parsePngIhdrDimensions(bytes: Uint8Array): { width: number; height: number } {
+  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as const;
+  const hasSignature = bytes.byteLength >= signature.length
+    && signature.every((value, index) => bytes[index] === value);
+  if (!hasSignature || bytes.byteLength < 33) {
+    throw new OpError(
+      ErrorCode.INTERNAL,
+      "Figma returned malformed PNG bytes: the PNG signature or complete IHDR chunk is missing; the artifact was not persisted.",
+      "Treat this export as failed and inspect the provider response before retrying.",
+    );
+  }
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const ihdrLength = view.getUint32(8, false);
+  const isIhdr = bytes[12] === 0x49 && bytes[13] === 0x48 && bytes[14] === 0x44 && bytes[15] === 0x52;
+  if (ihdrLength !== 13 || !isIhdr) {
+    throw new OpError(
+      ErrorCode.INTERNAL,
+      "Figma returned malformed PNG bytes: IHDR is not the first complete PNG chunk; the artifact was not persisted.",
+      "Treat this export as failed and inspect the provider response before retrying.",
+    );
+  }
+
+  const width = view.getUint32(16, false);
+  const height = view.getUint32(20, false);
+  if (width === 0 || height === 0) {
+    throw new OpError(
+      ErrorCode.INTERNAL,
+      `Figma returned malformed PNG bytes: IHDR declares ${width}x${height} pixels; the artifact was not persisted.`,
+      "Treat this export as failed and inspect the provider response before retrying.",
+    );
+  }
+  return { width, height };
 }
 
 function resolveFilename(requested: string | undefined, nodeName: unknown, format: ExportFormat, extension: string): string {

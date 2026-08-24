@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "figma-plugin/upgrade-run.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "target", "planHash", "operations", "changedEntities", "rollbackState", "postChangeVerification"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "UpgradeRun" },
+    "target": { "type": "object", "required": ["fileName", "bundleRevision", "snapshotId", "observedAt"] },
+    "planHash": { "type": "string", "minLength": 1 },
+    "operations": { "type": "array", "maxItems": 100, "items": { "type": "object" } },
+    "changedEntities": { "type": "array", "items": { "type": "object" } },
+    "rollbackState": { "enum": ["not_needed", "verified", "unverified"] },
+    "postChangeVerification": { "type": "object" }
+  },
+  "additionalProperties": true
+}

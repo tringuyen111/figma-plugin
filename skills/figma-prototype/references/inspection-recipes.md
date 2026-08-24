@@ -33,3 +33,4 @@ return rows;
 ## Escalation rule
 
 Start from the approved path's source nodes. Add destinations and conditional branches only when they are reachable from that path. A full-file reaction dump is justified only for an explicit whole-flow audit.
+For stable reaction graph reads, prefer `figma_query(kind=prototype_graph)`; use `figma_apply(action=apply_entity_patch)` for typed reaction updates when the action/property is supported. Raw snippets below are provider escape hatches only and must be followed by change-feed/readback evidence.

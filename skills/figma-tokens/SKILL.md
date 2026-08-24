@@ -133,7 +133,7 @@ Before creating a variable:
 - Set variable scopes explicitly.
 - Set code syntax only from verified code/platform naming; do not invent production identifiers.
 - Import a library variable before local aliasing when the API/runtime requires a local imported object.
-- Return created/mutated variable and collection ids from `figma_exec`.
+- Prefer typed variable/collection `figma_apply(action=apply_entity_patch)` with a fingerprint rescan before writes and typed readback. Use `figma_exec` only when a variable API is not yet typed, and rescan bindings immediately after; return created/mutated ids and never infer cross-file publication from local mutation.
 - Inspect representative bound nodes after changes; a variable table alone does not prove correct use.
 
 ## Migration method

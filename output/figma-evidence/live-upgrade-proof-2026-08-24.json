@@ -1,23 +1,23 @@
 {
   "schemaVersion": 1,
   "kind": "live-full-plugin-upgrade-proof",
-  "observedAt": "2026-08-24T02:42:20.634Z",
+  "observedAt": "2026-08-24T04:46:10.186Z",
   "candidate": {
     "packageVersion": "0.6.0",
     "bundleRevision": "d7e97ac5655b595c",
     "protocolVersion": 9
   },
   "target": {
-    "instanceId": "instance-mt6mqofo-z0ymzq1nwc7vs",
+    "instanceId": "instance-mt6qrhcp-1uwphpo27i5bj",
     "fileName": "Untitled",
-    "pageId": "0:1",
-    "pageName": "01 - Foundations",
+    "pageId": "45:69",
+    "pageName": "02 - Components",
     "editorType": "figma"
   },
-  "traceRoot": "full-plugin-upgrade-live:1787539337743",
+  "traceRoot": "full-plugin-upgrade-live:1787546769489",
   "fixture": {
-    "marker": "ControlMux Live Proof controlmux-live-proof-1787539337743",
-    "proofId": "controlmux-live-proof-1787539337743",
+    "marker": "ControlMux Live Proof controlmux-live-proof-1787546769489",
+    "proofId": "controlmux-live-proof-1787546769489",
     "inventoryBefore": {
       "editorType": "figma",
       "fileName": "Untitled",
@@ -35,12 +35,18 @@
         {
           "id": "45:69",
           "name": "02 - Components",
-          "childCount": 0,
-          "descendantCount": 0,
+          "childCount": 1,
+          "descendantCount": 119,
           "components": 0,
           "componentSets": 0,
           "instances": 0,
-          "topLevel": []
+          "topLevel": [
+            {
+              "id": "91:258",
+              "name": "Codex Responsive Probe / Component Library",
+              "type": "FRAME"
+            }
+          ]
         },
         {
           "id": "45:70",
@@ -93,50 +99,50 @@
     },
     "created": {
       "created": true,
-      "nodeId": "83:17",
-      "pageId": "0:1",
-      "name": "ControlMux Live Proof controlmux-live-proof-1787539337743",
+      "nodeId": "94:399",
+      "pageId": "45:69",
+      "name": "ControlMux Live Proof controlmux-live-proof-1787546769489",
       "width": 360,
       "height": 220,
       "childCount": 2,
-      "proofId": "controlmux-live-proof-1787539337743",
+      "proofId": "controlmux-live-proof-1787546769489",
       "position": {
-        "x": 120,
+        "x": 1582,
         "y": 0
       },
       "undoCheckpoint": {
         "label": "full-plugin-upgrade-live-proof-create",
-        "at": 1787539339569,
+        "at": 1787546769829,
         "evidence": {
-          "nodeId": "83:17",
-          "proofId": "controlmux-live-proof-1787539337743"
+          "nodeId": "94:399",
+          "proofId": "controlmux-live-proof-1787546769489"
         }
       }
     },
     "readback": {
-      "id": "83:17",
-      "name": "ControlMux Live Proof controlmux-live-proof-1787539337743",
+      "id": "94:399",
+      "name": "ControlMux Live Proof controlmux-live-proof-1787546769489",
       "type": "FRAME",
-      "pageId": "0:1",
+      "pageId": "45:69",
       "width": 360,
       "height": 220,
       "layoutMode": "VERTICAL",
-      "proofId": "controlmux-live-proof-1787539337743",
+      "proofId": "controlmux-live-proof-1787546769489",
       "children": [
         {
-          "id": "83:18",
+          "id": "94:400",
           "name": "Accountable MCP Contract",
           "type": "RECTANGLE"
         },
         {
-          "id": "83:19",
+          "id": "94:401",
           "name": "IN PROCESS OUT",
           "type": "FRAME"
         }
       ]
     },
     "structure": {
-      "rootId": "83:17",
+      "rootId": "94:399",
       "descendantCount": 5,
       "componentCount": 0,
       "componentSetCount": 0,
@@ -148,20 +154,20 @@
     "cleanup": {
       "removed": true,
       "alreadyAbsent": false,
-      "nodeId": "83:17",
+      "nodeId": "94:399",
       "undoCheckpoint": {
         "label": "full-plugin-upgrade-live-proof-cleanup",
-        "at": 1787539340037,
+        "at": 1787546769923,
         "evidence": {
-          "nodeId": "83:17",
-          "proofId": "controlmux-live-proof-1787539337743"
+          "nodeId": "94:399",
+          "proofId": "controlmux-live-proof-1787546769489"
         }
       }
     },
     "absence": {
       "exists": false,
       "markerMatches": 0,
-      "pageId": "0:1"
+      "pageId": "45:69"
     },
     "inventoryAfter": {
       "editorType": "figma",
@@ -180,12 +186,18 @@
         {
           "id": "45:69",
           "name": "02 - Components",
-          "childCount": 0,
-          "descendantCount": 0,
+          "childCount": 1,
+          "descendantCount": 119,
           "components": 0,
           "componentSets": 0,
           "instances": 0,
-          "topLevel": []
+          "topLevel": [
+            {
+              "id": "91:258",
+              "name": "Codex Responsive Probe / Component Library",
+              "type": "FRAME"
+            }
+          ]
         },
         {
           "id": "45:70",
@@ -238,15 +250,15 @@
     }
   },
   "export": {
-    "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\figma-live-upgrade-proof-2026-08-24.png",
-    "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/figma-live-upgrade-proof-2026-08-24.png",
-    "filename": "figma-live-upgrade-proof-2026-08-24.png",
+    "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\figma-live-upgrade-proof-2026-08-24-2.png",
+    "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/figma-live-upgrade-proof-2026-08-24-2.png",
+    "filename": "figma-live-upgrade-proof-2026-08-24-2.png",
     "format": "PNG",
     "mimeType": "image/png",
     "byteLength": 3790,
     "retention": "ephemeral-24h",
-    "nodeId": "83:17",
-    "nodeName": "ControlMux Live Proof controlmux-live-proof-1787539337743",
+    "nodeId": "94:399",
+    "nodeName": "ControlMux Live Proof controlmux-live-proof-1787546769489",
     "nodeType": "FRAME",
     "editorType": "figma",
     "naturalWidth": 360,
@@ -266,22 +278,8 @@
   },
   "scope": {
     "liveReadWriteReadbackExport": "PASS",
-    "visualInspection": "PASS",
+    "visualInspection": "PENDING",
     "secureMcpTunnel": "NOT_RUN",
     "behavioralComparison": "NOT_RUN"
-  },
-  "visualObservation": {
-    "inspectedFrom": "output/figma-evidence/live-upgrade-proof-2026-08-24.png",
-    "imageSha256": "d4cda43f3cb0b73f01f7f96051281ba1f85403c6bc8c0db05ef9a8d8690462ab",
-    "dimensions": "360x220",
-    "observed": [
-      "dark rounded container is fully rendered without clipping",
-      "blue header block is present with consistent inset spacing",
-      "green, amber, and red process blocks are present in one aligned row",
-      "exported pixels match the fixture structure and declared color roles"
-    ],
-    "limitations": [
-      "screenshot does not prove keyboard behavior, animation, tunnel transport, or behavioral omission reduction"
-    ]
   }
 }

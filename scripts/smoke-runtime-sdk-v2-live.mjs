@@ -89,7 +89,7 @@ async function executeProof(instance, attempt) {
       postconditions: [
         "Targeted page loading succeeds",
         "Style and variable bindings use native async/object APIs",
-        "Handoff evidence includes CSS, Dev Resource, and component identity",
+        "Handoff preserves component identity without optional provider probes",
         "Temporary fixture and local assets are removed",
       ],
     },
@@ -162,7 +162,7 @@ try {
       devResourceWrite = { status: "BLOCKED_BY_PROVIDER", error: error instanceof Error ? error.message : String(error) };
     }
   }
-  const handoff = await figmaPlugin.inspectHandoff(component, { includeChildren: true, devResources: providerProbes, publishStatus: providerProbes });
+  const handoff = await figmaPlugin.inspectHandoff(component, { css: false, includeChildren: true, devResources: providerProbes, publishStatus: providerProbes });
   evidence = {
     runtimeSdk: figmaPlugin.version,
     before,

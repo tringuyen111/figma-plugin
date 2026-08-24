@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "figma-plugin/audit-report.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "target", "expectedTruth", "claims", "dimensions", "boundedVerdict"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "AuditReport" },
+    "target": {
+      "type": "object",
+      "required": ["fileName", "bundleRevision", "snapshotId", "observedAt"],
+      "properties": {
+        "instanceId": { "type": "string", "minLength": 1 },
+        "fileKey": { "type": ["string", "null"] },
+        "fileName": { "type": "string", "minLength": 1 },
+        "pageIds": { "type": "array", "items": { "type": "string" } },
+        "nodeIds": { "type": "array", "items": { "type": "string" } },
+        "bundleRevision": { "type": "string", "minLength": 1 },
+        "snapshotId": { "type": "string", "minLength": 1 },
+        "observedAt": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "expectedTruth": { "type": "array", "items": { "type": "object", "required": ["id", "source"] } },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claimId", "dimension", "applicability", "required", "status", "evidenceRefs"],
+        "properties": {
+          "claimId": { "type": "string", "minLength": 1 },
+          "dimension": { "type": "string", "minLength": 1 },
+          "applicability": { "enum": ["REQUIRED", "OPTIONAL", "OUT_OF_SCOPE"] },
+          "required": { "type": "boolean" },
+          "status": { "enum": ["PASS", "FAIL", "NOT_RUN", "INCONCLUSIVE", "MISSING", "BLOCKED"] },
+          "evidenceRefs": { "type": "array", "items": { "type": "object" } },
+          "finding": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "dimensions": { "type": "object", "additionalProperties": { "enum": ["PASS", "FAIL", "NOT_RUN", "INCONCLUSIVE", "MISSING", "BLOCKED"] } },
+    "boundedVerdict": { "enum": ["PASS", "FAIL", "NOT_RUN", "INCONCLUSIVE", "MISSING", "BLOCKED"] }
+  },
+  "additionalProperties": true
+}

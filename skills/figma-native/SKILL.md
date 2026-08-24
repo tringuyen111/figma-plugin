@@ -34,6 +34,8 @@ Read `references/provenance.md` only when auditing this Skill or when current pr
 
 Prefer provider-efficient primitives **only when the bound runtime exposes them**. Current upstream `use_figma` documents helpers such as `node.query(...)`, `node.set(...)`, and `figma.createAutoLayout(...)`; probe typings/runtime before emitting them through ControlMux instead of assuming upstream helper parity. A failed native script must be treated as a diagnosed failure, not a reason to blindly retry; if the runtime guarantees atomic script failure, record that evidence before relying on it for recovery semantics.
 
+For stable Figma Design entities, prefer the typed entity graph and guarded `apply_entity_patch` surface. It supplies control IDs, optimistic preconditions, dry-run plan hashes, conflict detection, undo/rollback and readback. Use raw `figma_exec` only for an uncovered or feature-gated API, and trigger a fresh manifest/change-feed rescan after it; raw execution never establishes sync or PASS by itself.
+
 ## System-plane invariants
 
 - Runtime/tool availability is not design authority.
@@ -84,6 +86,8 @@ Core rules:
 10. On API error, diagnose the exact error before retrying.
 
 Read [Execution and token economy](references/execution-contract.md) for call patterns and compact return patterns.
+
+The companion reports document-sync state through `figma_status` and `figma_query(kind="change_feed")`. Node/style changes are event-backed; variable/collection changes are fingerprint-backed and may be observed on the next rescan rather than synchronously.
 
 When dynamic-page loading, style/variable binding, append-before-sizing Auto Layout, idempotent cleanup, handoff inspection, normalized text mutation, structure measurement, undo boundaries, or phase checkpoints are material, **READ** [Runtime SDK](references/runtime-sdk.md) and opt into latest `runtimeSdk: "v2"`. Use `v1` only for compatibility with its smaller helper surface. The injected `figmaPlugin` object owns deterministic provider mechanics only; keep Product/Design/reuse/verdict decisions with their domain capability. Omit the field for unchanged plain native JavaScript.
 

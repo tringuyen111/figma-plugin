@@ -1,6 +1,6 @@
 # Component inspection recipes
 
-Use these as **bounded projections** for `figma_exec` when a structured provider surface is unavailable or insufficient. Replace literal IDs/prefixes before execution. Do not treat the snippet as the decision method; it only supplies evidence to `figma-components`.
+Use `figma_query(kind=entity_graph|component_integrity)` first and `figma_apply(action=apply_entity_patch)` for stable component/instance changes. Use these as **bounded projections** for `figma_exec` only when the typed provider surface is unavailable or insufficient. Replace literal IDs/prefixes before execution, then rescan/read back. Do not treat the snippet as the decision method; it only supplies evidence to `figma-components`.
 
 ## Component API projection
 

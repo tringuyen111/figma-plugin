@@ -37,7 +37,7 @@ for (const url of revisionInputs) {
   const path = relative(process.cwd(), fileURLToPath(url));
   revisionHash.update(path.replaceAll("/", "\\"));
   revisionHash.update("\0");
-  revisionHash.update(readFileSync(url));
+  revisionHash.update(readFileSync(url, "utf8").replace(/\r\n?/g, "\n"));
   revisionHash.update("\0");
 }
 const bundleRevision = revisionHash.digest("hex").slice(0, 16);

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "kind": "AuditReport",
+  "target": {
+    "fileName": "Untitled",
+    "bundleRevision": "replace-me",
+    "snapshotId": "replace-me",
+    "observedAt": 0
+  },
+  "expectedTruth": [],
+  "claims": [],
+  "dimensions": {},
+  "boundedVerdict": "NOT_RUN",
+  "limitations": []
+}

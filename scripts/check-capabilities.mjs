@@ -73,7 +73,7 @@ for (const id of ids) {
   if (!existsSync(entry)) throw new Error(`Missing ${id}/SKILL.md`);
   if (!existsSync(provenance)) throw new Error(`Missing ${id}/references/provenance.md`);
   if (!existsSync(agentMeta)) throw new Error(`Missing ${id}/agents/openai.yaml`);
-  const skillSource = readFileSync(entry, "utf8");
+  const skillSource = readFileSync(entry, "utf8").replace(/\r\n?/g, "\n");
   if (!skillSource.startsWith(`---\nname: ${id}\n`)) throw new Error(`Skill frontmatter name mismatch for ${id}`);
   if (!skillSource.includes("references/provenance.md")) throw new Error(`Skill ${id} does not expose conditional provenance.`);
   if (!skillSource.includes("## Decision advantage")) throw new Error(`Skill ${id} is missing an explicit decision advantage.`);
@@ -142,7 +142,7 @@ const protocolSource = readFileSync(resolve(root, "src/shared/protocol.ts"), "ut
 const mcpSource = readFileSync(resolve(root, "src/server/mcp-surface.ts"), "utf8");
 const buildSource = readFileSync(resolve(root, "scripts/build.mjs"), "utf8");
 const manifestSource = readFileSync(resolve(root, "plugin/manifest.json"), "utf8");
-for (const required of ['"export_node"', 'PROTOCOL_VERSION = 9', 'MAX_BINARY_ARTIFACT_BYTES']) if (!protocolSource.includes(required)) throw new Error(`Protocol is missing 0.6.0 export marker: ${required}`);
+for (const required of ['"export_node"', 'PROTOCOL_VERSION = 10', 'MAX_BINARY_ARTIFACT_BYTES']) if (!protocolSource.includes(required)) throw new Error(`Protocol is missing 0.7.0 export marker: ${required}`);
 for (const required of ['name: "figma_status"', 'name: "figma_query"', 'name: "figma_apply"', 'name: "figma_exec"', 'name: "figma_export"']) if (!mcpSource.includes(required)) throw new Error(`MCP surface is missing tool marker: ${required}`);
 for (const required of [
   'outputSchema: toolOutputSchema',

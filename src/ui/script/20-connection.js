@@ -12,6 +12,8 @@
       pluginVersion: state.handshake && state.handshake.pluginVersion || state.hello.pluginVersion || "0.0.0",
       bundleRevision: state.hello.bundleRevision || "unknown",
       runtimeSdks: Array.isArray(state.hello.runtimeSdks) ? state.hello.runtimeSdks : [],
+      features: state.hello.features || undefined,
+      sync: state.hello.sync || undefined,
       instanceId: state.hello.instanceId,
       clientId: state.hello.clientId,
       fileKey: state.hello.fileKey == null ? null : state.hello.fileKey,

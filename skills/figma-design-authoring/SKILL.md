@@ -166,7 +166,7 @@ Use `figma-prototype` when the design question is trigger/action/condition/navig
 
 ## Native/runtime discipline
 
-ControlMux Figma uses `figma_status` + read-only `figma_query` + guarded `figma_apply` as the common execution kernel, with `figma_exec` as an escape hatch and `figma_export` as typed artifact egress. Keep writes incremental, inspect before mutate, use async Plugin API methods where required, return affected ids, and render/export visible evidence when craft is material.
+ControlMux Figma uses `figma_status` + typed `figma_query` entity facts + guarded `figma_apply(action=apply_entity_patch)` as the common execution kernel, with `figma_exec` only for an uncovered/provider-gated API and `figma_export` as typed artifact egress. Drain/read the change cursor before each patch, preserve `controlId` identity, keep writes incremental, inspect before mutate, use async Plugin API methods where required, return affected ids/readback, and render/export visible evidence when craft is material. Runtime facts do not become Design or verification verdicts automatically.
 
 ## Failure and correction
 

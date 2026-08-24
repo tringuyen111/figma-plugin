@@ -8,8 +8,13 @@
     }
     if (message.kind === "hello") {
       state.hello = message.hello;
+      state.sync = message.hello && message.hello.sync ? message.hello.sync : state.sync;
       renderContext();
       if (state.ws && state.ws.readyState === 1) sendHello();
+      return;
+    }
+    if (message.kind === "change-feed") {
+      applyChangeFeed(message);
       return;
     }
     if (message.kind === "response") {

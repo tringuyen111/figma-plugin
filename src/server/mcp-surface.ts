@@ -1,7 +1,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, type CallToolResult, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { VERSION } from "./version.js";
-import { APPLY_ACTIONS, LIBRARY_ASSET_TYPES, MAX_BINARY_ARTIFACT_BYTES, OPERATION_PHASES, OPERATION_REPRESENTATIONS, QUERY_KINDS, REQUEST_KINDS, RUNTIME_SDK_VERSIONS, type OperationContextWire, type RequestKind, type RuntimeSdkVersion } from "../shared/protocol.js";
+import { APPLY_ACTIONS, LIBRARY_ASSET_TYPES, MAX_BINARY_ARTIFACT_BYTES, OPERATION_PHASES, OPERATION_REPRESENTATIONS, PATCH_CONFLICT_POLICIES, PATCH_OPERATION_KINDS, QUERY_KINDS, REQUEST_KINDS, RUNTIME_SDK_VERSIONS, type OperationContextWire, type RequestKind, type RuntimeSdkVersion } from "../shared/protocol.js";
 import { FIGMA_SKILL_IDS } from "../capabilities/skill-registry.js";
 import { ErrorCode, OpError, mcpErrorDisposition, toBridgeError } from "./errors.js";
 import { handleApply, handleExec, handleExport, handleQuery, handleStatus, type ToolContext } from "./tools.js";
@@ -56,7 +56,41 @@ const QUERY_OPERATION_SCHEMA = operationSchemaFor("read", "Optional read-operati
 const APPLY_OPERATION_SCHEMA = operationSchemaFor("write", "Required write-operation context with postconditions for guarded Figma mutations.", true);
 const EXPORT_OPERATION_SCHEMA = operationSchemaFor("export", "Required export-operation context with postconditions for persisted artifact egress.", true);
 
-const MCP_CONTRACT_SCHEMA_VERSION = 1;
+const MCP_CONTRACT_SCHEMA_VERSION = 2;
+const ENTITY_REF_SCHEMA = {
+  type: "object",
+  properties: {
+    controlId: { type: "string", minLength: 1, maxLength: 128 },
+    nodeId: { type: "string", minLength: 1, maxLength: 256 },
+    styleId: { type: "string", minLength: 1, maxLength: 256 },
+    variableId: { type: "string", minLength: 1, maxLength: 256 },
+    collectionId: { type: "string", minLength: 1, maxLength: 256 },
+    expectedType: { type: "string", minLength: 1, maxLength: 128 },
+  },
+  minProperties: 1,
+  additionalProperties: false,
+} as const;
+const ENTITY_PATCH_SCHEMA = {
+  type: "object",
+  required: ["kind", "entityKind"],
+  properties: {
+    kind: { type: "string", enum: [...PATCH_OPERATION_KINDS] },
+    entityKind: { type: "string", enum: ["node", "style", "variable", "variable_collection"] },
+    target: ENTITY_REF_SCHEMA,
+    parent: ENTITY_REF_SCHEMA,
+    controlId: { type: "string", minLength: 1, maxLength: 128 },
+    index: { type: "integer", minimum: 0 },
+    entityType: { type: "string", minLength: 1, maxLength: 128 },
+    properties: { type: "object", additionalProperties: true },
+    set: { type: "object", additionalProperties: true },
+    unset: { type: "array", items: { type: "string", minLength: 1, maxLength: 256 } },
+    precondition: { type: "object", additionalProperties: true },
+    command: { type: "string", minLength: 1, maxLength: 128 },
+    payload: { type: "object", additionalProperties: true },
+    allowDelete: { type: "boolean" },
+  },
+  additionalProperties: false,
+} as const;
 const MCP_SERVER_INSTRUCTIONS = [
   "Call figma_status before target-dependent work and whenever connection or routing is ambiguous.",
   "Prefer figma_query for enforceable reads and figma_apply for typed guarded mutations.",
@@ -186,7 +220,7 @@ const EXPORT_TOOL: Tool = {
 
 const QUERY_TOOL: Tool = {
   name: "figma_query",
-  description: "Run an enforceable read-only query against the native Figma Plugin API. Use library_inventory for component/style/variable identity, publish status, enabled library-variable descriptors, and the explicit publish/enable boundary; use the other kinds for file, structure, and code-handoff evidence.",
+  description: "Run an enforceable read-only query against the native Figma Plugin API. Typed graph, change-feed, binding, prototype, motion and accessibility facts never issue a verdict; figma-verification owns claim evaluation.",
   annotations: { title: "Query Figma", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   inputSchema: {
     type: "object",
@@ -194,6 +228,13 @@ const QUERY_TOOL: Tool = {
       kind: { type: "string", enum: [...QUERY_KINDS], description: "Typed read query to execute." },
       nodeId: { type: "string", minLength: 1, maxLength: 256, description: "Required for node_handoff and structure." },
       includeChildren: { type: "boolean", description: "Include descendant Dev Resources for node_handoff." },
+      logicalId: { type: "string", minLength: 1, maxLength: 256, description: "Optional stable controlId for entity_graph/change_feed targeting." },
+      entityKind: { type: "string", enum: ["node", "style", "variable", "variable_collection"], description: "Optional entity graph filter." },
+      scope: { type: "string", enum: ["document", "page", "node", "styles", "variables"] },
+      projection: { type: "array", maxItems: 32, items: { type: "string", minLength: 1, maxLength: 64 } },
+      cursor: { type: "string", minLength: 1, maxLength: 256 },
+      limit: { type: "integer", minimum: 1, maximum: 1000 },
+      refresh: { type: "boolean", description: "Rescan the managed target before returning facts." },
       sessionId: { type: "string", minLength: 1, maxLength: 256 },
       instanceId: { type: "string", minLength: 1, maxLength: 256 },
       pageId: { type: "string", minLength: 1, maxLength: 256 },
@@ -210,7 +251,7 @@ const QUERY_TOOL: Tool = {
 
 const APPLY_TOOL: Tool = {
   name: "figma_apply",
-  description: "Run a bounded, serialized Figma mutation with dry-run, explicit confirmation, undo checkpoint, and postcondition evidence. traceId and operation are required. Publication and library enablement remain provider/UI authority; dryRun defaults to true.",
+  description: "Run a bounded, serialized Figma mutation with dry-run, optimistic preconditions, typed readback, undo/rollback and postcondition evidence. apply_entity_patch provides typed CRUD; publication and library enablement remain provider/UI authority.",
   annotations: { title: "Apply guarded Figma mutation", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
   inputSchema: {
     type: "object",
@@ -226,6 +267,11 @@ const APPLY_TOOL: Tool = {
       x: { type: "number", minimum: -1000000, maximum: 1000000, description: "For component imports, target X coordinate." },
       y: { type: "number", minimum: -1000000, maximum: 1000000, description: "For component imports, target Y coordinate." },
       propertyValues: { type: "object", additionalProperties: { type: ["string", "boolean"] }, description: "For component imports, exact Figma component property keys including # suffixes for TEXT/BOOLEAN/INSTANCE_SWAP properties." },
+      patches: { type: "array", minItems: 1, maxItems: 100, items: ENTITY_PATCH_SCHEMA, description: `Typed entity patches. Supported kinds: ${PATCH_OPERATION_KINDS.join(", ")}.` },
+      expectedPlanHash: { type: "string", minLength: 1, maxLength: 128 },
+      conflictPolicy: { type: "string", enum: [...PATCH_CONFLICT_POLICIES] },
+      allowDelete: { type: "boolean" },
+      maxOperations: { type: "integer", minimum: 1, maximum: 100 },
       sessionId: { type: "string", minLength: 1, maxLength: 256 },
       instanceId: { type: "string", minLength: 1, maxLength: 256 },
       pageId: { type: "string", minLength: 1, maxLength: 256 },
@@ -285,14 +331,16 @@ async function callTool(ctx: ToolContext, name: string, args: Record<string, unk
   if (name === "figma_query") {
     const traceId = optionalTraceId(args["traceId"]);
     const operation = optionalOperation(args["operation"], traceId, "read");
+    const pageId = optionalId(args["pageId"], "pageId");
     const params: Record<string, unknown> = {};
-    for (const key of ["kind", "nodeId", "includeChildren"]) if (args[key] !== undefined) params[key] = args[key];
+    for (const key of ["kind", "nodeId", "includeChildren", "logicalId", "entityKind", "scope", "projection", "cursor", "limit", "refresh"]) if (args[key] !== undefined) params[key] = args[key];
+    if (pageId) params["pageId"] = pageId;
     return handleQuery(
       ctx,
       params,
       optionalId(args["sessionId"], "sessionId"),
       optionalId(args["instanceId"], "instanceId"),
-      optionalId(args["pageId"], "pageId"),
+      pageId,
       optionalCapability(args["capability"]),
       traceId,
       optionalAttempt(args["attempt"]),
@@ -303,7 +351,7 @@ async function callTool(ctx: ToolContext, name: string, args: Record<string, unk
     const traceId = requiredTraceId(args["traceId"], name);
     const operation = requiredOperation(args["operation"], traceId, name, "write");
     const params: Record<string, unknown> = {};
-    for (const key of ["action", "dryRun", "confirm", "pageIds", "removeLocalAssets", "assetType", "key", "instanceName", "x", "y", "propertyValues"]) if (args[key] !== undefined) params[key] = args[key];
+    for (const key of ["action", "dryRun", "confirm", "pageIds", "removeLocalAssets", "assetType", "key", "instanceName", "x", "y", "propertyValues", "patches", "expectedPlanHash", "conflictPolicy", "allowDelete", "maxOperations"]) if (args[key] !== undefined) params[key] = args[key];
     return handleApply(
       ctx,
       params,

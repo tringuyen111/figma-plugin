@@ -172,20 +172,40 @@ function checkReleaseVersionAlignment(root: string): DoctorCheck {
   }
 
   const packageVersion = versions[0]!.version;
-  const mismatches = versions.filter((item) => item.version !== packageVersion);
-  return mismatches.length === 0
+  const packageBaseVersion = packageVersion.split("+", 1)[0]!;
+  const codexCachebusterPattern = new RegExp(`^${escapeRegExp(packageBaseVersion)}\\+codex\\.[A-Za-z0-9.-]+$`);
+  const mismatches = versions.filter((item) =>
+    item.version !== packageVersion
+    && !(item.path === ".codex-plugin/plugin.json" && codexCachebusterPattern.test(item.version))
+  );
+  if (mismatches.length > 0) {
+    return {
+      id: "release-version-alignment",
+      label: "Package/manifest versions",
+      status: "fail",
+      detail: versions.map((item) => `${item.path}=${item.version}`).join("; "),
+    };
+  }
+
+  return packageVersion === VERSION
     ? {
         id: "release-version-alignment",
         label: "Package/manifest versions",
         status: "ok",
-        detail: `All release manifests match package.json v${packageVersion}`,
+        detail: versions[1]!.version === packageVersion
+          ? `All release manifests match package.json v${packageVersion}`
+          : `Release manifests match package.json v${packageVersion}; Codex cachebuster ${versions[1]!.version} is active`,
       }
     : {
         id: "release-version-alignment",
         label: "Package/manifest versions",
         status: "fail",
-        detail: versions.map((item) => `${item.path}=${item.version}`).join("; "),
+        detail: `All release manifests are aligned at stale v${packageVersion}; expected running candidate v${VERSION}. Reload/reinstall the candidate before using the companion.`,
       };
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 

@@ -1,6 +1,9 @@
 /// <reference types="@figma/plugin-typings" />
 import { DEFAULT_MAX_EXPORT_BYTES, MAX_BINARY_ARTIFACT_BYTES, ErrorCode, type BridgeError, type ExportFormat } from "../../shared/protocol.js";
+import { fingerprint } from "../../shared/entity-contract.js";
 import { PluginExecError } from "./execute-js.js";
+
+declare const __BUNDLE_REVISION__: string;
 
 interface ExportNodeParams {
   nodeId?: unknown;
@@ -76,6 +79,10 @@ export async function exportNode(params: ExportNodeParams): Promise<ExportBinary
       nodeName: typeof (node as { name?: unknown }).name === "string" ? (node as { name: string }).name : "",
       nodeType: typeof (node as { type?: unknown }).type === "string" ? (node as { type: string }).type : "",
       editorType: figma.editorType,
+      bundleRevision: typeof __BUNDLE_REVISION__ === "string" ? __BUNDLE_REVISION__ : "dev",
+      snapshotId: fingerprint({ nodeId, nodeType: (node as { type?: unknown }).type ?? null, name: (node as { name?: unknown }).name ?? null, pageId: node.parent?.type === "PAGE" ? node.parent.id : null, visible: (node as { visible?: unknown }).visible ?? null, locked: (node as { locked?: unknown }).locked ?? null, width: (node as { width?: unknown }).width ?? null, height: (node as { height?: unknown }).height ?? null, format, constraint: params.constraint ?? null, colorProfile: params.colorProfile ?? "DOCUMENT" }),
+      pageId: node.parent?.type === "PAGE" ? node.parent.id : null,
+      colorProfile: params.colorProfile ?? "DOCUMENT",
       byteLength: bytes.byteLength,
       ...(typeof (node as { width?: unknown }).width === "number" ? { naturalWidth: (node as { width: number }).width } : {}),
       ...(typeof (node as { height?: unknown }).height === "number" ? { naturalHeight: (node as { height: number }).height } : {}),

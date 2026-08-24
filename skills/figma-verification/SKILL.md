@@ -13,6 +13,8 @@ Evaluate a fixed Figma target against bounded obligations and return dimension-s
 
 Read `references/verification-method.md` for evidence selection and verdict mechanics. Read `references/provenance.md` only for audit/provider-conflict work.
 
+When the input is a checklist or audit profile rather than an executed report, read `references/strict-audit-execution.md`. A profile declares obligations and probes only; it cannot contain verdicts. An `AuditReport` must bind the exact target, bundle, snapshot fingerprint, expected truth and evidence refs before any claim can become `PASS`.
+
 ## Decision advantage
 
 This Skill earns its place by preventing **false PASS**. It binds the exact artifact and expected truth, chooses evidence capable of proving each requested claim, keeps dimensions independent, and never redesigns during acceptance. The result is a bounded verdict, not a style critique or a repair session.
@@ -86,6 +88,16 @@ Use the provider's structured evidence surface when it is stronger than re-deriv
 5. Record each finding as `observed -> expected -> evidence -> consequence`.
 6. Assign per-dimension state.
 7. Return smallest actionable verdict and route repair to the owning authoring capability if requested.
+
+## Artifact-class gate
+
+Keep these terminal jobs separate:
+
+- `AuditProfile` / checklist: obligations, applicability, expected source and minimum proof; status is `PLANNED` or `NOT_RUN`.
+- `AuditReport`: read-only facts, findings and canonical dimension verdicts.
+- `UpgradeRun`: mutation plan, changed entities, rollback and post-change verification.
+
+Never copy a baseline `PASS` from a profile into a report without evidence. `PARTIAL` is not a verdict; split the claim into independently evidenced claims. `READY_FOR_PUBLISH` is lifecycle state, not acceptance state. Provider limitations need an exact operation, observed error/provider state, capability scope and unlock condition.
 
 ## Finding severity
 

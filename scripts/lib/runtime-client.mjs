@@ -8,12 +8,13 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
  * Domain mutation policy remains in each recipe.
  */
 export class RuntimeClient {
-  constructor({ name, version = "1.0.0", serverPath = resolve("dist/server/index.js"), cwd = process.cwd() }) {
+  constructor({ name, version = "1.0.0", serverPath = resolve("dist/server/index.js"), cwd = process.cwd(), env }) {
     this.transport = new StdioClientTransport({
       command: process.execPath,
       args: [serverPath],
       cwd,
       stderr: "pipe",
+      ...(env ? { env } : {}),
     });
     this.client = new Client({ name, version }, { capabilities: {} });
     this.connected = false;

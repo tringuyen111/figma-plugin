@@ -1,5 +1,5 @@
 /** Shared native ControlMux Figma bridge protocol. */
-export const PROTOCOL_VERSION = 9;
+export const PROTOCOL_VERSION = 10;
 export const DEFAULT_PORT = 38470;
 export const PORT_RANGE = 10;
 
@@ -13,10 +13,30 @@ export const DEFAULT_MAX_EXPORT_BYTES = 32 * 1024 * 1024;
 
 export const OPERATIONS = ["execute_js", "query_document", "apply_document", "export_node"] as const;
 export type Operation = (typeof OPERATIONS)[number];
-export const QUERY_KINDS = ["file_inventory", "node_handoff", "structure", "library_inventory"] as const;
+export const QUERY_KINDS = [
+  "file_inventory",
+  "node_handoff",
+  "structure",
+  "library_inventory",
+  "artifact_manifest",
+  "entity_graph",
+  "change_feed",
+  "component_integrity",
+  "binding_inventory",
+  "prototype_graph",
+  "motion_snapshot",
+  "accessibility_design_facts",
+] as const;
 export type QueryKind = (typeof QUERY_KINDS)[number];
-export const APPLY_ACTIONS = ["clear_file_owned_assets", "import_library_asset"] as const;
+export const APPLY_ACTIONS = ["clear_file_owned_assets", "import_library_asset", "apply_entity_patch"] as const;
 export type ApplyAction = (typeof APPLY_ACTIONS)[number];
+
+export const ENTITY_KINDS = ["node", "style", "variable", "variable_collection"] as const;
+export type EntityKind = (typeof ENTITY_KINDS)[number];
+export const PATCH_OPERATION_KINDS = ["create", "update", "move", "clone", "delete", "set_bindings", "set_reactions", "component_command", "style_command", "variable_command", "motion_command"] as const;
+export type PatchOperationKind = (typeof PATCH_OPERATION_KINDS)[number];
+export const PATCH_CONFLICT_POLICIES = ["reject", "merge_non_overlapping"] as const;
+export type PatchConflictPolicy = (typeof PATCH_CONFLICT_POLICIES)[number];
 
 /** Published asset kinds supported by the native Figma Plugin API import methods. */
 export const LIBRARY_ASSET_TYPES = ["component", "component_set", "style", "variable"] as const;
@@ -62,6 +82,12 @@ export enum ErrorCode {
   PAGE_NOT_FOUND = "PAGE_NOT_FOUND",
   OUTPUT_TOO_LARGE = "OUTPUT_TOO_LARGE",
   INTERNAL = "INTERNAL",
+  DRIFT_CONFLICT = "DRIFT_CONFLICT",
+  STALE_TARGET = "STALE_TARGET",
+  ROLLBACK_FAILED = "ROLLBACK_FAILED",
+  RESYNC_REQUIRED = "RESYNC_REQUIRED",
+  UNSUPPORTED_PROPERTY = "UNSUPPORTED_PROPERTY",
+  FEATURE_GATED = "FEATURE_GATED",
 }
 
 export interface BridgeError {
@@ -99,6 +125,9 @@ export interface PluginHello {
   bundleRevision?: string;
   /** Opt-in execution helper versions supported by this exact loaded companion bundle. */
   runtimeSdks?: string[];
+  /** Exact capabilities implemented by this loaded companion bundle. */
+  features?: FeatureCapabilitiesWire;
+  sync?: SyncStateWire;
   instanceId: string;
   clientId: string;
   fileKey: string | null;
@@ -107,6 +136,54 @@ export interface PluginHello {
   pageName: string;
   pages: PageSummaryWire[];
   editorType: "figma" | "figjam" | "slides" | string;
+}
+
+export interface FeatureCapabilitiesWire {
+  queryKinds: string[];
+  applyActions: string[];
+  sync: {
+    documentChange: boolean;
+    styleChange: boolean;
+    variableFingerprint: boolean;
+    maxJournalEntries: number;
+  };
+  entityGraph: {
+    maxPatchOperations: number;
+    supportedEditors: string[];
+  };
+}
+
+export interface SyncStateWire {
+  state: "warming" | "ready" | "degraded_page_scope" | "resync_required";
+  syncEpoch: string;
+  changeSeq: number;
+  unreadChanges: number;
+  subscribedPageIds: string[];
+  lastRescanAt?: number;
+  lastError?: string;
+}
+
+export interface ChangeRecordWire {
+  id: string;
+  type: "CREATE" | "DELETE" | "PROPERTY_CHANGE" | "STYLE_CREATE" | "STYLE_DELETE" | "STYLE_PROPERTY_CHANGE" | "RESCAN";
+  origin: "LOCAL" | "REMOTE" | "UNKNOWN";
+  actor: "agent" | "external_local" | "remote" | "rescan";
+  entityKind: EntityKind | "unknown";
+  entityId: string;
+  controlId?: string;
+  properties?: string[];
+  traceId?: string;
+  observedAt: number;
+}
+
+export interface ChangeFeedDelta {
+  type: "change_feed";
+  instanceId: string;
+  syncEpoch: string;
+  fromSeq: number;
+  toSeq: number;
+  changes: ChangeRecordWire[];
+  resyncRequired?: boolean;
 }
 
 export interface InstanceAssigned {
@@ -239,6 +316,8 @@ export interface InstanceSummaryWire {
   inFlight: number;
   lastHeartbeatMs: number;
   metrics: RuntimeMetricsWire;
+  sync?: SyncStateWire;
+  features?: FeatureCapabilitiesWire;
 }
 
 export interface SessionSummaryWire {
@@ -307,6 +386,7 @@ export type WireMessage =
   | InstancesUpdate
   | TelemetryDelta
   | TelemetryResyncRequest
+  | ChangeFeedDelta
   | BindRequest
   | ClearQueueRequest
   | ClearRequestLogRequest

@@ -41,6 +41,8 @@ export async function handleStatus(ctx: ToolContext, verbose = false): Promise<R
     editorType: i.editorType,
     bundleRevision: i.bundleRevision,
     runtimeSdks: i.runtimeSdks,
+    ...(i.features ? { features: i.features } : {}),
+    ...(i.sync ? { sync: i.sync } : {}),
     queueLength: i.queueLength,
     metrics: {
       lastTotalMs: i.metrics.lastTotalMs,
@@ -200,6 +202,10 @@ function buildHints(d: Diagnostics): string[] {
   const staleBundleInstances = (d.instances ?? []).filter((instance) => instance.bundleRevision !== "unknown" && instance.bundleRevision !== BUNDLE_REVISION);
   if (staleBundleInstances.length > 0) {
     hints.push(`${staleBundleInstances.length} connected Figma companion instance(s) have a stale bundle revision. Reload the rebuilt development manifest before using Runtime SDK v2.`);
+  }
+  const degradedSyncInstances = (d.instances ?? []).filter((instance) => instance.sync?.state === "degraded_page_scope" || instance.sync?.state === "resync_required");
+  if (degradedSyncInstances.length > 0) {
+    hints.push(`${degradedSyncInstances.length} connected instance(s) need a Figma document rescan before claiming complete bidirectional sync.`);
   }
   if (d.lastHeartbeatMs !== null && d.lastHeartbeatMs > HEARTBEAT_DEAD_MS) hints.push("The target Figma runtime has missed its heartbeat and may reconnect automatically.");
   if (!hints.length) hints.push("Ready. Use figma_exec with native Figma Plugin API JavaScript; specify pageId only when you intentionally target a page other than the window's current page.");

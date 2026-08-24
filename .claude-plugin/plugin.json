@@ -1,7 +1,7 @@
 {
   "name": "figma-plugin",
   "displayName": "Figma Plugin",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Deep Figma design capabilities on top of a local native execution and multi-window routing kernel.",
   "author": {
     "name": "Tri Nguyen",

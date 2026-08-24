@@ -17,7 +17,15 @@
     el.liveText.textContent = ready ? "LIVE" : connecting ? "LINKING" : "OFFLINE";
     el.connectionIcon.className = "connection-icon " + (ready ? "" : connecting ? "connecting" : "offline");
     el.connectionTitle.textContent = ready ? "Connected" : connecting ? "Connecting…" : "Disconnected";
-    el.connectionNote.textContent = ready ? (sdkReady ? "" : "SDK update — reload plugin") : connecting ? "Finding bridge…" : "";
+    var sync = (self && self.sync) || state.sync || (state.hello && state.hello.sync);
+    var syncNote = sync && sync.state ? ("Sync " + String(sync.state).replace(/_/g, " ") + " · " + (sync.changeSeq || 0) + " changes") : "";
+    if (Array.isArray(state.changes) && state.changes.length) {
+      var externalChanges = state.changes.filter(function (item) { return item && item.actor !== "agent"; }).length;
+      var dirtyEntities = Object.create(null);
+      state.changes.forEach(function (item) { if (item && item.entityId) dirtyEntities[item.controlId || item.entityId] = true; });
+      syncNote += " · " + externalChanges + " external · " + Object.keys(dirtyEntities).length + " dirty";
+    }
+    el.connectionNote.textContent = ready ? ((sdkReady ? "" : "SDK update — reload plugin") + (syncNote ? (sdkReady ? "" : " · ") + syncNote : "")) : connecting ? "Finding bridge…" : "";
     var heartbeatMs = self && typeof self.lastHeartbeatMs === "number" ? self.lastHeartbeatMs : (state.lastHeartbeatAt ? Date.now() - state.lastHeartbeatAt : null);
     var uptime = ready && state.connectedAt ? Date.now() - state.connectedAt : null;
     var agentCount = ready ? sessions().length : null;

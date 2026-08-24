@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "kind": "UpgradeRun",
+  "target": {
+    "fileName": "Untitled",
+    "bundleRevision": "replace-me",
+    "snapshotId": "replace-me",
+    "observedAt": 0
+  },
+  "planHash": "replace-me",
+  "operations": [],
+  "changedEntities": [],
+  "rollbackState": "not_needed",
+  "postChangeVerification": { "status": "NOT_RUN", "evidenceRefs": [] }
+}

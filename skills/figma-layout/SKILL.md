@@ -120,7 +120,7 @@ A repeatable layout earns a Component only when a stable semantic/anatomy contra
 ## Native execution discipline
 
 - Inspect parent `layoutMode`, sizing, padding, item spacing, child sizing, wrapping, constraints, and absolute flags before edits.
-- Use small focused `figma_exec` writes and return affected node ids.
+- Prefer typed `figma_apply(action=apply_entity_patch)` for stable geometry/layout properties, with dry-run plan hash, conflict preconditions, and typed readback. Use small focused `figma_exec` writes only for uncovered/provider-gated layout APIs, then force a change-feed/manifest rescan and return affected node ids.
 - Preserve current page/window targeting explicitly when several Figma instances are online.
 - After writes, read back geometry and export the smallest representative region when visual reflow matters.
 

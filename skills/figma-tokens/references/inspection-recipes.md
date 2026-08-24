@@ -1,6 +1,6 @@
 # Token inspection recipes
 
-Use these only when native `figma_exec` evidence is the best available source. Prefer structured provider variable/library tools when they already return the semantic evidence required by the task.
+Use `figma_query(kind=binding_inventory)` first and typed variable/collection patches when the property is stable. Use these only when native `figma_exec` evidence is the best available source. Prefer structured provider variable/library tools when they already return the semantic evidence required by the task, and always fingerprint/rescan after raw execution.
 
 ## Filtered local variable inventory
 

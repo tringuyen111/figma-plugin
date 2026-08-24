@@ -10,7 +10,7 @@ describe("native MCP surface", () => {
     const tools = toolDefinitions();
     expect(tools.map((tool) => tool.name)).toEqual(["figma_status", "figma_query", "figma_apply", "figma_exec", "figma_export"]);
     expect(OPERATIONS).toEqual(["execute_js", "query_document", "apply_document", "export_node"]);
-    expect(PROTOCOL_VERSION).toBe(9);
+    expect(PROTOCOL_VERSION).toBe(10);
     const exec = tools.find((tool) => tool.name === "figma_exec");
     const props = (exec?.inputSchema as { properties?: Record<string, unknown> }).properties ?? {};
     expect(props).toHaveProperty("capability");
@@ -23,14 +23,16 @@ describe("native MCP surface", () => {
     expect(exec?.outputSchema?.required).toEqual(["schemaVersion", "tool", "status"]);
     const query = tools.find((tool) => tool.name === "figma_query");
     const queryProps = (query?.inputSchema as { properties?: Record<string, unknown> }).properties ?? {};
-    expect((queryProps.kind as { enum?: string[] }).enum).toEqual(["file_inventory", "node_handoff", "structure", "library_inventory"]);
+    expect((queryProps.kind as { enum?: string[] }).enum).toEqual(["file_inventory", "node_handoff", "structure", "library_inventory", "artifact_manifest", "entity_graph", "change_feed", "component_integrity", "binding_inventory", "prototype_graph", "motion_snapshot", "accessibility_design_facts"]);
     expect(((queryProps.operation as { properties?: Record<string, unknown> }).properties?.kind as { enum?: string[] }).enum).toEqual(["read"]);
     const apply = tools.find((tool) => tool.name === "figma_apply");
     const applyProps = (apply?.inputSchema as { properties?: Record<string, unknown> }).properties ?? {};
-    expect((applyProps.action as { enum?: string[] }).enum).toEqual(["clear_file_owned_assets", "import_library_asset"]);
+    expect((applyProps.action as { enum?: string[] }).enum).toEqual(["clear_file_owned_assets", "import_library_asset", "apply_entity_patch"]);
     expect(applyProps).toHaveProperty("assetType");
     expect(applyProps).toHaveProperty("key");
     expect(applyProps).toHaveProperty("propertyValues");
+    expect(applyProps).toHaveProperty("patches");
+    expect(applyProps).toHaveProperty("expectedPlanHash");
     expect((apply?.inputSchema as { required?: string[] }).required).toEqual(["action", "traceId", "operation"]);
     expect((((applyProps.operation as { properties?: Record<string, unknown> }).properties?.kind) as { enum?: string[] }).enum).toEqual(["write"]);
     expect(apply?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true, openWorldHint: false });
@@ -102,7 +104,7 @@ describe("native MCP surface", () => {
     expect(result.content).toHaveLength(2);
     expect(result.content[0]).toMatchObject({ type: "text" });
     expect(result.content[1]).toMatchObject({ type: "image", mimeType: "image/png", data: "AQID" });
-    expect(result.structuredContent).toMatchObject({ schemaVersion: 1, tool: "figma_exec", status: "success", result: { format: "PNG", nodeId: "1:2" } });
+    expect(result.structuredContent).toMatchObject({ schemaVersion: 2, tool: "figma_exec", status: "success", result: { format: "PNG", nodeId: "1:2" } });
   });
 
   it("returns persisted exports as resource links plus structured metadata", () => {
@@ -126,7 +128,7 @@ describe("native MCP surface", () => {
       size: 1234,
     });
     expect(result.structuredContent).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       tool: "figma_export",
       status: "success",
       artifact: { filename: "frame.pdf", format: "PDF" },
@@ -134,11 +136,33 @@ describe("native MCP surface", () => {
     });
   });
 
+  it("preserves actual PNG dimensions in structured artifact metadata", () => {
+    const result = toToolResult({
+      artifact: {
+        path: "/tmp/controlmux-figma/exports/frame.png",
+        uri: "file:///tmp/controlmux-figma/exports/frame.png",
+        filename: "frame.png",
+        mimeType: "image/png",
+        byteLength: 456,
+        format: "PNG",
+        retention: "ephemeral-24h",
+        naturalWidth: 820,
+        naturalHeight: 390,
+        actualPixelWidth: 820,
+        actualPixelHeight: 390,
+      },
+    }, "figma_export");
+    expect(result.structuredContent).toMatchObject({
+      artifact: { actualPixelWidth: 820, actualPixelHeight: 390 },
+      result: { artifact: { actualPixelWidth: 820, actualPixelHeight: 390 } },
+    });
+  });
+
   it("adds structured success metadata while preserving the legacy text payload", () => {
     const payload = { pluginConnected: false, queueLength: 0 };
     const result = toToolResult(payload, "figma_status");
     expect(JSON.parse((result.content[0] as { text: string }).text)).toEqual(payload);
-    expect(result.structuredContent).toEqual({ schemaVersion: 1, tool: "figma_status", status: "success", result: payload });
+    expect(result.structuredContent).toEqual({ schemaVersion: 2, tool: "figma_status", status: "success", result: payload });
   });
 
   it("reports safe retry versus ambiguous mutation completion", () => {

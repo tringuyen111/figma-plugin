@@ -1,6 +1,7 @@
 /// <reference types="@figma/plugin-typings" />
-import { ErrorCode, LIBRARY_ASSET_TYPES, type LibraryAssetType } from "../../shared/protocol.js";
+import { ErrorCode, LIBRARY_ASSET_TYPES, type LibraryAssetType, type QueryKind } from "../../shared/protocol.js";
 import { PluginExecError } from "./execute-js.js";
+import { applyEntityPatch, queryEntity } from "./entity-operations.js";
 
 type QueryParams = { kind?: unknown; nodeId?: unknown; includeChildren?: unknown };
 type LibraryImportParams = {
@@ -21,14 +22,16 @@ export async function queryDocument(params: Record<string, unknown>): Promise<un
   if (kind === "library_inventory") return inventoryLibrary();
   if (kind === "node_handoff") return inspectHandoff(validateQuery(params));
   if (kind === "structure") return inspectStructure(validateQuery(params));
-  throw failure(ErrorCode.INVALID_PARAMS, `query kind must be file_inventory, library_inventory, node_handoff, or structure (got ${String(kind)}).`);
+  if (typeof kind === "string" && ["artifact_manifest", "entity_graph", "change_feed", "component_integrity", "binding_inventory", "prototype_graph", "motion_snapshot", "accessibility_design_facts"].includes(kind)) return queryEntity(kind as QueryKind, params);
+  throw failure(ErrorCode.INVALID_PARAMS, `query kind is unsupported (got ${String(kind)}). Supported kinds are file_inventory, library_inventory, node_handoff, structure, artifact_manifest, entity_graph, change_feed, component_integrity, binding_inventory, prototype_graph, motion_snapshot, and accessibility_design_facts.`);
 }
 
 export async function applyDocument(params: Record<string, unknown>): Promise<unknown> {
   const action = params.action;
   if (action === "import_library_asset") return importLibraryAsset(params);
+  if (action === "apply_entity_patch") return applyEntityPatch(params);
   if (action !== "clear_file_owned_assets") {
-    throw failure(ErrorCode.INVALID_PARAMS, `apply action must be clear_file_owned_assets or import_library_asset (got ${String(action)}).`);
+    throw failure(ErrorCode.INVALID_PARAMS, `apply action is unsupported (got ${String(action)}). Supported actions are clear_file_owned_assets, import_library_asset, and apply_entity_patch.`);
   }
   const dryRun = params.dryRun === undefined ? true : params.dryRun;
   const confirm = params.confirm === true;

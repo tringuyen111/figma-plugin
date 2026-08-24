@@ -1,0 +1,2310 @@
+{
+  "schemaVersion": 1,
+  "kind": "LumaRealisticRepairRun",
+  "runId": "20260824091928-6572-c4dc6f63",
+  "startedAt": "2026-08-24T09:19:28.002Z",
+  "finishedAt": "2026-08-24T09:19:36.847Z",
+  "workflowState": "EVIDENCE_CAPTURED",
+  "boundedVerdict": "NOT_RUN",
+  "registry": {
+    "namespace": "luma.realistic.authoring",
+    "key": "luma-realistic-rebuild:20260824085036-22684-bb0c2be8"
+  },
+  "target": {
+    "instanceId": "instance-mt70e1pt-cnu7ih1fndimu",
+    "initialPageId": "96:406",
+    "fileKey": null,
+    "fileName": "Untitled",
+    "editorType": "figma",
+    "serverVersion": "0.7.0",
+    "protocolVersion": 10,
+    "bundleRevision": "75d1ef41a8182e2f"
+  },
+  "pageIds": {
+    "system": "96:405",
+    "screens": "96:406",
+    "flow": "96:407"
+  },
+  "repair": {
+    "registry": {
+      "namespace": "luma.realistic.authoring",
+      "key": "luma-realistic-rebuild:20260824085036-22684-bb0c2be8"
+    },
+    "pageIds": {
+      "system": "96:405",
+      "screens": "96:406",
+      "flow": "96:407"
+    },
+    "status": {
+      "setId": "109:2613",
+      "removedLabelPropertyKeys": [],
+      "remainingPropertyDefinitions": {
+        "Tone": {
+          "type": "VARIANT",
+          "defaultValue": "Success",
+          "variantOptions": [
+            "Success",
+            "Pending",
+            "Error",
+            "Info"
+          ]
+        }
+      },
+      "fixedLabels": {
+        "Success": {
+          "componentId": "109:2601",
+          "labelId": "109:2603",
+          "characters": "Hoàn tất"
+        },
+        "Pending": {
+          "componentId": "109:2604",
+          "labelId": "109:2606",
+          "characters": "Đang xử lý"
+        },
+        "Error": {
+          "componentId": "109:2607",
+          "labelId": "109:2609",
+          "characters": "Thất bại"
+        },
+        "Info": {
+          "componentId": "109:2610",
+          "labelId": "109:2612",
+          "characters": "Cần OTP"
+        }
+      }
+    },
+    "loginError": {
+      "id": "109:3115",
+      "y": {
+        "forgot": 480,
+        "submit": 524,
+        "face": 594,
+        "trusted": 664
+      }
+    },
+    "states": {
+      "pending": {
+        "id": "109:3137",
+        "statusInstanceId": "109:3145",
+        "mainComponentId": "109:2604",
+        "haloId": "109:3140",
+        "haloName": "pending halo",
+        "glyphId": "109:3142",
+        "glyphName": "pending glyph",
+        "glyph": "…",
+        "glyphY": 132
+      },
+      "failure": {
+        "id": "109:3163",
+        "statusInstanceId": "109:3171",
+        "mainComponentId": "109:2607",
+        "haloId": "109:3166",
+        "haloName": "failure halo",
+        "glyphId": "109:3168",
+        "glyphName": "failure glyph",
+        "glyph": "×",
+        "glyphY": 132
+      }
+    },
+    "overlays": {
+      "share": {
+        "id": "109:3310",
+        "width": 350,
+        "height": 330,
+        "scrimId": "109:3309",
+        "scrimWidth": 374,
+        "scrimHeight": 354
+      },
+      "lock": {
+        "id": "109:3323",
+        "width": 350,
+        "height": 280,
+        "scrimId": "109:3322",
+        "scrimWidth": 374,
+        "scrimHeight": 304
+      },
+      "goal": {
+        "id": "109:3334",
+        "width": 350,
+        "height": 350,
+        "scrimId": "109:3333",
+        "scrimWidth": 374,
+        "scrimHeight": 374
+      },
+      "detail": {
+        "id": "109:3347",
+        "width": 350,
+        "height": 350,
+        "scrimId": "109:3346",
+        "scrimWidth": 374,
+        "scrimHeight": 374
+      }
+    },
+    "motion": {
+      "success": {
+        "id": "109:3404",
+        "timeline": {
+          "id": "109:3404",
+          "duration": 0.44
+        }
+      },
+      "sheet": {
+        "id": "109:3429",
+        "timeline": {
+          "id": "109:3429",
+          "duration": 0.32
+        }
+      },
+      "control": {
+        "id": "109:3449",
+        "timeline": {
+          "id": "109:3449",
+          "duration": 0.24
+        }
+      },
+      "reduced": {
+        "id": "109:3468",
+        "timeline": null
+      }
+    },
+    "undo": {
+      "label": "Repair Luma semantic states and compact overlays",
+      "at": 1787563168654,
+      "evidence": {
+        "statusSetId": "109:2613",
+        "stateIds": [
+          "109:3115",
+          "109:3137",
+          "109:3163"
+        ],
+        "overlayIds": [
+          "109:3310",
+          "109:3323",
+          "109:3334",
+          "109:3347"
+        ]
+      }
+    }
+  },
+  "typedReadback": [
+    {
+      "key": "status-set",
+      "nodeId": "109:2613",
+      "pageId": "96:405",
+      "result": {
+        "rootId": "109:2613",
+        "descendantCount": 12,
+        "componentCount": 4,
+        "componentSetCount": 0,
+        "instanceCount": 0,
+        "linkedInstanceCount": 0,
+        "autoLayoutNodeCount": 5,
+        "links": []
+      }
+    },
+    {
+      "key": "login-error",
+      "nodeId": "109:3115",
+      "pageId": "96:406",
+      "result": {
+        "rootId": "109:3115",
+        "descendantCount": 21,
+        "componentCount": 0,
+        "componentSetCount": 0,
+        "instanceCount": 1,
+        "linkedInstanceCount": 1,
+        "autoLayoutNodeCount": 1,
+        "links": [
+          {
+            "instanceId": "109:3129",
+            "instanceName": "Instance / Controls/Button / Đăng nhập",
+            "masterId": "109:2578",
+            "masterName": "Type=Primary, State=Default"
+          }
+        ]
+      }
+    },
+    {
+      "key": "pending",
+      "nodeId": "109:3137",
+      "pageId": "96:406",
+      "result": {
+        "rootId": "109:3137",
+        "descendantCount": 25,
+        "componentCount": 0,
+        "componentSetCount": 0,
+        "instanceCount": 2,
+        "linkedInstanceCount": 2,
+        "autoLayoutNodeCount": 2,
+        "links": [
+          {
+            "instanceId": "109:3145",
+            "instanceName": "Instance / Feedback/Status Chip / Tone=Pending",
+            "masterId": "109:2604",
+            "masterName": "Tone=Pending"
+          },
+          {
+            "instanceId": "109:3155",
+            "instanceName": "Instance / Controls/Button / Kiểm tra trạng thái",
+            "masterId": "109:2578",
+            "masterName": "Type=Primary, State=Default"
+          }
+        ]
+      }
+    },
+    {
+      "key": "failure",
+      "nodeId": "109:3163",
+      "pageId": "96:406",
+      "result": {
+        "rootId": "109:3163",
+        "descendantCount": 25,
+        "componentCount": 0,
+        "componentSetCount": 0,
+        "instanceCount": 2,
+        "linkedInstanceCount": 2,
+        "autoLayoutNodeCount": 2,
+        "links": [
+          {
+            "instanceId": "109:3171",
+            "instanceName": "Instance / Feedback/Status Chip / Tone=Error",
+            "masterId": "109:2607",
+            "masterName": "Tone=Error"
+          },
+          {
+            "instanceId": "109:3181",
+            "instanceName": "Instance / Controls/Button / Thử lại",
+            "masterId": "109:2578",
+            "masterName": "Type=Primary, State=Default"
+          }
+        ]
+      }
+    },
+    {
+      "key": "overlay-share",
+      "nodeId": "109:3310",
+      "pageId": "96:406",
+      "result": {
+        "rootId": "109:3310",
+        "descendantCount": 11,
+        "componentCount": 0,
+        "componentSetCount": 0,
+        "instanceCount": 0,
+        "linkedInstanceCount": 0,
+        "autoLayoutNodeCount": 0,
+        "links": []
+      }
+    },
+    {
+      "key": "overlay-lock",
+      "nodeId": "109:3323",
+      "pageId": "96:406",
+      "result": {
+        "rootId": "109:3323",
+        "descendantCount": 9,
+        "componentCount": 0,
+        "componentSetCount": 0,
+        "instanceCount": 0,
+        "linkedInstanceCount": 0,
+        "autoLayoutNodeCount": 0,
+        "links": []
+      }
+    },
+    {
+      "key": "overlay-goal",
+      "nodeId": "109:3334",
+      "pageId": "96:406",
+      "result": {
+        "rootId": "109:3334",
+        "descendantCount": 11,
+        "componentCount": 0,
+        "componentSetCount": 0,
+        "instanceCount": 0,
+        "linkedInstanceCount": 0,
+        "autoLayoutNodeCount": 0,
+        "links": []
+      }
+    },
+    {
+      "key": "overlay-detail",
+      "nodeId": "109:3347",
+      "pageId": "96:406",
+      "result": {
+        "rootId": "109:3347",
+        "descendantCount": 12,
+        "componentCount": 0,
+        "componentSetCount": 0,
+        "instanceCount": 0,
+        "linkedInstanceCount": 0,
+        "autoLayoutNodeCount": 0,
+        "links": []
+      }
+    }
+  ],
+  "componentIntegrity": {
+    "componentCount": 69,
+    "componentIds": [
+      "109:2600",
+      "109:2578",
+      "109:2580",
+      "109:2582",
+      "109:2584",
+      "109:2586",
+      "109:2589",
+      "109:2591",
+      "109:2593",
+      "109:2595",
+      "109:2597",
+      "109:2613",
+      "109:2601",
+      "109:2604",
+      "109:2607",
+      "109:2610",
+      "109:2626",
+      "109:2614",
+      "109:2618",
+      "109:2622",
+      "109:2657",
+      "109:2627",
+      "109:2632",
+      "109:2637",
+      "109:2642",
+      "109:2647",
+      "109:2652",
+      "109:2679",
+      "109:2658",
+      "109:2665",
+      "109:2672",
+      "109:2748",
+      "109:2680",
+      "109:2697",
+      "109:2714",
+      "109:2731",
+      "109:2761",
+      "109:2749",
+      "109:2755",
+      "109:2811",
+      "109:2820",
+      "109:2826",
+      "109:2830",
+      "109:2834",
+      "109:2838",
+      "109:2848",
+      "109:2855",
+      "109:2867",
+      "109:2917",
+      "109:2944",
+      "109:2965",
+      "109:2974",
+      "109:2986",
+      "109:3008",
+      "109:3015",
+      "109:3022",
+      "109:3030",
+      "109:3037",
+      "109:3044",
+      "109:3092",
+      "109:3094",
+      "109:3129",
+      "109:3145",
+      "109:3155",
+      "109:3171",
+      "109:3181",
+      "109:3224",
+      "109:3271",
+      "109:3272"
+    ],
+    "graphCoverage": {
+      "total": 1005,
+      "returned": 1005,
+      "pages": [
+        {
+          "scope": "document",
+          "scanned": 1005,
+          "total": 1005,
+          "returned": 1000,
+          "truncated": true,
+          "nextCursor": "offset:1000"
+        },
+        {
+          "scope": "document",
+          "scanned": 1005,
+          "total": 1005,
+          "returned": 5,
+          "truncated": false
+        }
+      ]
+    },
+    "facts": [
+      {
+        "id": "109:2600",
+        "type": "COMPONENT_SET",
+        "name": "Controls/Button",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "be9e6d3215ffcd8908caef1593a469e217dba6c9",
+        "remote": false,
+        "variantCount": 10,
+        "properties": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "defaultValue": "Tiếp tục"
+          },
+          "Type": {
+            "type": "VARIANT",
+            "defaultValue": "Primary",
+            "variantOptions": [
+              "Primary",
+              "Secondary"
+            ]
+          },
+          "State": {
+            "type": "VARIANT",
+            "defaultValue": "Default",
+            "variantOptions": [
+              "Default",
+              "Pressed",
+              "Focus",
+              "Disabled",
+              "Loading"
+            ]
+          }
+        },
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2578",
+        "type": "COMPONENT",
+        "name": "Type=Primary, State=Default",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 10
+      },
+      {
+        "id": "109:2580",
+        "type": "COMPONENT",
+        "name": "Type=Primary, State=Pressed",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "c51811509b657ac520efeb8b04e55d02f1707566",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2582",
+        "type": "COMPONENT",
+        "name": "Type=Primary, State=Focus",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "935cd551f356fb4f523457eebff83b9b899e488a",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2584",
+        "type": "COMPONENT",
+        "name": "Type=Primary, State=Disabled",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "7dd8c149b20fa36635953a1c3a8e64f108c82bd2",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2586",
+        "type": "COMPONENT",
+        "name": "Type=Primary, State=Loading",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "16ad3c73adb751506904ad981fb3578c0e6a4e6e",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2589",
+        "type": "COMPONENT",
+        "name": "Type=Secondary, State=Default",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "13147e277a40c1d5c07824a2146fa382c86dcc01",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2591",
+        "type": "COMPONENT",
+        "name": "Type=Secondary, State=Pressed",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "292b64d46816c191a70245e12032b3302d6b795e",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2593",
+        "type": "COMPONENT",
+        "name": "Type=Secondary, State=Focus",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "2dc996bdc24d9be76d11d5fa8c45aa7d2b833418",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2595",
+        "type": "COMPONENT",
+        "name": "Type=Secondary, State=Disabled",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "641df37f8662d4066bab809a316e30c29037c5a6",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2597",
+        "type": "COMPONENT",
+        "name": "Type=Secondary, State=Loading",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "f157fa4ea90a314983d725f2c2b6132992af59a4",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2613",
+        "type": "COMPONENT_SET",
+        "name": "Feedback/Status Chip",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "6ece88fbb79f7622a93c5f2f7738b79ec44fae5a",
+        "remote": false,
+        "variantCount": 4,
+        "properties": {
+          "Tone": {
+            "type": "VARIANT",
+            "defaultValue": "Success",
+            "variantOptions": [
+              "Success",
+              "Pending",
+              "Error",
+              "Info"
+            ]
+          }
+        },
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2601",
+        "type": "COMPONENT",
+        "name": "Tone=Success",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "13f289fe2b62dad22ffd99d673d39ed9105d755d",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2604",
+        "type": "COMPONENT",
+        "name": "Tone=Pending",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "758015888c0733eb95a885d1243e353c092ecf8e",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2607",
+        "type": "COMPONENT",
+        "name": "Tone=Error",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "3e4db3bf933831f16f677758d78e70534b882d3b",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2610",
+        "type": "COMPONENT",
+        "name": "Tone=Info",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "fca9118c5449c876866ce761931a15e1eaf6d1fe",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2626",
+        "type": "COMPONENT_SET",
+        "name": "Actions/Quick Action",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "07ce258de8c90e2d0fd252b45009fda6441f0cbc",
+        "remote": false,
+        "variantCount": 3,
+        "properties": {
+          "Label#109:89": {
+            "type": "TEXT",
+            "defaultValue": "Chuyển tiền"
+          },
+          "Glyph#109:93": {
+            "type": "TEXT",
+            "defaultValue": "↗"
+          },
+          "State": {
+            "type": "VARIANT",
+            "defaultValue": "Default",
+            "variantOptions": [
+              "Default",
+              "Pressed",
+              "Disabled"
+            ]
+          }
+        },
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2614",
+        "type": "COMPONENT",
+        "name": "State=Default",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "4c4542d2acfff5141d614483bc783ea9714e4c92",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 4
+      },
+      {
+        "id": "109:2618",
+        "type": "COMPONENT",
+        "name": "State=Pressed",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "ef575ccb88c5c36fad48592be66efec4e9949a2b",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2622",
+        "type": "COMPONENT",
+        "name": "State=Disabled",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "5afaeda3e0349e0c79b293222f828582fc602abd",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2657",
+        "type": "COMPONENT_SET",
+        "name": "Form/Text Field",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "a3c8c9fc74b352730f35307e97a9a2f206c4a304",
+        "remote": false,
+        "variantCount": 6,
+        "properties": {
+          "Label#109:97": {
+            "type": "TEXT",
+            "defaultValue": "Số tài khoản"
+          },
+          "Value#109:104": {
+            "type": "TEXT",
+            "defaultValue": "186 882 019"
+          },
+          "Helper#109:111": {
+            "type": "TEXT",
+            "defaultValue": " "
+          },
+          "State": {
+            "type": "VARIANT",
+            "defaultValue": "Default",
+            "variantOptions": [
+              "Default",
+              "Focused",
+              "Filled",
+              "Success",
+              "Error",
+              "Disabled"
+            ]
+          }
+        },
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2627",
+        "type": "COMPONENT",
+        "name": "State=Default",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "46647b8d7445a772aaddec2b44173b29c7554b0e",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2632",
+        "type": "COMPONENT",
+        "name": "State=Focused",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "9571fcd74b8604e2f4cd611ad711b74c63284fc1",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2637",
+        "type": "COMPONENT",
+        "name": "State=Filled",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "a1154eaeac5de50dff86c0da78a177dff7bbf9f6",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2642",
+        "type": "COMPONENT",
+        "name": "State=Success",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "90a68989f4da38d0d746fe2ce1af16568cc6fef9",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2647",
+        "type": "COMPONENT",
+        "name": "State=Error",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "279fe77ba748e73d43799342e9231fd85e67c19a",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2652",
+        "type": "COMPONENT",
+        "name": "State=Disabled",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "6a9b419f64b5aa7e3506a8f73962d060daa321ef",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2679",
+        "type": "COMPONENT_SET",
+        "name": "Data/Transaction Row",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "c5997262d2accd1784bf3e6a2ad5c423fa97cc4e",
+        "remote": false,
+        "variantCount": 3,
+        "properties": {
+          "Initial#109:118": {
+            "type": "TEXT",
+            "defaultValue": "G"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "defaultValue": "Grab"
+          },
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "defaultValue": "Di chuyển · 08:34"
+          },
+          "Amount#109:130": {
+            "type": "TEXT",
+            "defaultValue": "−86.000 ₫"
+          },
+          "Tone": {
+            "type": "VARIANT",
+            "defaultValue": "Default",
+            "variantOptions": [
+              "Default",
+              "Positive",
+              "Pending"
+            ]
+          }
+        },
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2658",
+        "type": "COMPONENT",
+        "name": "Tone=Default",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "4037164e3772f946ee2f362d1a94a5115f56ade3",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 4
+      },
+      {
+        "id": "109:2665",
+        "type": "COMPONENT",
+        "name": "Tone=Positive",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "3fd02402625b944dbe7437b5df00d9fc85c2ffb0",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 2
+      },
+      {
+        "id": "109:2672",
+        "type": "COMPONENT",
+        "name": "Tone=Pending",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "37d8a62374a4cf911456567f5816af3a1b37de01",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2748",
+        "type": "COMPONENT_SET",
+        "name": "Navigation/Bottom Bar",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "56aadf18caf04fc68db05db9972f007795d3313e",
+        "remote": false,
+        "variantCount": 4,
+        "properties": {
+          "Active": {
+            "type": "VARIANT",
+            "defaultValue": "Home",
+            "variantOptions": [
+              "Home",
+              "Activity",
+              "Cards",
+              "Profile"
+            ]
+          }
+        },
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2680",
+        "type": "COMPONENT",
+        "name": "Active=Home",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "e3be699fb5a5b1791eac5ef244e12d2e124180d0",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2697",
+        "type": "COMPONENT",
+        "name": "Active=Activity",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "639a773bae1bf42467d8b141ef60e6d572b12bf8",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2714",
+        "type": "COMPONENT",
+        "name": "Active=Cards",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "13e6fc9aedf006992a8e94906026390a5720c5eb",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 2
+      },
+      {
+        "id": "109:2731",
+        "type": "COMPONENT",
+        "name": "Active=Profile",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "603f072d198ba9b687b0018ad111f09d71d9789a",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2761",
+        "type": "COMPONENT_SET",
+        "name": "Finance/Balance Card",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "3149fefa1ff7a4ff56de158324492b11e4e5a25a",
+        "remote": false,
+        "variantCount": 2,
+        "properties": {
+          "Account label#109:134": {
+            "type": "TEXT",
+            "defaultValue": "TÀI KHOẢN THANH TOÁN"
+          },
+          "Balance#109:137": {
+            "type": "TEXT",
+            "defaultValue": "24.680.000 ₫"
+          },
+          "Account#109:140": {
+            "type": "TEXT",
+            "defaultValue": "•••• 3819"
+          },
+          "Insight#109:143": {
+            "type": "TEXT",
+            "defaultValue": "Chi tiêu thấp hơn 12% ↘"
+          },
+          "Privacy": {
+            "type": "VARIANT",
+            "defaultValue": "Visible",
+            "variantOptions": [
+              "Visible",
+              "Masked"
+            ]
+          }
+        },
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2749",
+        "type": "COMPONENT",
+        "name": "Privacy=Visible",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "10f003516e3f09ac629b015a6bc0006bbe6c30cd",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 1
+      },
+      {
+        "id": "109:2755",
+        "type": "COMPONENT",
+        "name": "Privacy=Masked",
+        "pageId": "96:405",
+        "controlId": null,
+        "key": "e8a8bd166413ecf82d107caef15eb6abb102bd1d",
+        "remote": false,
+        "variantCount": null,
+        "properties": {},
+        "consumerCount": 0
+      },
+      {
+        "id": "109:2811",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Đăng nhập",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Đăng nhập"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:2820",
+        "type": "INSTANCE",
+        "name": "Instance / Finance/Balance Card",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2749",
+        "mainComponentKey": "10f003516e3f09ac629b015a6bc0006bbe6c30cd",
+        "detached": false,
+        "overrides": {
+          "Insight#109:143": {
+            "type": "TEXT",
+            "value": "Chi tiêu thấp hơn 12% ↘"
+          },
+          "Account#109:140": {
+            "type": "TEXT",
+            "value": "•••• 3819"
+          },
+          "Balance#109:137": {
+            "type": "TEXT",
+            "value": "24.680.000 ₫"
+          },
+          "Account label#109:134": {
+            "type": "TEXT",
+            "value": "TÀI KHOẢN THANH TOÁN"
+          },
+          "Privacy": {
+            "value": "Visible",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2826",
+        "type": "INSTANCE",
+        "name": "Instance / Actions/Quick Action / Chuyển tiền",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2614",
+        "mainComponentKey": "4c4542d2acfff5141d614483bc783ea9714e4c92",
+        "detached": false,
+        "overrides": {
+          "Glyph#109:93": {
+            "type": "TEXT",
+            "value": "↗"
+          },
+          "Label#109:89": {
+            "type": "TEXT",
+            "value": "Chuyển tiền"
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:2830",
+        "type": "INSTANCE",
+        "name": "Instance / Actions/Quick Action / Quét QR",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2614",
+        "mainComponentKey": "4c4542d2acfff5141d614483bc783ea9714e4c92",
+        "detached": false,
+        "overrides": {
+          "Glyph#109:93": {
+            "type": "TEXT",
+            "value": "▦"
+          },
+          "Label#109:89": {
+            "type": "TEXT",
+            "value": "Quét QR"
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2834",
+        "type": "INSTANCE",
+        "name": "Instance / Actions/Quick Action / Nạp tiền",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2614",
+        "mainComponentKey": "4c4542d2acfff5141d614483bc783ea9714e4c92",
+        "detached": false,
+        "overrides": {
+          "Glyph#109:93": {
+            "type": "TEXT",
+            "value": "+"
+          },
+          "Label#109:89": {
+            "type": "TEXT",
+            "value": "Nạp tiền"
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2838",
+        "type": "INSTANCE",
+        "name": "Instance / Actions/Quick Action / Thanh toán",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2614",
+        "mainComponentKey": "4c4542d2acfff5141d614483bc783ea9714e4c92",
+        "detached": false,
+        "overrides": {
+          "Glyph#109:93": {
+            "type": "TEXT",
+            "value": "="
+          },
+          "Label#109:89": {
+            "type": "TEXT",
+            "value": "Thanh toán"
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2848",
+        "type": "INSTANCE",
+        "name": "Instance / Data/Transaction Row / Grab",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2658",
+        "mainComponentKey": "4037164e3772f946ee2f362d1a94a5115f56ade3",
+        "detached": false,
+        "overrides": {
+          "Amount#109:130": {
+            "type": "TEXT",
+            "value": "−86.000 ₫"
+          },
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "value": "Di chuyển · 08:34"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "value": "Grab"
+          },
+          "Initial#109:118": {
+            "type": "TEXT",
+            "value": "G"
+          },
+          "Tone": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2855",
+        "type": "INSTANCE",
+        "name": "Instance / Data/Transaction Row / Lương tháng 8",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2665",
+        "mainComponentKey": "3fd02402625b944dbe7437b5df00d9fc85c2ffb0",
+        "detached": false,
+        "overrides": {
+          "Amount#109:130": {
+            "type": "TEXT",
+            "value": "+28.500.000 ₫"
+          },
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "value": "Thu nhập · Hôm qua"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "value": "Lương tháng 8"
+          },
+          "Initial#109:118": {
+            "type": "TEXT",
+            "value": "L"
+          },
+          "Tone": {
+            "value": "Positive",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2867",
+        "type": "INSTANCE",
+        "name": "Instance / Navigation/Bottom Bar / Active=Home",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2680",
+        "mainComponentKey": "e3be699fb5a5b1791eac5ef244e12d2e124180d0",
+        "detached": false,
+        "overrides": {
+          "Active": {
+            "value": "Home",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2917",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Tiếp tục",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Tiếp tục"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:2944",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Xem lại giao dịch",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Xem lại giao dịch"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:2965",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Xác nhận chuyển tiền",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Xác nhận chuyển tiền"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:2974",
+        "type": "INSTANCE",
+        "name": "Instance / Feedback/Status Chip / Hoàn tất",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2601",
+        "mainComponentKey": "13f289fe2b62dad22ffd99d673d39ed9105d755d",
+        "detached": false,
+        "overrides": {
+          "Tone": {
+            "value": "Success",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:2986",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Về trang chủ",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Về trang chủ"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:3008",
+        "type": "INSTANCE",
+        "name": "Instance / Data/Transaction Row / Grab",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2658",
+        "mainComponentKey": "4037164e3772f946ee2f362d1a94a5115f56ade3",
+        "detached": false,
+        "overrides": {
+          "Amount#109:130": {
+            "type": "TEXT",
+            "value": "−86.000 ₫"
+          },
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "value": "Di chuyển · 08:34"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "value": "Grab"
+          },
+          "Initial#109:118": {
+            "type": "TEXT",
+            "value": "G"
+          },
+          "Tone": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:3015",
+        "type": "INSTANCE",
+        "name": "Instance / Data/Transaction Row / Lan Anh",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2658",
+        "mainComponentKey": "4037164e3772f946ee2f362d1a94a5115f56ade3",
+        "detached": false,
+        "overrides": {
+          "Amount#109:130": {
+            "type": "TEXT",
+            "value": "−2.500.000 ₫"
+          },
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "value": "Chuyển tiền · 10:42"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "value": "Lan Anh"
+          },
+          "Initial#109:118": {
+            "type": "TEXT",
+            "value": "L"
+          },
+          "Tone": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3022",
+        "type": "INSTANCE",
+        "name": "Instance / Data/Transaction Row / Circle K",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2658",
+        "mainComponentKey": "4037164e3772f946ee2f362d1a94a5115f56ade3",
+        "detached": false,
+        "overrides": {
+          "Amount#109:130": {
+            "type": "TEXT",
+            "value": "−132.000 ₫"
+          },
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "value": "Mua sắm · 12:15"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "value": "Circle K"
+          },
+          "Initial#109:118": {
+            "type": "TEXT",
+            "value": "C"
+          },
+          "Tone": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3030",
+        "type": "INSTANCE",
+        "name": "Instance / Data/Transaction Row / Lương tháng 8",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2665",
+        "mainComponentKey": "3fd02402625b944dbe7437b5df00d9fc85c2ffb0",
+        "detached": false,
+        "overrides": {
+          "Amount#109:130": {
+            "type": "TEXT",
+            "value": "+28.500.000 ₫"
+          },
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "value": "Thu nhập · 09:00"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "value": "Lương tháng 8"
+          },
+          "Initial#109:118": {
+            "type": "TEXT",
+            "value": "L"
+          },
+          "Tone": {
+            "value": "Positive",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3037",
+        "type": "INSTANCE",
+        "name": "Instance / Data/Transaction Row / Điện lực",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2672",
+        "mainComponentKey": "37d8a62374a4cf911456567f5816af3a1b37de01",
+        "detached": false,
+        "overrides": {
+          "Metadata#109:126": {
+            "type": "TEXT",
+            "value": "Đang xử lý"
+          },
+          "Title#109:122": {
+            "type": "TEXT",
+            "value": "Điện lực"
+          },
+          "Amount#109:130": {
+            "type": "TEXT",
+            "value": "−620.000 ₫"
+          },
+          "Initial#109:118": {
+            "type": "TEXT",
+            "value": "Đ"
+          },
+          "Tone": {
+            "value": "Pending",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3044",
+        "type": "INSTANCE",
+        "name": "Instance / Navigation/Bottom Bar / Active=Activity",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2697",
+        "mainComponentKey": "639a773bae1bf42467d8b141ef60e6d572b12bf8",
+        "detached": false,
+        "overrides": {
+          "Active": {
+            "value": "Activity",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3092",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Thêm tiền vào mục tiêu",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Thêm tiền vào mục tiêu"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:3094",
+        "type": "INSTANCE",
+        "name": "Instance / Navigation/Bottom Bar / Active=Cards",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2714",
+        "mainComponentKey": "13e6fc9aedf006992a8e94906026390a5720c5eb",
+        "detached": false,
+        "overrides": {
+          "Active": {
+            "value": "Cards",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3129",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Đăng nhập",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Đăng nhập"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:3145",
+        "type": "INSTANCE",
+        "name": "Instance / Feedback/Status Chip / Tone=Pending",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2604",
+        "mainComponentKey": "758015888c0733eb95a885d1243e353c092ecf8e",
+        "detached": false,
+        "overrides": {
+          "Tone": {
+            "value": "Pending",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3155",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Kiểm tra trạng thái",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Kiểm tra trạng thái"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:3171",
+        "type": "INSTANCE",
+        "name": "Instance / Feedback/Status Chip / Tone=Error",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2607",
+        "mainComponentKey": "3e4db3bf933831f16f677758d78e70534b882d3b",
+        "detached": false,
+        "overrides": {
+          "Tone": {
+            "value": "Error",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3181",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Thử lại",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Thử lại"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 1
+      },
+      {
+        "id": "109:3224",
+        "type": "INSTANCE",
+        "name": "Instance / Navigation/Bottom Bar / Active=Profile",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2731",
+        "mainComponentKey": "603f072d198ba9b687b0018ad111f09d71d9789a",
+        "detached": false,
+        "overrides": {
+          "Active": {
+            "value": "Profile",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3271",
+        "type": "INSTANCE",
+        "name": "Instance / Controls/Button / Thêm tiền vào mục tiêu",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2578",
+        "mainComponentKey": "5eb2a7bf35ad596c7bb35d8f939b225c952c6848",
+        "detached": false,
+        "overrides": {
+          "Label#109:73": {
+            "type": "TEXT",
+            "value": "Thêm tiền vào mục tiêu"
+          },
+          "Type": {
+            "value": "Primary",
+            "type": "VARIANT",
+            "boundVariables": {}
+          },
+          "State": {
+            "value": "Default",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      },
+      {
+        "id": "109:3272",
+        "type": "INSTANCE",
+        "name": "Instance / Navigation/Bottom Bar / Active=Cards",
+        "pageId": "96:406",
+        "controlId": null,
+        "mainComponentId": "109:2714",
+        "mainComponentKey": "13e6fc9aedf006992a8e94906026390a5720c5eb",
+        "detached": false,
+        "overrides": {
+          "Active": {
+            "value": "Cards",
+            "type": "VARIANT",
+            "boundVariables": {}
+          }
+        },
+        "reactionCount": 0
+      }
+    ]
+  },
+  "coreProbes": {
+    "pagination": {
+      "componentIntegrity": {
+        "total": 69,
+        "page1": {
+          "graph": {
+            "scope": "document",
+            "scanned": 1005,
+            "total": 1005,
+            "returned": 500,
+            "truncated": true,
+            "nextCursor": "offset:500"
+          },
+          "componentCount": 56,
+          "componentIds": [
+            "109:2600",
+            "109:2578",
+            "109:2580",
+            "109:2582",
+            "109:2584",
+            "109:2586",
+            "109:2589",
+            "109:2591",
+            "109:2593",
+            "109:2595",
+            "109:2597",
+            "109:2613",
+            "109:2601",
+            "109:2604",
+            "109:2607",
+            "109:2610",
+            "109:2626",
+            "109:2614",
+            "109:2618",
+            "109:2622",
+            "109:2657",
+            "109:2627",
+            "109:2632",
+            "109:2637",
+            "109:2642",
+            "109:2647",
+            "109:2652",
+            "109:2679",
+            "109:2658",
+            "109:2665",
+            "109:2672",
+            "109:2748",
+            "109:2680",
+            "109:2697",
+            "109:2714",
+            "109:2731",
+            "109:2761",
+            "109:2749",
+            "109:2755",
+            "109:2811",
+            "109:2820",
+            "109:2826",
+            "109:2830",
+            "109:2834",
+            "109:2838",
+            "109:2848",
+            "109:2855",
+            "109:2867",
+            "109:2917",
+            "109:2944",
+            "109:2965",
+            "109:2974",
+            "109:2986",
+            "109:3008",
+            "109:3015",
+            "109:3022"
+          ]
+        },
+        "page2": {
+          "graph": {
+            "scope": "document",
+            "scanned": 1005,
+            "total": 1005,
+            "returned": 500,
+            "truncated": true,
+            "nextCursor": "offset:1000"
+          },
+          "componentCount": 13,
+          "componentIds": [
+            "109:3030",
+            "109:3037",
+            "109:3044",
+            "109:3092",
+            "109:3094",
+            "109:3129",
+            "109:3145",
+            "109:3155",
+            "109:3171",
+            "109:3181",
+            "109:3224",
+            "109:3271",
+            "109:3272"
+          ]
+        },
+        "repeatedIds": []
+      },
+      "bindingInventory": {
+        "page1": {
+          "mode": "first_graph_page_only",
+          "included": true,
+          "variables": {
+            "total": 61,
+            "returned": 61
+          },
+          "styles": {
+            "total": 16,
+            "returned": 16
+          }
+        },
+        "page2": {
+          "mode": "first_graph_page_only",
+          "included": false,
+          "variables": {
+            "total": 61,
+            "returned": 0
+          },
+          "styles": {
+            "total": 16,
+            "returned": 0
+          }
+        },
+        "page1VariableCount": 61,
+        "page1StyleCount": 16,
+        "page2VariableCount": 0,
+        "page2StyleCount": 0
+      }
+    },
+    "exportIntegrity": {
+      "state": "REJECTED_INVALID_RASTER",
+      "nodeId": "109:3404",
+      "pageId": "96:407",
+      "error": {
+        "code": "INTERNAL",
+        "message": "Figma returned a 1x1 PNG for node \"MOTION-01 / Success Feedback\", but the node metadata reports 820x390; the artifact was not persisted.",
+        "hint": "Treat this export as failed. Inspect the target node and provider export result before retrying; do not use the reported node dimensions as proof of PNG dimensions.",
+        "retryable": false,
+        "possiblyCommitted": true,
+        "providerStateUnknown": true
+      }
+    }
+  },
+  "exports": [
+    {
+      "key": "status-set",
+      "nodeId": "109:2613",
+      "pageId": "96:405",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-01-status-set.png",
+      "byteLength": 4924,
+      "sha256": "bd26c1888d31015076ab72b24c5a1018fb4d499a9275b16930f8caf61c3b81c9",
+      "png": {
+        "width": 666,
+        "height": 34
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-status-set.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-status-set.png",
+        "filename": "20260824091928-6572-c4dc6f63-status-set.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 4924,
+        "sha256": "bd26c1888d31015076ab72b24c5a1018fb4d499a9275b16930f8caf61c3b81c9",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:2613",
+        "nodeName": "Feedback/Status Chip",
+        "nodeType": "COMPONENT_SET",
+        "editorType": "figma",
+        "naturalWidth": 666,
+        "naturalHeight": 34,
+        "actualPixelWidth": 666,
+        "actualPixelHeight": 34,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-4dcb8f04",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    },
+    {
+      "key": "login-error",
+      "nodeId": "109:3115",
+      "pageId": "96:406",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-02-login-error.png",
+      "byteLength": 135666,
+      "sha256": "937db83cd3808c8bd0362b26cfabaf6b7af89b0529143db4688c3d92f49565c9",
+      "png": {
+        "width": 446,
+        "height": 900
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-login-error.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-login-error.png",
+        "filename": "20260824091928-6572-c4dc6f63-login-error.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 135666,
+        "sha256": "937db83cd3808c8bd0362b26cfabaf6b7af89b0529143db4688c3d92f49565c9",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:3115",
+        "nodeName": "09 · Đăng nhập / Error",
+        "nodeType": "FRAME",
+        "editorType": "figma",
+        "naturalWidth": 390,
+        "naturalHeight": 844,
+        "actualPixelWidth": 446,
+        "actualPixelHeight": 900,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-717e1a6c",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    },
+    {
+      "key": "pending",
+      "nodeId": "109:3137",
+      "pageId": "96:406",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-03-pending.png",
+      "byteLength": 132222,
+      "sha256": "0b9a8fc8013006b0ef717ff081aed852a07ff088c8c912ee6b85926203376612",
+      "png": {
+        "width": 446,
+        "height": 900
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-pending.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-pending.png",
+        "filename": "20260824091928-6572-c4dc6f63-pending.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 132222,
+        "sha256": "0b9a8fc8013006b0ef717ff081aed852a07ff088c8c912ee6b85926203376612",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:3137",
+        "nodeName": "10 · Chuyển tiền / Đang xử lý",
+        "nodeType": "FRAME",
+        "editorType": "figma",
+        "naturalWidth": 390,
+        "naturalHeight": 844,
+        "actualPixelWidth": 446,
+        "actualPixelHeight": 900,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-851da6d1",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    },
+    {
+      "key": "failure",
+      "nodeId": "109:3163",
+      "pageId": "96:406",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-04-failure.png",
+      "byteLength": 131083,
+      "sha256": "89f48314a3e585cb4ba72fb1f90a04abab1a3a00bf4061c1ae48cd15644a44dd",
+      "png": {
+        "width": 446,
+        "height": 900
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-failure.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-failure.png",
+        "filename": "20260824091928-6572-c4dc6f63-failure.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 131083,
+        "sha256": "89f48314a3e585cb4ba72fb1f90a04abab1a3a00bf4061c1ae48cd15644a44dd",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:3163",
+        "nodeName": "11 · Chuyển tiền / Thất bại",
+        "nodeType": "FRAME",
+        "editorType": "figma",
+        "naturalWidth": 390,
+        "naturalHeight": 844,
+        "actualPixelWidth": 446,
+        "actualPixelHeight": 900,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-a08ad426",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    },
+    {
+      "key": "overlay-share",
+      "nodeId": "109:3310",
+      "pageId": "96:406",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-05-overlay-share.png",
+      "byteLength": 67333,
+      "sha256": "f906bad57d87639e732c2d3b4201f0d16cc597c57a82af4e1b188f0d38aab3af",
+      "png": {
+        "width": 406,
+        "height": 386
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-overlay-share.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-overlay-share.png",
+        "filename": "20260824091928-6572-c4dc6f63-overlay-share.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 67333,
+        "sha256": "f906bad57d87639e732c2d3b4201f0d16cc597c57a82af4e1b188f0d38aab3af",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:3310",
+        "nodeName": "Overlay / Share Receipt",
+        "nodeType": "FRAME",
+        "editorType": "figma",
+        "naturalWidth": 350,
+        "naturalHeight": 330,
+        "actualPixelWidth": 406,
+        "actualPixelHeight": 386,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-2f35ca91",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    },
+    {
+      "key": "overlay-lock",
+      "nodeId": "109:3323",
+      "pageId": "96:406",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-06-overlay-lock.png",
+      "byteLength": 57326,
+      "sha256": "4bab3bd76f9c01f9d2ccf643ce3feabecce43d8869a27369b8522ab70b8dfe18",
+      "png": {
+        "width": 406,
+        "height": 336
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-overlay-lock.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-overlay-lock.png",
+        "filename": "20260824091928-6572-c4dc6f63-overlay-lock.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 57326,
+        "sha256": "4bab3bd76f9c01f9d2ccf643ce3feabecce43d8869a27369b8522ab70b8dfe18",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:3323",
+        "nodeName": "Overlay / Card Lock Confirm",
+        "nodeType": "FRAME",
+        "editorType": "figma",
+        "naturalWidth": 350,
+        "naturalHeight": 280,
+        "actualPixelWidth": 406,
+        "actualPixelHeight": 336,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-b0c92509",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    },
+    {
+      "key": "overlay-goal",
+      "nodeId": "109:3334",
+      "pageId": "96:406",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-07-overlay-goal.png",
+      "byteLength": 67286,
+      "sha256": "59f2fdfb2b929a6022d5f394532098836112b8aa29f2c9a66b6555729f0c3bd9",
+      "png": {
+        "width": 406,
+        "height": 406
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-overlay-goal.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-overlay-goal.png",
+        "filename": "20260824091928-6572-c4dc6f63-overlay-goal.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 67286,
+        "sha256": "59f2fdfb2b929a6022d5f394532098836112b8aa29f2c9a66b6555729f0c3bd9",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:3334",
+        "nodeName": "Overlay / Add Goal Money",
+        "nodeType": "FRAME",
+        "editorType": "figma",
+        "naturalWidth": 350,
+        "naturalHeight": 350,
+        "actualPixelWidth": 406,
+        "actualPixelHeight": 406,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-8835698e",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    },
+    {
+      "key": "overlay-detail",
+      "nodeId": "109:3347",
+      "pageId": "96:406",
+      "evidencePath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63-08-overlay-detail.png",
+      "byteLength": 69781,
+      "sha256": "9d24ef80febe68d57297dd3b88d9c2e644402931ee19970f920f59faa31c848b",
+      "png": {
+        "width": 406,
+        "height": 406
+      },
+      "artifact": {
+        "path": "C:\\Users\\DELFI\\AppData\\Local\\Temp\\figma-plugin\\exports\\20260824091928-6572-c4dc6f63-overlay-detail.png",
+        "uri": "file:///C:/Users/DELFI/AppData/Local/Temp/figma-plugin/exports/20260824091928-6572-c4dc6f63-overlay-detail.png",
+        "filename": "20260824091928-6572-c4dc6f63-overlay-detail.png",
+        "format": "PNG",
+        "mimeType": "image/png",
+        "byteLength": 69781,
+        "sha256": "9d24ef80febe68d57297dd3b88d9c2e644402931ee19970f920f59faa31c848b",
+        "retention": "ephemeral-24h",
+        "nodeId": "109:3347",
+        "nodeName": "Overlay / Transaction Detail",
+        "nodeType": "FRAME",
+        "editorType": "figma",
+        "naturalWidth": 350,
+        "naturalHeight": 350,
+        "actualPixelWidth": 406,
+        "actualPixelHeight": 406,
+        "requestedConstraint": {
+          "type": "SCALE",
+          "value": 1
+        },
+        "snapshotId": "fnv1a-43d82327",
+        "bundleRevision": "75d1ef41a8182e2f",
+        "pageId": null,
+        "colorProfile": "SRGB"
+      }
+    }
+  ],
+  "finalRuntime": {
+    "pluginConnected": true,
+    "serverVersion": "0.7.0",
+    "protocolVersion": 10,
+    "bundleRevision": "75d1ef41a8182e2f",
+    "queueLength": 0,
+    "pendingCount": 0,
+    "instanceInFlight": 0
+  },
+  "failure": null,
+  "limitations": [
+    "PNG capture and typed readback do not by themselves prove visual acceptance.",
+    "Presentation playback, accessibility runtime behavior, publication, UAT, and release remain NOT_RUN.",
+    "The repair is intentionally bound to one registry key, three exact page names, and one exact 0.7 bundle revision."
+  ],
+  "evidence": {
+    "journalPath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63.jsonl",
+    "summaryPath": "D:\\tri-nguyen-brand-system\\figma-plugin\\output\\figma-evidence\\luma-realistic-repair-20260824091928-6572-c4dc6f63.summary.json"
+  }
+}

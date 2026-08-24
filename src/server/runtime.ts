@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { APPLY_ACTIONS, DEFAULT_PORT, EXPORT_RPC_TIMEOUT_MS, LIBRARY_ASSET_TYPES, MAX_BINARY_ARTIFACT_BYTES, PORT_RANGE, QUERY_KINDS, RUNTIME_SDK_VERSIONS, type BridgeResponse, type Operation, type RuntimeSdkVersion } from "../shared/protocol.js";
+import { APPLY_ACTIONS, DEFAULT_PORT, ENTITY_KINDS, EXPORT_RPC_TIMEOUT_MS, LIBRARY_ASSET_TYPES, MAX_BINARY_ARTIFACT_BYTES, PORT_RANGE, QUERY_KINDS, RUNTIME_SDK_VERSIONS, type BridgeResponse, type Operation, type RuntimeSdkVersion } from "../shared/protocol.js";
 import type { Bridge } from "./bridge.js";
 import { ErrorCode, OpError } from "./errors.js";
 import { Follower, STATUS_RPC_TIMEOUT_MS } from "./follower.js";
@@ -11,6 +11,7 @@ import { isFigmaSkillId } from "../capabilities/skill-registry.js";
 import { validateOperationContext } from "./operation-context.js";
 import type { Diagnostics, ToolContext } from "./tools.js";
 import { persistExportArtifact } from "./export-artifacts.js";
+import { validateConflictPolicy, validateEntityPatches } from "../shared/entity-contract.js";
 
 export function resolveStartPort(env: NodeJS.ProcessEnv = process.env): number {
   const raw = env["CONTROLMUX_FIGMA_PORT"];
@@ -217,6 +218,15 @@ function validateQueryParams(params: Record<string, unknown>): void {
   if (params["includeChildren"] !== undefined && typeof params["includeChildren"] !== "boolean") {
     throw new OpError(ErrorCode.INVALID_PARAMS, "includeChildren must be boolean.");
   }
+  if (params["limit"] !== undefined && (typeof params["limit"] !== "number" || !Number.isInteger(params["limit"]) || params["limit"] < 1 || params["limit"] > 1000)) {
+    throw new OpError(ErrorCode.INVALID_PARAMS, "limit must be an integer from 1 to 1000.");
+  }
+  if (params["cursor"] !== undefined && (typeof params["cursor"] !== "string" || params["cursor"].length === 0 || params["cursor"].length > 256)) {
+    throw new OpError(ErrorCode.INVALID_PARAMS, "cursor must be a non-empty string up to 256 characters.");
+  }
+  if (params["entityKind"] !== undefined && (typeof params["entityKind"] !== "string" || !ENTITY_KINDS.includes(params["entityKind"] as (typeof ENTITY_KINDS)[number]))) {
+    throw new OpError(ErrorCode.INVALID_PARAMS, `entityKind must be one of: ${ENTITY_KINDS.join(", ")}.`);
+  }
 }
 
 function validateApplyParams(params: Record<string, unknown>): void {
@@ -226,6 +236,12 @@ function validateApplyParams(params: Record<string, unknown>): void {
   }
   if (params["dryRun"] !== undefined && typeof params["dryRun"] !== "boolean") throw new OpError(ErrorCode.INVALID_PARAMS, "dryRun must be boolean.");
   if (params["confirm"] !== undefined && typeof params["confirm"] !== "boolean") throw new OpError(ErrorCode.INVALID_PARAMS, "confirm must be boolean.");
+  if (params["expectedPlanHash"] !== undefined && (typeof params["expectedPlanHash"] !== "string" || params["expectedPlanHash"].length === 0 || params["expectedPlanHash"].length > 128)) throw new OpError(ErrorCode.INVALID_PARAMS, "expectedPlanHash must be a non-empty string up to 128 characters.");
+  if (params["conflictPolicy"] !== undefined) {
+    try { validateConflictPolicy(params["conflictPolicy"]); } catch (error) { throw new OpError(ErrorCode.INVALID_PARAMS, error instanceof Error ? error.message : String(error)); }
+  }
+  if (params["allowDelete"] !== undefined && typeof params["allowDelete"] !== "boolean") throw new OpError(ErrorCode.INVALID_PARAMS, "allowDelete must be boolean.");
+  if (params["maxOperations"] !== undefined && (typeof params["maxOperations"] !== "number" || !Number.isInteger(params["maxOperations"]) || params["maxOperations"] < 1 || params["maxOperations"] > 100)) throw new OpError(ErrorCode.INVALID_PARAMS, "maxOperations must be an integer from 1 to 100.");
   if (params["removeLocalAssets"] !== undefined && typeof params["removeLocalAssets"] !== "boolean") throw new OpError(ErrorCode.INVALID_PARAMS, "removeLocalAssets must be boolean.");
   const pageIds = params["pageIds"];
   if (pageIds !== undefined && (!Array.isArray(pageIds) || pageIds.length > 100 || !pageIds.every((id) => typeof id === "string" && id.length > 0 && id.length <= 256))) {
@@ -253,6 +269,11 @@ function validateApplyParams(params: Record<string, unknown>): void {
     const propertyValues = params["propertyValues"];
     if (propertyValues !== undefined && (!propertyValues || typeof propertyValues !== "object" || Array.isArray(propertyValues) || !Object.entries(propertyValues).every(([name, value]) => Boolean(name) && (typeof value === "string" || typeof value === "boolean")))) {
       throw new OpError(ErrorCode.INVALID_PARAMS, "propertyValues must be an object of exact Figma property keys to string/boolean values.");
+    }
+  }
+  if (action === "apply_entity_patch") {
+    try { validateEntityPatches(params["patches"], typeof params["maxOperations"] === "number" ? params["maxOperations"] : 100); } catch (error) {
+      throw new OpError(ErrorCode.INVALID_PARAMS, error instanceof Error ? error.message : String(error));
     }
   }
 }

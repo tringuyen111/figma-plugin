@@ -20,6 +20,7 @@ import { BUNDLE_REVISION, RUNTIME_SERVICE, VERSION } from "./version.js";
 import { decodeBinaryFrame, helloToInfo, isAddrInUse, isClientWireMessage, MAX_WS_PAYLOAD_BYTES, readBody, validId, type PluginInfo } from "./bridge-protocol.js";
 import { PluginConnection, type ConnectionChangeKind } from "./plugin-connection.js";
 import { TelemetryChannel } from "./telemetry-delta.js";
+import { assertTypedCapability } from "./capability-guard.js";
 const MAX_WS_CLIENTS = 32;
 const HANDSHAKE_TIMEOUT_MS = 5_000;
 
@@ -96,6 +97,8 @@ export class Bridge {
       editorType: c.info.editorType,
       bundleRevision: c.info.bundleRevision,
       runtimeSdks: [...c.info.runtimeSdks],
+      ...(c.info.features ? { features: c.info.features } : {}),
+      ...(c.info.sync ? { sync: c.info.sync } : {}),
       queueLength: c.queue.length,
       pendingCount: c.pending.size,
       inFlight: c.inFlight,
@@ -368,6 +371,7 @@ export class Bridge {
         "Reload Figma Plugin from the rebuilt development manifest so the companion and MCP server consume the same bundle revision.",
       );
     }
+    assertTypedCapability(conn.info, op, params, BUNDLE_REVISION);
     const timeoutMs = opts.timeoutMs ?? OP_TIMEOUTS[op] ?? DEFAULT_OP_TIMEOUT_MS;
     const res = await conn.enqueue(request, timeoutMs, opts.onProgress, opts.sessionId);
 

@@ -35,3 +35,4 @@ return components.slice(0, 300).map(node => ({
 ```
 
 For multi-page inventories, resolve page IDs first and inspect each relevant page deliberately. Do not switch every page inside one giant mutation/inspection script when page context cost or failure isolation matters.
+Prefer `figma_query(kind=artifact_manifest|entity_graph|binding_inventory|component_integrity)` and paginated coverage before any raw inventory script. Typed patches own stable changes; raw execution is an explicitly limited fallback and requires a fresh manifest/readback.

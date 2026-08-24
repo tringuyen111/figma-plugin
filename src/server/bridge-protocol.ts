@@ -8,7 +8,9 @@ import {
   MAX_BINARY_HEADER_BYTES,
   type BinaryResponseHeader,
   type BridgeResponse,
+  type FeatureCapabilitiesWire,
   type PluginHello,
+  type SyncStateWire,
   type WireMessage,
 } from "../shared/protocol.js";
 import { ErrorCode } from "./errors.js";
@@ -28,6 +30,8 @@ export interface PluginInfo {
   pages: Array<{ id: string; name: string }>;
   editorType: string;
   runtimeSdks: string[];
+  features?: FeatureCapabilitiesWire;
+  sync?: SyncStateWire;
   connectedAt: number;
 }
 
@@ -45,6 +49,8 @@ export function helloToInfo(hello: PluginHello, connectedAt = Date.now()): Plugi
     pages: Array.isArray(hello.pages) ? hello.pages.slice(0, 500) : [],
     editorType: hello.editorType,
     runtimeSdks: Array.isArray(hello.runtimeSdks) ? [...new Set(hello.runtimeSdks)].slice(0, 8) : [],
+    ...(hello.features ? { features: hello.features } : {}),
+    ...(hello.sync ? { sync: hello.sync } : {}),
     connectedAt,
   };
 }
@@ -73,6 +79,8 @@ function isPluginHelloMessage(value: Record<string, unknown>): value is Record<s
     && boundedString(value.pluginVersion, 128)
     && (value.bundleRevision === undefined || boundedString(value.bundleRevision, 64))
     && (value.runtimeSdks === undefined || isStringArray(value.runtimeSdks, 8, 32))
+    && (value.features === undefined || isFeatureCapabilities(value.features))
+    && (value.sync === undefined || isSyncState(value.sync))
     && validId(value.instanceId)
     && validId(value.clientId)
     && (value.fileKey === null || boundedString(value.fileKey, 512))
@@ -85,6 +93,39 @@ function isPluginHelloMessage(value: Record<string, unknown>): value is Record<s
       && boundedString(page.id, 256)
       && boundedString(page.name, 1_024, true))
     && boundedString(value.editorType, 64);
+}
+
+function isSyncState(value: unknown): value is SyncStateWire {
+  if (!isRecord(value)) return false;
+  return ["warming", "ready", "degraded_page_scope", "resync_required"].includes(String(value.state))
+    && boundedString(value.syncEpoch, 128)
+    && typeof value.changeSeq === "number" && Number.isInteger(value.changeSeq) && value.changeSeq >= 0
+    && typeof value.unreadChanges === "number" && Number.isInteger(value.unreadChanges) && value.unreadChanges >= 0
+    && isStringArray(value.subscribedPageIds, 500, 256)
+    && (value.lastRescanAt === undefined || (typeof value.lastRescanAt === "number" && Number.isFinite(value.lastRescanAt)))
+    && (value.lastError === undefined || boundedString(value.lastError, 8_192, true));
+}
+
+function isFeatureCapabilities(value: unknown): value is FeatureCapabilitiesWire {
+  if (!isRecord(value)) return false;
+  const queryKinds = value.queryKinds;
+  const applyActions = value.applyActions;
+  const sync = value.sync;
+  const entityGraph = value.entityGraph;
+  return isStringArray(queryKinds, 64, 128)
+    && isStringArray(applyActions, 32, 128)
+    && isRecord(sync)
+    && typeof sync.documentChange === "boolean"
+    && typeof sync.styleChange === "boolean"
+    && typeof sync.variableFingerprint === "boolean"
+    && typeof sync.maxJournalEntries === "number"
+    && Number.isInteger(sync.maxJournalEntries)
+    && sync.maxJournalEntries >= 0
+    && isRecord(entityGraph)
+    && typeof entityGraph.maxPatchOperations === "number"
+    && Number.isInteger(entityGraph.maxPatchOperations)
+    && entityGraph.maxPatchOperations >= 0
+    && isStringArray(entityGraph.supportedEditors, 8, 64);
 }
 
 function isBridgeError(value: unknown): boolean {
