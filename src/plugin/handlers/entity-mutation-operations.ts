@@ -4,9 +4,11 @@ import {
   isRecord,
   planEntityPatchExecution,
   producerOpRef,
+  validateComponentCommandPayloadWire,
   validateConflictPolicy,
   validateEntityPatches,
   validateEntityRef,
+  validateMotionTracksPayloadWire,
   type CreateEntityPatchWire,
   type EntityRefWire,
   type EntityPatchRequestWire,
@@ -21,6 +23,7 @@ import {
   mutationSnapshotEntry,
   mutationSnapshotFingerprint,
   mutationSnapshotsEqual,
+  type MutationSnapshotContext,
 } from "./entity-mutation-snapshot.js";
 import { entitySummary } from "./entity-evidence.js";
 import { failure, isSceneNode } from "./entity-operation-support.js";
@@ -33,6 +36,7 @@ import {
   findRegistryEntity,
   findControlId,
   initializeSync,
+  registryMetadata,
   refreshSync,
   rememberAgentChange,
   syncState,
@@ -47,6 +51,10 @@ function patchAt(patches: EntityPatchWire[], index: number, source: string): Ent
   const patch = patches[index];
   if (!patch) throw failure(ErrorCode.INTERNAL, `${source} references out-of-range patch index ${index}.`);
   return patch;
+}
+
+function jsonPayload(patch: { payload?: unknown }): Record<string, JsonValue> {
+  return isRecord(patch.payload) ? patch.payload as Record<string, JsonValue> : {};
 }
 
 export async function applyEntityPatch(params: Record<string, unknown>): Promise<Record<string, unknown>> {
@@ -295,14 +303,19 @@ async function resolvePatchTargets(
       validateCreateShape(patch);
       let deferred = false;
       let collectionFact: Record<string, unknown> | undefined;
+      let destination: Record<string, unknown> | undefined;
       if (patch.parent) {
         if (patch.parent.opRef) {
           validateLocalParentProducer(patch.parent, producers, patches, `patches[${patchIndex}].parent`);
           deferred = true;
+          if (patch.entityKind === "node") destination = { opRef: patch.parent.opRef, requestedIndex: patch.index ?? null, preflight: "deferred_to_execution" };
         } else {
           const parent = await resolveEntity(patch.parent, "node");
           if (!isChildrenParent(parent)) throw failure(ErrorCode.UNSUPPORTED_PROPERTY, "create parent does not accept children.");
+          if (patch.entityKind === "node") destination = insertionContext(parent, patch.index);
         }
+      } else if (patch.entityKind === "node") {
+        destination = insertionContext(figma.currentPage, patch.index);
       }
       if (patch.entityKind === "variable") {
         if (patch.collection?.opRef) {
@@ -333,16 +346,16 @@ async function resolvePatchTargets(
         ...(collectionFact ? { collection: collectionFact } : {}),
         preflight: deferred ? "deferred_to_execution" : "complete",
       };
-      output.push(resolvedPatchTarget(patch, evidence));
+      output.push(resolvedPatchTarget(patch, evidence, undefined, { preflight: evidence, destination }));
       continue;
     }
     if (isCombineVariantsPatch(patch)) {
       const evidence = await preflightCombineVariantsPatch(patch, producers, patches, patchIndex);
-      output.push(resolvedPatchTarget(patch, evidence));
+      output.push(resolvedPatchTarget(patch, evidence, undefined, { preflight: evidence }));
       continue;
     }
     const target = patch.target;
-    if (!target) throw failure(ErrorCode.INVALID_PARAMS, `Patch kind "${patch.kind}" requires target.`);
+    if (!target) throw failure(ErrorCode.INVALID_PARAMS, "This patch requires a target.");
     if (target.opRef) {
       const producer = producers.get(target.opRef);
       if (!producer) throw failure(ErrorCode.INVALID_PARAMS, `Missing local producer for opRef "${target.opRef}".`);
@@ -358,7 +371,8 @@ async function resolvePatchTargets(
         producerEntityType: producerPatch.kind === "create" ? producerPatch.entityType ?? null : null,
         preflight: "deferred_to_execution",
       };
-      output.push(resolvedPatchTarget(patch, evidence));
+      const destination = await mutationDestinationContext(patch, undefined);
+      output.push(resolvedPatchTarget(patch, evidence, undefined, { preflight: evidence, destination }));
       continue;
     }
     const resolved = await resolveEntity(target, patch.entityKind);
@@ -372,7 +386,11 @@ async function resolvePatchTargets(
     };
     const withDeferred = Object.keys(deferredEdges).length ? { ...summary, ...deferredEdges, preflight: "deferred_to_execution" } : summary;
     const evidence = producerOpRef(patch) ? { ...withDeferred, producesOpRef: producerOpRef(patch) } : withDeferred;
-    output.push(resolvedPatchTarget(patch, evidence, resolved));
+    const destination = await mutationDestinationContext(patch, resolved);
+    output.push(resolvedPatchTarget(patch, evidence, resolved, {
+      controlId: mutationControlId(resolved, patch.entityKind),
+      destination,
+    }));
   }
   return output;
 }
@@ -381,10 +399,55 @@ function resolvedPatchTarget(
   patch: EntityPatchWire,
   evidence: Record<string, unknown>,
   target?: BaseNode | BaseStyle | Variable | VariableCollection,
+  mutationContext: MutationSnapshotContext = {},
 ): ResolvedPatchTarget {
   return {
     evidence,
-    mutation: mutationSnapshotEntry(patch, target, evidence, patchTouchedProperties(patch)),
+    mutation: mutationSnapshotEntry(patch, target, mutationContext, patchTouchedProperties(patch)),
+  };
+}
+
+function mutationControlId(
+  target: BaseNode | BaseStyle | Variable | VariableCollection,
+  entityKind: EntityKind,
+): string | null {
+  if (entityKind === "node" && isSceneNode(target)) return controlMetadata(target)?.controlId ?? null;
+  const entityId = (target as { id?: unknown }).id;
+  return typeof entityId === "string" ? registryMetadata(entityId)?.controlId ?? null : null;
+}
+
+async function mutationDestinationContext(
+  patch: EntityPatchWire,
+  target: BaseNode | BaseStyle | Variable | VariableCollection | undefined,
+): Promise<Record<string, unknown> | undefined> {
+  if (patch.kind !== "move" && patch.kind !== "clone") return undefined;
+  if (patch.parent?.opRef) {
+    return { opRef: patch.parent.opRef, requestedIndex: patch.index ?? null, preflight: "deferred_to_execution" };
+  }
+  if (patch.parent) {
+    const parent = await resolveEntity(patch.parent, "node");
+    if (!isChildrenParent(parent)) throw failure(ErrorCode.UNSUPPORTED_PROPERTY, `${patch.kind} parent does not accept children.`);
+    return insertionContext(parent, patch.index);
+  }
+  if (patch.kind === "clone" && target && isSceneNode(target) && target.parent && isChildrenParent(target.parent)) {
+    return insertionContext(target.parent, patch.index);
+  }
+  if (patch.kind === "clone" && patch.target.opRef) {
+    return { sourceOpRef: patch.target.opRef, relation: "source_parent", requestedIndex: patch.index ?? null, preflight: "deferred_to_execution" };
+  }
+  return undefined;
+}
+
+function insertionContext(
+  parent: PageNode | FrameNode | SectionNode | ComponentNode | ComponentSetNode | InstanceNode | GroupNode | SlotNode,
+  requestedIndex?: number,
+): Record<string, unknown> {
+  return {
+    id: parent.id,
+    type: parent.type,
+    controlId: isSceneNode(parent) ? controlMetadata(parent)?.controlId ?? null : null,
+    childIds: parent.children.map((child) => child.id),
+    requestedIndex: requestedIndex ?? null,
   };
 }
 
@@ -402,7 +465,12 @@ async function preflightCombineVariantsPatch(
   const resolvedMemberIds = new Set<string>();
   let deferred = false;
   let parentPageId = figma.currentPage.id;
-  let parentFact: Record<string, unknown> = { id: figma.currentPage.id, type: "PAGE", name: figma.currentPage.name, currentPage: true };
+  let parentFact: Record<string, unknown> = {
+    ...insertionContext(figma.currentPage, patch.index),
+    name: figma.currentPage.name,
+    currentPage: true,
+    pageId: figma.currentPage.id,
+  };
 
   if (patch.parent?.opRef) {
     validateLocalParentProducer(patch.parent, producers, patches, `patches[${patchIndex}].parent`);
@@ -414,7 +482,11 @@ async function preflightCombineVariantsPatch(
     assertMutableTarget(parent);
     if (!isChildrenParent(parent)) throw failure(ErrorCode.UNSUPPORTED_PROPERTY, "combine_variants parent does not accept children.");
     parentPageId = owningPageId(parent) ?? figma.currentPage.id;
-    parentFact = { id: (parent as { id: string }).id, type: String((parent as { type?: unknown }).type ?? "UNKNOWN"), name: String((parent as { name?: unknown }).name ?? ""), pageId: parentPageId };
+    parentFact = {
+      ...insertionContext(parent, patch.index),
+      name: String((parent as { name?: unknown }).name ?? ""),
+      pageId: parentPageId,
+    };
     if (patch.index !== undefined && patch.index > parent.children.length) throw failure(ErrorCode.INVALID_PARAMS, "combine_variants index exceeds parent child count.");
   } else if (patch.index !== undefined && patch.index > figma.currentPage.children.length) {
     throw failure(ErrorCode.INVALID_PARAMS, "combine_variants index exceeds current page child count.");
@@ -509,7 +581,7 @@ async function preflightDeferredLocalTarget(
     if (patch.allowDelete !== true) throw failure(ErrorCode.INVALID_PARAMS, "delete requires allowDelete: true on the patch or request.");
     return;
   }
-  validateDeferredCommandShape(patch.kind, patch.command, patch.payload ?? {});
+  validateDeferredCommandShape(patch.kind, patch.command, jsonPayload(patch));
 }
 
 function validateDeferredPropertyShape(properties: Record<string, JsonValue>): void {
@@ -678,8 +750,12 @@ type ComponentPropertyTypeName = (typeof COMPONENT_PROPERTY_TYPES)[number];
 const MAX_COMPONENT_PREFERRED_VALUES = 128;
 
 function validateComponentCommandPayload(command: string | undefined, payload: Record<string, JsonValue>): void {
+  try {
+    validateComponentCommandPayloadWire(command ?? "", payload);
+  } catch (error) {
+    throw failure(ErrorCode.INVALID_PARAMS, error instanceof Error ? error.message : String(error));
+  }
   if (command === "add_property") {
-    if (typeof payload.name !== "string" || payload.name.length === 0) throw failure(ErrorCode.INVALID_PARAMS, "component add_property requires a non-empty name.");
     const propertyType = componentPropertyType(payload.propertyType);
     if (propertyType === "SLOT") throw failure(ErrorCode.UNSUPPORTED_PROPERTY, "Typed add_property does not create SLOT properties directly.", "Use component_command:create_slot so the semantic property and native SlotNode are created together.");
     validateComponentDefaultValue(propertyType, payload.defaultValue, "component add_property defaultValue");
@@ -690,23 +766,15 @@ function validateComponentCommandPayload(command: string | undefined, payload: R
     return;
   }
   if (command === "edit_property") {
-    if (typeof payload.propertyKey !== "string" || payload.propertyKey.length === 0 || !isRecord(payload.changes)) throw failure(ErrorCode.INVALID_PARAMS, "component edit_property requires propertyKey and changes object.");
-    validateComponentPropertyChanges(payload.changes);
     return;
   }
   if (command === "delete_property") {
-    if (typeof payload.propertyKey !== "string" || payload.propertyKey.length === 0) throw failure(ErrorCode.INVALID_PARAMS, "component delete_property requires propertyKey.");
     return;
   }
   if (command === "create_slot") {
-    if (payload.name !== undefined && (typeof payload.name !== "string" || payload.name.length === 0)) throw failure(ErrorCode.INVALID_PARAMS, "component create_slot name must be a non-empty string when provided.");
-    if (payload.description !== undefined && typeof payload.description !== "string") throw failure(ErrorCode.INVALID_PARAMS, "component create_slot description must be a string when provided.");
-    if (payload.preferredValues !== undefined) validatePreferredValues(payload.preferredValues);
-    if (payload.slotSettings !== undefined) validateSlotSettings(payload.slotSettings);
     return;
   }
   if (command === "reset_slot") {
-    if (Object.keys(payload).length > 0) throw failure(ErrorCode.INVALID_PARAMS, "component reset_slot does not accept payload fields.");
     return;
   }
   throw failure(ErrorCode.UNSUPPORTED_PROPERTY, `Unsupported typed component command "${command ?? "unknown"}".`);
@@ -805,38 +873,16 @@ function validateComponentPropertyChanges(value: unknown, propertyType?: Compone
   if ((value.description !== undefined || value.slotSettings !== undefined) && propertyType !== "SLOT") throw failure(ErrorCode.UNSUPPORTED_PROPERTY, `description and slotSettings are only supported for SLOT component properties.`);
 }
 
-const MAX_MOTION_TRACKS_PER_COMMAND = 64;
-const MAX_MOTION_KEYFRAMES_PER_TRACK = 256;
-
 function motionTrackInputs(payload: Record<string, JsonValue>): Array<{ field: KeyframeField; track: ManualKeyframeTrackInput }> {
-  if (!Array.isArray(payload.tracks) || payload.tracks.length < 1 || payload.tracks.length > MAX_MOTION_TRACKS_PER_COMMAND) {
-    throw failure(ErrorCode.INVALID_PARAMS, `motion set_tracks requires 1-${MAX_MOTION_TRACKS_PER_COMMAND} {field, track} entries.`);
+  try {
+    validateMotionTracksPayloadWire(payload);
+  } catch (error) {
+    throw failure(ErrorCode.INVALID_PARAMS, error instanceof Error ? error.message : String(error));
   }
-  return payload.tracks.map((raw, index) => {
-    if (!isRecord(raw) || !isRecord(raw.field) || !isRecord(raw.track)) throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} requires field and track objects.`);
-    const field = raw.field;
-    if (field.type === "PROPERTY") {
-      if (typeof field.name !== "string" || field.name.length === 0) throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} PROPERTY field requires name.`);
-    } else if (field.type === "INDEXED_ITEM") {
-      if (!(["fills", "strokes", "effects"] as const).includes(field.collection as "fills" | "strokes" | "effects") || typeof field.index !== "number" || !Number.isInteger(field.index) || field.index < 0) {
-        throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} INDEXED_ITEM requires fills/strokes/effects collection and a non-negative integer index.`);
-      }
-      if (field.propertyId !== undefined && typeof field.propertyId !== "string") throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} propertyId must be a string when provided.`);
-      if (field.field !== undefined && typeof field.field !== "string") throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} effect field must be a string when provided.`);
-    } else {
-      throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} field.type must be PROPERTY or INDEXED_ITEM.`);
-    }
-    const track = raw.track;
-    if (!Array.isArray(track.keyframes) || track.keyframes.length < 1 || track.keyframes.length > MAX_MOTION_KEYFRAMES_PER_TRACK) {
-      throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} requires 1-${MAX_MOTION_KEYFRAMES_PER_TRACK} keyframes.`);
-    }
-    for (const [keyframeIndex, keyframe] of track.keyframes.entries()) {
-      if (!isRecord(keyframe) || typeof keyframe.timelinePosition !== "number" || !Number.isFinite(keyframe.timelinePosition) || keyframe.timelinePosition < 0 || !isRecord(keyframe.value)) {
-        throw failure(ErrorCode.INVALID_PARAMS, `motion track ${index} keyframe ${keyframeIndex} requires non-negative timelinePosition and a value object.`);
-      }
-    }
-    return { field: field as unknown as KeyframeField, track: track as unknown as ManualKeyframeTrackInput };
-  });
+  return (payload.tracks as Array<Record<string, JsonValue>>).map((raw) => ({
+    field: raw.field as unknown as KeyframeField,
+    track: raw.track as unknown as ManualKeyframeTrackInput,
+  }));
 }
 
 function normalizePatches(patches: EntityPatchWire[], before: Array<Record<string, unknown>>): EntityPatchWire[] {
@@ -893,7 +939,10 @@ function patchTouchedProperties(patch: EntityPatchWire): string[] {
 function canRebaseNonOverlapping(patches: EntityPatchWire[], before: Array<Record<string, unknown>>): boolean {
   for (const [index, patch] of patches.entries()) {
     if (isCombineVariantsPatch(patch) || patch.kind === "layout_command") return false;
-    if (patch.kind === "create" || !patch.target || patch.target.opRef) continue;
+    // Destination-sensitive operations must be replanned when their insertion context changes.
+    // They do not have a safe property-level non-overlap proof for parent child-order drift.
+    if (patch.kind === "create" || patch.kind === "move" || patch.kind === "clone") return false;
+    if (!patch.target || patch.target.opRef) continue;
     const observed = before[index];
     const expected = patch.precondition?.propertyHashes;
     if (!observed || !expected) return false;
@@ -914,7 +963,7 @@ function canRebaseNonOverlapping(patches: EntityPatchWire[], before: Array<Recor
 async function executePatch(patch: EntityPatchWire, traceId?: string): Promise<Record<string, unknown>> {
   if (patch.kind === "create") return createEntity(patch, traceId);
   if (isCombineVariantsPatch(patch)) return executeCombineVariants(patch, traceId);
-  if (!patch.target) throw failure(ErrorCode.INVALID_PARAMS, `Patch kind "${patch.kind}" requires target.`);
+  if (!patch.target) throw failure(ErrorCode.INVALID_PARAMS, "This patch requires a target.");
   const target = await resolveEntity(patch.target, patch.entityKind);
   assertExpectedType(target, patch.target.expectedType);
   if (patch.entityKind !== "node") ensureRegistryId((target as { id: string }).id, patch.entityKind, patch.target.controlId);
@@ -1237,14 +1286,14 @@ function consumerBindingSpec(payload: Record<string, JsonValue>): ConsumerBindin
 }
 
 async function resolveBindingVariable(patch: SetBindings): Promise<Variable | null> {
-  const spec = consumerBindingSpec(patch.payload ?? {});
+  const spec = consumerBindingSpec(jsonPayload(patch));
   if (spec.unbind) return null;
   if (!patch.variable) throw failure(ErrorCode.INVALID_PARAMS, "set_bindings bind requires a modeled variable identity.");
   return await resolveEntity(patch.variable, "variable") as Variable;
 }
 
 async function preflightBinding(target: BaseNode | BaseStyle | Variable | VariableCollection, patch: SetBindings): Promise<void> {
-  const spec = consumerBindingSpec(patch.payload ?? {});
+  const spec = consumerBindingSpec(jsonPayload(patch));
   const variable = patch.variable?.opRef ? null : await resolveBindingVariable(patch);
   validateBindingTarget(target, spec, variable);
 }
@@ -1266,7 +1315,7 @@ function validateBindingTarget(target: BaseNode | BaseStyle | Variable | Variabl
 }
 
 async function executeBinding(target: BaseNode | BaseStyle | Variable | VariableCollection, patch: SetBindings): Promise<Record<string, unknown>> {
-  const spec = consumerBindingSpec(patch.payload ?? {});
+  const spec = consumerBindingSpec(jsonPayload(patch));
   const variable = await resolveBindingVariable(patch);
   validateBindingTarget(target, spec, variable);
   if (spec.kind === "node") {
@@ -1385,7 +1434,7 @@ function validateVariableModeSelectorShape(payload: Record<string, JsonValue>): 
 
 async function preflightVariableCommand(target: BaseNode | BaseStyle | Variable | VariableCollection, patch: VariableCommand): Promise<void> {
   assertMutableTarget(target);
-  const payload = patch.payload ?? {};
+  const payload = jsonPayload(patch);
   validateDeferredVariableCommand(patch.command, payload);
   if (patch.command === "add_mode" || patch.command === "rename_mode" || patch.command === "remove_mode") {
     if (!("variableIds" in target)) throw failure(ErrorCode.UNSUPPORTED_PROPERTY, `${patch.command} requires a variable collection target.`);
@@ -1409,7 +1458,7 @@ async function preflightVariableCommand(target: BaseNode | BaseStyle | Variable 
 
 async function executeVariableCommand(target: BaseNode | BaseStyle | Variable | VariableCollection, patch: VariableCommand): Promise<Record<string, unknown>> {
   assertMutableTarget(target);
-  const payload = patch.payload ?? {};
+  const payload = jsonPayload(patch);
   validateDeferredVariableCommand(patch.command, payload);
   if (patch.command === "add_mode") {
     if (!("variableIds" in target)) throw failure(ErrorCode.UNSUPPORTED_PROPERTY, "add_mode requires a variable collection target.");
@@ -1459,7 +1508,7 @@ async function executeVariableCommand(target: BaseNode | BaseStyle | Variable | 
     variable.removeVariableCodeSyntax(payload.platform as CodeSyntaxPlatform);
     return { ...(await entitySummary(variable, "variable")), codeSyntaxPlatform: payload.platform, codeSyntaxRemoved: true };
   }
-  throw failure(ErrorCode.UNSUPPORTED_PROPERTY, `Unsupported typed variable command "${patch.command ?? "unknown"}".`);
+  throw failure(ErrorCode.UNSUPPORTED_PROPERTY, "Unsupported typed variable command.");
 }
 
 async function resolveVariableModeId(variable: Variable, payload: Record<string, JsonValue>): Promise<string> {

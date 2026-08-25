@@ -181,6 +181,13 @@ describe("typed entity contract", () => {
     expect(() => validateEntityPatch({ kind: "motion_command", entityKind: "node", target: { nodeId: "1:2" }, command: "mystery", payload: {} })).toThrow(/motion_command command must be set_tracks/i);
   });
 
+  it("validates command payload structure at the shared wire boundary", () => {
+    expect(() => validateEntityPatch({ kind: "set_reactions", entityKind: "node", target: { nodeId: "1:2" }, payload: { reactions: "not-an-array" } })).toThrow(/reactions.*array/i);
+    expect(() => validateEntityPatch({ kind: "component_command", entityKind: "node", target: { nodeId: "1:2" }, command: "add_property", payload: { propertyType: "TEXT", defaultValue: "" } })).toThrow(/name.*non-empty/i);
+    expect(() => validateEntityPatch({ kind: "component_command", entityKind: "node", target: { nodeId: "1:2" }, command: "reset_slot", payload: { unexpected: true } })).toThrow(/unexpected.*not supported/i);
+    expect(() => validateEntityPatch({ kind: "motion_command", entityKind: "node", target: { nodeId: "1:2" }, command: "set_tracks", payload: { tracks: [] } })).toThrow(/tracks.*1-64/i);
+  });
+
   it("produces stable plan fingerprints independent of object key order", () => {
     expect(fingerprint({ b: 2, a: 1 })).toBe(fingerprint({ a: 1, b: 2 }));
     expect(fingerprint({ a: 1 })).not.toBe(fingerprint({ a: 2 }));

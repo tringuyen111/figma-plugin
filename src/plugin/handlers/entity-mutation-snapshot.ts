@@ -3,6 +3,15 @@ import { fingerprint, type EntityPatchWire } from "../../shared/entity-contract.
 
 export const MUTATION_SNAPSHOT_SCHEMA_VERSION = 1 as const;
 
+export interface MutationSnapshotContext {
+  /** Stable sync identity supplied by the sync owner, never inferred from evidence projection. */
+  controlId?: string | null;
+  /** Live insertion context for create, move, clone, and other destination-sensitive operations. */
+  destination?: Record<string, unknown>;
+  /** Explicit provider/preflight facts for operations that do not yet have a concrete target. */
+  preflight?: Record<string, unknown>;
+}
+
 const MUTABLE_BASELINE_KEYS = [
   "name",
   "x",
@@ -69,7 +78,7 @@ const MUTABLE_BASELINE_KEYS = [
 export function mutationSnapshotEntry(
   patch: EntityPatchWire,
   target: BaseNode | BaseStyle | Variable | VariableCollection | undefined,
-  evidence: Record<string, unknown>,
+  context: MutationSnapshotContext,
   touchedProperties: string[],
 ): Record<string, unknown> {
   if (!target) {
@@ -77,7 +86,8 @@ export function mutationSnapshotEntry(
       schemaVersion: MUTATION_SNAPSHOT_SCHEMA_VERSION,
       patchKind: patch.kind,
       entityKind: patch.entityKind,
-      preflight: stableJson(evidence),
+      preflight: stableJson(context.preflight ?? null),
+      ...(context.destination ? { destination: stableJson(context.destination) } : {}),
     };
   }
 
@@ -86,18 +96,19 @@ export function mutationSnapshotEntry(
     schemaVersion: MUTATION_SNAPSHOT_SCHEMA_VERSION,
     patchKind: patch.kind,
     entityKind: patch.entityKind,
-    id: dynamic.id ?? evidence.id ?? null,
-    key: dynamic.key ?? evidence.key ?? null,
-    type: dynamic.type ?? evidence.type ?? null,
-    controlId: evidence.controlId ?? null,
-    parentId: evidence.parentId ?? parentId(target),
-    index: evidence.index ?? childIndex(target),
+    id: dynamic.id ?? null,
+    key: dynamic.key ?? null,
+    type: dynamic.type ?? null,
+    controlId: context.controlId ?? null,
+    parentId: parentId(target),
+    index: childIndex(target),
+    ...(context.destination ? { destination: stableJson(context.destination) } : {}),
   };
 
   Object.assign(entry, canonicalMutableState(dynamic));
   for (const property of touchedProperties) {
     if (property === "__entity") continue;
-    entry[property] = mutationProperty(dynamic, evidence, property);
+    entry[property] = mutationProperty(dynamic, property);
   }
   return entry;
 }
@@ -117,14 +128,14 @@ function canonicalMutableState(dynamic: Record<string, unknown>): Record<string,
   return state;
 }
 
-function mutationProperty(dynamic: Record<string, unknown>, evidence: Record<string, unknown>, property: string): unknown {
-  if (property === "parentId") return evidence.parentId ?? parentId(dynamic as unknown as BaseNode);
-  if (property === "index") return evidence.index ?? childIndex(dynamic as unknown as BaseNode);
-  if (property === "values") return stableJson(dynamic.valuesByMode ?? evidence.values ?? null);
-  if (property === "slotChildCount") return Array.isArray(dynamic.children) ? dynamic.children.length : evidence.slotChildCount ?? null;
+function mutationProperty(dynamic: Record<string, unknown>, property: string): unknown {
+  if (property === "parentId") return parentId(dynamic as unknown as BaseNode);
+  if (property === "index") return childIndex(dynamic as unknown as BaseNode);
+  if (property === "values") return stableJson(dynamic.valuesByMode ?? null);
+  if (property === "slotChildCount") return Array.isArray(dynamic.children) ? dynamic.children.length : null;
   if (property === "slotChildIds") return Array.isArray(dynamic.children)
     ? dynamic.children.map((child) => isRecord(child) && typeof child.id === "string" ? child.id : null)
-    : evidence.slotChildIds ?? null;
+    : null;
   if (property === "motion") return stableJson({
     animations: dynamic.animations,
     animationStyles: dynamic.animationStyles,
@@ -132,7 +143,7 @@ function mutationProperty(dynamic: Record<string, unknown>, evidence: Record<str
   });
   if (property === "gridAutoTracks") return stableJson({ rows: dynamic.gridRowSizes, columns: dynamic.gridColumnSizes });
   if (property in dynamic) return stableJson(dynamic[property]);
-  return stableJson(evidence[property]);
+  return null;
 }
 
 function parentId(target: BaseNode | BaseStyle | Variable | VariableCollection): string | null {

@@ -350,7 +350,7 @@ for (const marker of ["add_property", "edit_property", "delete_property", "creat
 for (const marker of ["combine_variants", "combineAsVariants", "componentSetMemberCount", "componentSetMemberIds", "componentSetMembersTruncated", "members"] ) {
   if (!entityOperationsSource.includes(marker) && marker !== "members") throw new Error(`P2-C2 variant-set source marker missing: ${marker}`);
 }
-for (const marker of ["members?: EntityRefWire[]", "component_command:combine_variants", "members[${index}]"]) {
+for (const marker of ["interface CombineVariantsPatchWire", "members: EntityRefWire[]", "component_command:combine_variants", "members[${index}]"]) {
   if (!entityContractSource.includes(marker)) throw new Error(`P2-C2 modeled member-edge contract marker missing: ${marker}`);
 }
 for (const marker of ["combine_variants", "members:", "componentSetMemberCount"]) {

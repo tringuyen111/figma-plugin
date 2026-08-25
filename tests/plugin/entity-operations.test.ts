@@ -111,6 +111,34 @@ describe("typed entity graph and CRUD", () => {
     });
   });
 
+  it("keeps control IDs globally unique across node and registry entities", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+
+    const patches = [
+      { kind: "create", entityKind: "node", entityType: "FRAME", controlId: "shared-identity", properties: { name: "Identity owner" } },
+      { kind: "create", entityKind: "variable_collection", controlId: "shared-identity", properties: { name: "Token collection" } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true }) as any;
+    const committed = await applyDocument({
+      action: "apply_entity_patch",
+      patches: plan.plan.patches,
+      dryRun: false,
+      confirm: true,
+      expectedPlanHash: plan.plan.planHash,
+    }) as any;
+
+    expect(committed.state).toBe("COMMITTED");
+    expect(committed.changedEntities[0].controlId).toBe("shared-identity");
+    expect(committed.changedEntities[1].controlId).not.toBe("shared-identity");
+    const registry = JSON.parse(fixture.figma.root.getSharedPluginData("figmaplugin", "entity-registry"));
+    expect(registry.entities[committed.changedEntities[1].id]).toMatchObject({
+      controlId: committed.changedEntities[1].controlId,
+      entityKind: "variable_collection",
+      forkedFrom: "shared-identity",
+    });
+  });
+
   it("keeps planHash stable across evidence-only projection drift", async () => {
     const fixture = makeFixture();
     (globalThis as Record<string, unknown>).figma = fixture.figma;
@@ -131,6 +159,41 @@ describe("typed entity graph and CRUD", () => {
     frame.x = 1;
     const mutableChange = await applyDocument(request) as any;
     expect(mutableChange.plan.planHash).not.toBe(first.plan.planHash);
+  });
+
+  it("invalidates create, move, and clone plans when destination child order drifts", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const destination = fixture.makeNode("FRAME", { name: "Destination" });
+    const existing = fixture.makeNode("RECTANGLE", { name: "Existing child" });
+    const source = fixture.makeNode("RECTANGLE", { name: "Source" });
+    destination.appendChild(existing);
+    fixture.page.appendChild(destination);
+    fixture.page.appendChild(source);
+
+    const requests = [
+      { action: "apply_entity_patch", patches: [{ kind: "create", entityKind: "node", entityType: "RECTANGLE", parent: { nodeId: destination.id }, index: 0 }], dryRun: true },
+      { action: "apply_entity_patch", patches: [{ kind: "move", entityKind: "node", target: { nodeId: source.id }, parent: { nodeId: destination.id }, index: 0 }], dryRun: true },
+      { action: "apply_entity_patch", patches: [{ kind: "clone", entityKind: "node", target: { nodeId: source.id }, parent: { nodeId: destination.id }, index: 0 }], dryRun: true },
+    ];
+    const beforeDrift = [] as any[];
+    for (const request of requests) beforeDrift.push(await applyDocument(request) as any);
+
+    const concurrentSibling = fixture.makeNode("RECTANGLE", { name: "Concurrent sibling" });
+    destination.appendChild(concurrentSibling);
+    destination.insertChild(0, concurrentSibling);
+
+    for (const [index, request] of requests.entries()) {
+      const afterDrift = await applyDocument(request) as any;
+      expect(afterDrift.plan.planHash).not.toBe(beforeDrift[index].plan.planHash);
+    }
+    await expect(applyDocument({
+      ...requests[0],
+      patches: beforeDrift[0].plan.patches,
+      dryRun: false,
+      confirm: true,
+      expectedPlanHash: beforeDrift[0].plan.planHash,
+    })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.DRIFT_CONFLICT } });
   });
 
   it("maps shared wire validation failures to INVALID_PARAMS", async () => {

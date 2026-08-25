@@ -43,7 +43,7 @@ src/
 
   shared/
     protocol.ts             server/plugin wire contract
-    entity-contract.ts      typed entity graph, refs, dependency plan, fingerprints
+    entity-contract.ts      discriminated command types, wire validation, refs, dependency plan, fingerprints
 
 skills/                     16 standalone capability packages
 evals/                      frozen comparison and mechanism contracts
@@ -92,7 +92,7 @@ Production builds disable source maps. `npm run build:debug` enables external ma
 - `sync-engine.ts` observes Figma state; Figma remains source of truth.
 - `entity-query-operations.ts` and `entity-evidence.ts` own evidence reads; mutation identity never hashes that evolving projection.
 - `entity-mutation-operations.ts` owns transaction ordering and rollback; `entity-mutation-snapshot.ts` owns the stable mutable-state baseline used by `planHash`.
-- `sync-engine.ts` is the only owner of `controlId` namespace, allocation, collision, and metadata writes.
+- `sync-engine.ts` is the only owner of `controlId` namespace, allocation, cross-store collision, and metadata writes.
 - UI source lives only under `src/ui/`; generated `plugin/ui.html` is consumed output.
 - Skills own design judgment; the runtime owns bounded mechanics and evidence transport.
 

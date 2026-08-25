@@ -91,7 +91,7 @@ Track-size object mutation, auto-flow reordering, layout-guide styles, and break
 
 `apply_entity_patch` keeps the complete dry-run plan because the normalized patches and plan hash are required for guarded execution. After the plan is accepted, prefer `resultMode: "receipt"` for routine commits and repairs. The receipt keeps stable changed-entity identity, plan/snapshot identity, before/after fingerprints, rebase state, undo/rollback state, and failure limitations while omitting repeated full mutation projections. Request `resultMode: "full"` only when the exact before/after snapshots are needed for the next decision or evidence packet.
 
-`snapshotSchemaVersion: 1` identifies the mutation-state contract behind `snapshotId` and `planHash`. It hashes canonical mutable state and requested touched properties, not the evolving evidence projection. A plan from another loaded bundle revision must be discarded and dry-run again; do not attempt to reuse or translate opaque plan hashes across revisions.
+`snapshotSchemaVersion: 1` identifies the mutation-state contract behind `snapshotId` and `planHash`. It hashes canonical mutable state and requested touched properties, not the evolving evidence projection. For create, move, clone, and variant-combine operations it also binds the destination identity and ordered child IDs; concurrent insertion or reorder requires a fresh dry-run. A plan from another loaded bundle revision must be discarded and dry-run again; do not attempt to reuse or translate opaque plan hashes across revisions.
 
 This is an I/O optimization, not a weaker proof state: if a failure or partial commit occurs, preserve the receipt's rollback/error truth and inspect the affected scope before retrying.
 

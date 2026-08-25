@@ -4,7 +4,6 @@ import {
   PATCH_OPERATION_KINDS,
   type EntityKind,
   type PatchConflictPolicy,
-  type PatchOperationKind,
 } from "./protocol.js";
 
 export type { EntityKind } from "./protocol.js";
@@ -80,31 +79,113 @@ export interface DeleteEntityPatchWire {
   allowDelete?: boolean;
 }
 
-type CommandPatchOperationKind = Exclude<PatchOperationKind, "create" | "update" | "move" | "clone" | "delete">;
-
-interface CommandEntityPatchFieldsWire {
-  entityKind: EntityKind;
-  /** Transaction-local output identity for commands that explicitly produce an entity. */
-  opRef?: string;
-  target?: EntityRefWire;
-  /** Modeled multi-identity input edge for commands such as component_command:combine_variants. */
-  members?: EntityRefWire[];
-  /** Optional modeled destination parent; combine_variants defaults to the current page when omitted. */
-  parent?: EntityRefWire;
-  /** Modeled alias-variable identity used only by variable_command:set_value. */
-  alias?: EntityRefWire;
-  /** Modeled consumer-variable identity used only by set_bindings. */
-  variable?: EntityRefWire;
-  index?: number;
+interface TargetedCommandPatchWire<Kind extends string, Command extends string, TargetKind extends EntityKind> {
+  kind: Kind;
+  entityKind: TargetKind;
+  target: EntityRefWire;
   precondition?: EntityPreconditionWire;
-  command?: string;
-  payload?: Record<string, JsonValue>;
+  command: Command;
 }
 
-/** Keep command patches distributive so narrowing on `kind` remains type-safe. */
-export type CommandEntityPatchWire = {
-  [Kind in CommandPatchOperationKind]: CommandEntityPatchFieldsWire & { kind: Kind };
-}[CommandPatchOperationKind];
+export interface SetReactionsPatchWire {
+  kind: "set_reactions";
+  entityKind: "node";
+  target: EntityRefWire;
+  precondition?: EntityPreconditionWire;
+  command?: never;
+  payload: { reactions: JsonValue[] };
+}
+
+export interface NodeVariableBindingWire {
+  kind: "node";
+  field: string;
+  unbind?: true;
+}
+
+export interface PaintVariableBindingWire {
+  kind: "paint";
+  property: "fills" | "strokes";
+  index: number;
+  field: "color";
+  unbind?: true;
+}
+
+type VariableBindingWire = NodeVariableBindingWire | PaintVariableBindingWire;
+
+export type SetBindingsPatchWire = {
+  kind: "set_bindings";
+  entityKind: "node";
+  target: EntityRefWire;
+  precondition?: EntityPreconditionWire;
+  command?: never;
+} & (
+  | { variable: EntityRefWire; payload: { binding: VariableBindingWire & { unbind?: never } } }
+  | { variable?: never; payload: { binding: VariableBindingWire & { unbind: true } } }
+);
+
+type ComponentPropertyTypeWire = "BOOLEAN" | "TEXT" | "INSTANCE_SWAP" | "VARIANT" | "SLOT";
+
+type TargetedComponentCommandPatchWire =
+  | (TargetedCommandPatchWire<"component_command", "set_properties", "node"> & { payload: { properties: Record<string, JsonValue> }; opRef?: never })
+  | (TargetedCommandPatchWire<"component_command", "add_property", "node"> & { payload: { name: string; propertyType: ComponentPropertyTypeWire; defaultValue: JsonValue; preferredValues?: JsonValue[] }; opRef?: never })
+  | (TargetedCommandPatchWire<"component_command", "edit_property", "node"> & { payload: { propertyKey: string; changes: Record<string, JsonValue> }; opRef?: never })
+  | (TargetedCommandPatchWire<"component_command", "delete_property", "node"> & { payload: { propertyKey: string }; opRef?: never })
+  | (TargetedCommandPatchWire<"component_command", "create_slot", "node"> & { opRef?: string; payload?: { name?: string; description?: string; preferredValues?: JsonValue[]; slotSettings?: Record<string, JsonValue> } })
+  | (TargetedCommandPatchWire<"component_command", "reset_slot", "node"> & { payload?: Record<string, never>; opRef?: never });
+
+export interface CombineVariantsPatchWire {
+  kind: "component_command";
+  entityKind: "node";
+  command: "combine_variants";
+  target?: never;
+  members: EntityRefWire[];
+  parent?: EntityRefWire;
+  index?: number;
+  opRef?: string;
+  precondition?: EntityPreconditionWire;
+  payload?: Record<string, never>;
+}
+
+export type ComponentCommandPatchWire = TargetedComponentCommandPatchWire | CombineVariantsPatchWire;
+
+export type StyleCommandPatchWire = TargetedCommandPatchWire<"style_command", "rename", "style"> & {
+  payload: { name: string };
+};
+
+export type VariableCommandPatchWire =
+  | (TargetedCommandPatchWire<"variable_command", "add_mode", "variable_collection"> & { payload: { name: string }; alias?: never })
+  | (TargetedCommandPatchWire<"variable_command", "rename_mode", "variable_collection"> & { payload: ModeSelectorWire & { name: string }; alias?: never })
+  | (TargetedCommandPatchWire<"variable_command", "remove_mode", "variable_collection"> & { payload: ModeSelectorWire; alias?: never })
+  | (TargetedCommandPatchWire<"variable_command", "set_value", "variable"> & (
+      | { alias: EntityRefWire; payload: ModeSelectorWire & { value?: never } }
+      | { alias?: never; payload: ModeSelectorWire & { value: JsonValue } }
+    ))
+  | (TargetedCommandPatchWire<"variable_command", "set_code_syntax", "variable"> & { payload: { platform: CodeSyntaxPlatformWire; value: string }; alias?: never })
+  | (TargetedCommandPatchWire<"variable_command", "remove_code_syntax", "variable"> & { payload: { platform: CodeSyntaxPlatformWire }; alias?: never });
+
+type ModeSelectorWire =
+  | { modeId: string; modeName?: never; defaultMode?: never }
+  | { modeId?: never; modeName: string; defaultMode?: never }
+  | { modeId?: never; modeName?: never; defaultMode: true };
+
+type CodeSyntaxPlatformWire = "WEB" | "ANDROID" | "iOS";
+
+export type LayoutCommandPatchWire =
+  | (TargetedCommandPatchWire<"layout_command", "configure_grid", "node"> & { payload: { rowCount?: number; columnCount?: number; rowGap?: number; columnGap?: number; gridAutoTracks?: "NONE" | "ROWS"; gridItemsPositioning?: "MANUAL" | "ROW_AUTO_FLOW" } })
+  | (TargetedCommandPatchWire<"layout_command", "place_grid_child", "node"> & { payload: { rowIndex: number; columnIndex: number; rowSpan?: number; columnSpan?: number; horizontalAlign?: "MIN" | "CENTER" | "MAX" | "AUTO"; verticalAlign?: "MIN" | "CENTER" | "MAX" | "AUTO" } });
+
+export type MotionCommandPatchWire = TargetedCommandPatchWire<"motion_command", "set_tracks", "node"> & {
+  payload: { tracks: Array<{ field: JsonValue; track: JsonValue }> };
+};
+
+export type CommandEntityPatchWire =
+  | SetBindingsPatchWire
+  | SetReactionsPatchWire
+  | ComponentCommandPatchWire
+  | StyleCommandPatchWire
+  | VariableCommandPatchWire
+  | LayoutCommandPatchWire
+  | MotionCommandPatchWire;
 
 export type EntityPatchWire =
   | CreateEntityPatchWire
@@ -356,6 +437,7 @@ export function validateEntityPatch(value: unknown, label = "patch"): EntityPatc
   if (kind === "variable_command") validateVariableCommandWire(value, label);
   if (kind === "layout_command") validateLayoutCommandWire(value, label);
   if (kind === "set_bindings") validateSetBindingsWire(value, label);
+  if (kind === "set_reactions") validateSetReactionsWire(value, label);
   if (kind === "component_command") validateComponentCommandWire(value, label);
   if (kind === "style_command") validateStyleCommandWire(value, label);
   if (kind === "motion_command") validateMotionCommandWire(value, label);
@@ -366,6 +448,51 @@ function validateComponentCommandWire(value: Record<string, unknown>, label: str
   if (value.entityKind !== "node") throw new Error(`${label}.component_command requires entityKind=node.`);
   const supported = ["set_properties", "add_property", "edit_property", "delete_property", "create_slot", "reset_slot"];
   if (typeof value.command !== "string" || !supported.includes(value.command)) throw new Error(`${label}.component_command command must be one of: ${supported.join(", ")}, combine_variants.`);
+  validateComponentCommandPayloadWire(value.command, isRecord(value.payload) ? value.payload : {}, `${label}.payload`);
+}
+
+export function validateComponentCommandPayloadWire(command: string, payload: Record<string, unknown>, label = "payload"): void {
+  if (command === "set_properties") {
+    assertOnlyKeys(payload, ["properties"], label);
+    if (!isRecord(payload.properties)) throw new Error(`${label}.properties must be an object for component_command:set_properties.`);
+    return;
+  }
+  if (command === "add_property") {
+    assertOnlyKeys(payload, ["name", "propertyType", "defaultValue", "preferredValues"], label);
+    if (typeof payload.name !== "string" || payload.name.length === 0) throw new Error(`${label}.name must be a non-empty string for component_command:add_property.`);
+    if (!(payload.propertyType === "BOOLEAN" || payload.propertyType === "TEXT" || payload.propertyType === "INSTANCE_SWAP" || payload.propertyType === "VARIANT" || payload.propertyType === "SLOT")) throw new Error(`${label}.propertyType must be BOOLEAN, TEXT, INSTANCE_SWAP, VARIANT, or SLOT.`);
+    if (!Object.prototype.hasOwnProperty.call(payload, "defaultValue")) throw new Error(`${label}.defaultValue is required for component_command:add_property.`);
+    if (payload.preferredValues !== undefined) validatePreferredValueRefs(payload.preferredValues, `${label}.preferredValues`);
+    return;
+  }
+  if (command === "edit_property") {
+    assertOnlyKeys(payload, ["propertyKey", "changes"], label);
+    if (typeof payload.propertyKey !== "string" || payload.propertyKey.length === 0) throw new Error(`${label}.propertyKey is required for component_command:edit_property.`);
+    if (!isRecord(payload.changes) || Object.keys(payload.changes).length === 0) throw new Error(`${label}.changes must be a non-empty object for component_command:edit_property.`);
+    assertOnlyKeys(payload.changes, ["name", "defaultValue", "preferredValues", "description", "slotSettings"], `${label}.changes`);
+    if (payload.changes.name !== undefined && (typeof payload.changes.name !== "string" || payload.changes.name.length === 0)) throw new Error(`${label}.changes.name must be a non-empty string.`);
+    if (payload.changes.preferredValues !== undefined) validatePreferredValueRefs(payload.changes.preferredValues, `${label}.changes.preferredValues`);
+    if (payload.changes.description !== undefined && typeof payload.changes.description !== "string") throw new Error(`${label}.changes.description must be a string.`);
+    if (payload.changes.slotSettings !== undefined) validateSlotSettingsWire(payload.changes.slotSettings, `${label}.changes.slotSettings`);
+    return;
+  }
+  if (command === "delete_property") {
+    assertOnlyKeys(payload, ["propertyKey"], label);
+    if (typeof payload.propertyKey !== "string" || payload.propertyKey.length === 0) throw new Error(`${label}.propertyKey is required for component_command:delete_property.`);
+    return;
+  }
+  if (command === "create_slot") {
+    assertOnlyKeys(payload, ["name", "description", "preferredValues", "slotSettings"], label);
+    if (payload.name !== undefined && (typeof payload.name !== "string" || payload.name.length === 0)) throw new Error(`${label}.name must be a non-empty string when provided.`);
+    if (payload.description !== undefined && typeof payload.description !== "string") throw new Error(`${label}.description must be a string when provided.`);
+    if (payload.preferredValues !== undefined) validatePreferredValueRefs(payload.preferredValues, `${label}.preferredValues`);
+    if (payload.slotSettings !== undefined) validateSlotSettingsWire(payload.slotSettings, `${label}.slotSettings`);
+    return;
+  }
+  if (command === "reset_slot") {
+    assertOnlyKeys(payload, [], label);
+    return;
+  }
 }
 
 function validateStyleCommandWire(value: Record<string, unknown>, label: string): void {
@@ -378,6 +505,36 @@ function validateStyleCommandWire(value: Record<string, unknown>, label: string)
 function validateMotionCommandWire(value: Record<string, unknown>, label: string): void {
   if (value.entityKind !== "node") throw new Error(`${label}.motion_command requires entityKind=node.`);
   if (value.command !== "set_tracks") throw new Error(`${label}.motion_command command must be set_tracks.`);
+  validateMotionTracksPayloadWire(isRecord(value.payload) ? value.payload : {}, `${label}.payload`);
+}
+
+export function validateMotionTracksPayloadWire(payload: Record<string, unknown>, label = "payload"): void {
+  assertOnlyKeys(payload, ["tracks"], label);
+  if (!Array.isArray(payload.tracks) || payload.tracks.length < 1 || payload.tracks.length > 64) throw new Error(`${label}.tracks must contain 1-64 entries.`);
+  for (const [index, raw] of payload.tracks.entries()) {
+    if (!isRecord(raw) || !isRecord(raw.field) || !isRecord(raw.track)) throw new Error(`${label}.tracks[${index}] requires field and track objects.`);
+    const field = raw.field;
+    if (field.type === "PROPERTY") {
+      if (typeof field.name !== "string" || field.name.length === 0) throw new Error(`${label}.tracks[${index}].field.name is required for PROPERTY.`);
+    } else if (field.type === "INDEXED_ITEM") {
+      if (!(field.collection === "fills" || field.collection === "strokes" || field.collection === "effects") || typeof field.index !== "number" || !Number.isInteger(field.index) || field.index < 0) throw new Error(`${label}.tracks[${index}].field requires a supported collection and non-negative integer index.`);
+      if (field.propertyId !== undefined && typeof field.propertyId !== "string") throw new Error(`${label}.tracks[${index}].field.propertyId must be a string.`);
+      if (field.field !== undefined && typeof field.field !== "string") throw new Error(`${label}.tracks[${index}].field.field must be a string.`);
+    } else {
+      throw new Error(`${label}.tracks[${index}].field.type must be PROPERTY or INDEXED_ITEM.`);
+    }
+    if (!Array.isArray(raw.track.keyframes) || raw.track.keyframes.length < 1 || raw.track.keyframes.length > 256) throw new Error(`${label}.tracks[${index}].track.keyframes must contain 1-256 entries.`);
+    for (const [keyframeIndex, keyframe] of raw.track.keyframes.entries()) {
+      if (!isRecord(keyframe) || typeof keyframe.timelinePosition !== "number" || !Number.isFinite(keyframe.timelinePosition) || keyframe.timelinePosition < 0 || !isRecord(keyframe.value)) throw new Error(`${label}.tracks[${index}].track.keyframes[${keyframeIndex}] requires non-negative timelinePosition and a value object.`);
+    }
+  }
+}
+
+function validateSetReactionsWire(value: Record<string, unknown>, label: string): void {
+  if (value.entityKind !== "node") throw new Error(`${label}.set_reactions requires entityKind=node.`);
+  const payload = isRecord(value.payload) ? value.payload : {};
+  assertOnlyKeys(payload, ["reactions"], `${label}.payload`);
+  if (!Array.isArray(payload.reactions)) throw new Error(`${label}.payload.reactions must be an array.`);
 }
 
 function validateLayoutCommandWire(value: Record<string, unknown>, label: string): void {
@@ -464,6 +621,32 @@ function validateVariableCommandWire(value: Record<string, unknown>, label: stri
     return;
   }
   throw new Error(`${label}.variable_command command must be add_mode, rename_mode, remove_mode, set_value, set_code_syntax, or remove_code_syntax.`);
+}
+
+function assertOnlyKeys(value: Record<string, unknown>, allowedKeys: string[], label: string): void {
+  const allowed = new Set(allowedKeys);
+  for (const key of Object.keys(value)) if (!allowed.has(key)) throw new Error(`${label}.${key} is not supported.`);
+}
+
+function validatePreferredValueRefs(value: unknown, label: string): void {
+  if (!Array.isArray(value) || value.length > 128) throw new Error(`${label} must be an array with at most 128 entries.`);
+  for (const [index, item] of value.entries()) {
+    if (!isRecord(item) || typeof item.type !== "string" || typeof item.key !== "string" || item.key.length === 0) throw new Error(`${label}[${index}] requires type and key strings.`);
+  }
+}
+
+function validateSlotSettingsWire(value: unknown, label: string): void {
+  if (!isRecord(value)) throw new Error(`${label} must be an object.`);
+  const allowed = new Set(["stretchChildOnInsert", "displayEmptyByDefault", "minChildren", "maxChildren", "allowPreferredValuesOnly"]);
+  for (const [key, item] of Object.entries(value)) {
+    if (!allowed.has(key)) throw new Error(`${label}.${key} is not supported.`);
+    if (key === "minChildren" || key === "maxChildren") {
+      if (item !== null && (typeof item !== "number" || !Number.isInteger(item) || item < 0)) throw new Error(`${label}.${key} must be a non-negative integer or null.`);
+    } else if (typeof item !== "boolean") {
+      throw new Error(`${label}.${key} must be boolean.`);
+    }
+  }
+  if (typeof value.minChildren === "number" && typeof value.maxChildren === "number" && value.minChildren > value.maxChildren) throw new Error(`${label}.minChildren must be less than or equal to maxChildren.`);
 }
 
 function validateModeSelector(payload: Record<string, unknown>, label: string): void {

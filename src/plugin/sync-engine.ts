@@ -75,12 +75,14 @@ export function ensureRegistryId(entityId: string, entityKind: EntityKind, reque
   const registry = readRegistry();
   const existing = registry.entities[entityId];
   if (existing) return existing.controlId;
-  const validRequested = requested && /^[A-Za-z0-9._:-]{8,128}$/.test(requested) ? requested : undefined;
-  const collision = validRequested ? findRegistryEntity(validRequested) : null;
-  const controlId = collision ? newId("entity") : validRequested ?? newId("entity");
-  registry.entities[entityId] = { controlId, entityKind, ...(collision && validRequested ? { forkedFrom: validRequested } : forkedFrom ? { forkedFrom } : {}) };
+  const allocated = allocateFreshControlId(requested);
+  registry.entities[entityId] = {
+    controlId: allocated.controlId,
+    entityKind,
+    ...(allocated.forkedFrom ? { forkedFrom: allocated.forkedFrom } : forkedFrom ? { forkedFrom } : {}),
+  };
   writeRegistry(registry);
-  return controlId;
+  return allocated.controlId;
 }
 
 export function initializeSync(listener?: SyncListener): Promise<void> {
@@ -222,27 +224,48 @@ export function controlMetadata(node: BaseNodeMixin): ControlMetadata | null {
 export function ensureControlId(node: BaseNodeMixin, entityKind: EntityKind, requested?: string, traceId?: string): string {
   const existing = controlMetadata(node);
   if (existing) return existing.controlId;
-  const controlId = requested && /^[A-Za-z0-9._:-]{8,128}$/.test(requested) ? requested : newId("entity");
-  const metadata: ControlMetadata = { schemaVersion: 1, controlId, entityKind, ...(traceId ? { createdByTraceId: traceId } : {}) };
+  const allocated = allocateFreshControlId(requested);
+  const metadata: ControlMetadata = {
+    schemaVersion: 1,
+    controlId: allocated.controlId,
+    entityKind,
+    ...(traceId ? { createdByTraceId: traceId } : {}),
+    ...(allocated.forkedFrom ? { forkedFrom: allocated.forkedFrom } : {}),
+  };
   node.setSharedPluginData(CONTROL_NAMESPACE, CONTROL_KEY, JSON.stringify(metadata));
-  runtime.knownControlIds.set(node.id, controlId);
-  return controlId;
+  runtime.knownControlIds.set(node.id, allocated.controlId);
+  return allocated.controlId;
 }
 
 export function assignFreshControlId(node: BaseNodeMixin, entityKind: EntityKind, requested?: string, traceId?: string): string {
-  const validRequested = requested && /^[A-Za-z0-9._:-]{8,128}$/.test(requested) ? requested : undefined;
-  const collision = validRequested ? findControlId(validRequested) ?? findRegistryEntity(validRequested) : null;
-  const controlId = collision ? newId("entity") : validRequested ?? newId("entity");
+  const allocated = allocateFreshControlId(requested);
   const metadata: ControlMetadata = {
     schemaVersion: 1,
-    controlId,
+    controlId: allocated.controlId,
     entityKind,
     ...(traceId ? { createdByTraceId: traceId } : {}),
-    ...(collision && validRequested ? { forkedFrom: validRequested } : {}),
+    ...(allocated.forkedFrom ? { forkedFrom: allocated.forkedFrom } : {}),
   };
   node.setSharedPluginData(CONTROL_NAMESPACE, CONTROL_KEY, JSON.stringify(metadata));
-  runtime.knownControlIds.set(node.id, controlId);
-  return controlId;
+  runtime.knownControlIds.set(node.id, allocated.controlId);
+  return allocated.controlId;
+}
+
+function allocateFreshControlId(requested?: string): { controlId: string; forkedFrom?: string } {
+  const validRequested = safeIdentity(requested) ? requested : undefined;
+  if (validRequested && !controlIdExists(validRequested)) return { controlId: validRequested };
+  const controlId = freshGeneratedControlId();
+  return validRequested ? { controlId, forkedFrom: validRequested } : { controlId };
+}
+
+function freshGeneratedControlId(): string {
+  let candidate = newId("entity");
+  while (controlIdExists(candidate)) candidate = newId("entity");
+  return candidate;
+}
+
+function controlIdExists(controlId: string): boolean {
+  return Boolean(findControlId(controlId) ?? findRegistryEntity(controlId));
 }
 
 export function findControlId(controlId: string): SceneNode | null {
