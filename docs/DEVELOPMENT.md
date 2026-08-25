@@ -105,6 +105,12 @@ The check fails on a missing runtime file or any forbidden residue.
 
 Live proof begins only after the client loads the intended package, the companion reports the same `bundleRevision`, and the requested behavior is observed at its real target.
 
+## Local Codex marketplace refresh
+
+Local source, marketplace source, installed cache, active MCP runtime, and the Figma companion are separate identities. To refresh the local marketplace, first retain a verified build and create the package archive outside this repository. Then run `scripts/sync-local-marketplace-build.ps1` with the archive, exact marketplace target, backup root, expected 16-character bundle revision, and a 14-digit `CodexBuildStamp` (`yyyyMMddHHmmss`). The script validates the extracted package, stamps only the marketplace Codex manifest with `0.7.0+codex.<stamp>`, backs up the previous target, verifies the installed bundle revision, and restores the backup on failure.
+
+Never edit `plugins/cache` directly. After the marketplace replacement, reinstall/upgrade through the Codex plugin manager and start a fresh task so discovery can load the new cache identity. Finally import/run the matching Figma companion and require `figma_status` to report the same `bundleRevision` before live qualification.
+
 ## Dependency policy
 
 Use `npm ci` as the reproducible install. `npm audit` and `npm outdated` are audit inputs, not automatic permission to rewrite the lockfile or adopt a new major version. Upgrade dependencies only for a concrete security, compatibility, or maintenance reason and rerun the full setup gate.
