@@ -84,6 +84,33 @@ describe("typed entity graph and CRUD", () => {
     await expect(applyDocument({ action: "clear_file_owned_assets", dryRun: true, resultMode: "receipt" })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.INVALID_PARAMS } });
   });
 
+  it("assigns clone identity through the sync owner without retaining the source controlId", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+
+    const createPlan = await applyDocument({
+      action: "apply_entity_patch",
+      patches: [{ kind: "create", entityKind: "node", entityType: "FRAME", controlId: "clone-source", properties: { name: "Clone source" } }],
+      dryRun: true,
+    }) as any;
+    await applyDocument({ action: "apply_entity_patch", patches: createPlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: createPlan.plan.planHash });
+
+    const clonePlan = await applyDocument({
+      action: "apply_entity_patch",
+      patches: [{ kind: "clone", entityKind: "node", target: { controlId: "clone-source" }, controlId: "clone-source" }],
+      dryRun: true,
+    }) as any;
+    const cloned = await applyDocument({ action: "apply_entity_patch", patches: clonePlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: clonePlan.plan.planHash }) as any;
+
+    expect(cloned.changedEntities[0].controlId).not.toBe("clone-source");
+    const clone = fixture.page.children.find((node: any) => node.id === cloned.changedEntities[0].id);
+    expect(JSON.parse(clone.getSharedPluginData("figmaplugin", "control"))).toMatchObject({
+      controlId: cloned.changedEntities[0].controlId,
+      entityKind: "node",
+      forkedFrom: "clone-source",
+    });
+  });
+
   it("keeps compact rollback failure evidence without restoring full entity payloads", async () => {
     const fixture = makeFixture();
     (globalThis as Record<string, unknown>).figma = fixture.figma;

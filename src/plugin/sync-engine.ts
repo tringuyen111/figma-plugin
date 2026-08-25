@@ -229,6 +229,22 @@ export function ensureControlId(node: BaseNodeMixin, entityKind: EntityKind, req
   return controlId;
 }
 
+export function assignFreshControlId(node: BaseNodeMixin, entityKind: EntityKind, requested?: string, traceId?: string): string {
+  const validRequested = requested && /^[A-Za-z0-9._:-]{8,128}$/.test(requested) ? requested : undefined;
+  const collision = validRequested ? findControlId(validRequested) ?? findRegistryEntity(validRequested) : null;
+  const controlId = collision ? newId("entity") : validRequested ?? newId("entity");
+  const metadata: ControlMetadata = {
+    schemaVersion: 1,
+    controlId,
+    entityKind,
+    ...(traceId ? { createdByTraceId: traceId } : {}),
+    ...(collision && validRequested ? { forkedFrom: validRequested } : {}),
+  };
+  node.setSharedPluginData(CONTROL_NAMESPACE, CONTROL_KEY, JSON.stringify(metadata));
+  runtime.knownControlIds.set(node.id, controlId);
+  return controlId;
+}
+
 export function findControlId(controlId: string): SceneNode | null {
   try {
     const pages = figma.root.children.filter((node): node is PageNode => node.type === "PAGE");

@@ -23,7 +23,7 @@ import {
   changeFeed,
   controlMetadata,
   encodeCursor,
-  ensureControlId,
+  assignFreshControlId,
   ensureRegistryId,
   featureLimitations,
   findRegistryEntity,
@@ -1211,7 +1211,7 @@ async function executePatch(patch: EntityPatchWire, traceId?: string): Promise<R
     const parent = patch.parent ? await resolveEntity(patch.parent, "node") : target.parent;
     if (parent && isChildrenParent(parent) && clone.parent?.id !== parent.id) parent.appendChild(clone);
     if (patch.index !== undefined && parent && isChildrenParent(parent) && patch.index < parent.children.length) parent.insertChild(patch.index, clone);
-    assignFreshControlId(clone, patch.controlId, traceId);
+    assignFreshControlId(clone, "node", patch.controlId, traceId);
     return entitySummary(clone, "node");
   }
   if (patch.kind === "delete") {
@@ -1326,7 +1326,7 @@ async function createEntity(patch: CreateEntityPatchWire, traceId?: string): Pro
     if (!isChildrenParent(parent)) throw failure(ErrorCode.UNSUPPORTED_PROPERTY, "create parent does not accept children.");
     parent.appendChild(node);
     if (patch.index !== undefined && patch.index < parent.children.length) parent.insertChild(patch.index, node);
-    assignFreshControlId(node, patch.controlId, traceId);
+    assignFreshControlId(node, "node", patch.controlId, traceId);
     await applyProperties(node, patch.properties ?? {});
     return entitySummary(node, "node");
   }
@@ -1598,7 +1598,7 @@ async function executeCombineVariants(
     if (memberPageId && memberPageId !== parentPageId) throw failure(ErrorCode.UNSUPPORTED_PROPERTY, "combine_variants members and parent must belong to the same page.");
   }
   const componentSet = patch.index === undefined ? combine.call(figma, members, parent) : combine.call(figma, members, parent, patch.index);
-  ensureControlId(componentSet, "node", undefined, traceId);
+  assignFreshControlId(componentSet, "node", undefined, traceId);
   return { ...(await entitySummary(componentSet, "node")), componentSetMemberCount: componentSet.children.length };
 }
 
@@ -1816,7 +1816,7 @@ async function executeCommand(target: BaseNode | BaseStyle | Variable | Variable
       if (isRecord(payload.slotSettings)) changes.slotSettings = payload.slotSettings;
       if (Object.keys(changes).length) componentPropertyKey = component.editComponentProperty(componentPropertyKey, changes as { name?: string; preferredValues?: InstanceSwapPreferredValue[]; description?: string; slotSettings?: SlotSettings });
       if (typeof payload.name === "string") slot.name = payload.name;
-      ensureControlId(slot, "node", undefined, traceId);
+      assignFreshControlId(slot, "node", undefined, traceId);
       return { ...(await entitySummary(slot, "node")), componentId: component.id, componentPropertyKey, componentPropertyType: "SLOT" };
     }
     if (command === "reset_slot") {
@@ -1961,14 +1961,6 @@ function assertEntityKind(target: BaseNode | BaseStyle | Variable | VariableColl
 }
 function assertMutableTarget(target: BaseNode | BaseStyle | Variable | VariableCollection): void {
   if (Boolean((target as unknown as { remote?: unknown }).remote)) throw failure(ErrorCode.FEATURE_GATED, "Remote/provider-owned entities are read-only through typed CRUD.", "Use a local editable entity or the provider's supported publish/import workflow.");
-}
-function assignFreshControlId(node: BaseNodeMixin, requested?: string, traceId?: string): string {
-  const validRequested = requested && /^[A-Za-z0-9._:-]{8,128}$/.test(requested) ? requested : undefined;
-  const collision = validRequested ? findControlId(validRequested) ?? findRegistryEntity(validRequested) : null;
-  const controlId = collision ? `entity-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}` : validRequested ?? `entity-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
-  const metadata = { schemaVersion: 1, controlId, entityKind: "node", ...(traceId ? { createdByTraceId: traceId } : {}), ...(collision && validRequested ? { forkedFrom: validRequested } : {}) };
-  node.setSharedPluginData("figmaplugin", "control", JSON.stringify(metadata));
-  return controlMetadata(node)?.controlId ?? ensureControlId(node, "node", controlId, traceId);
 }
 function changedProperties(patches: EntityPatchWire[]): string[] { return [...new Set(patches.flatMap((patch) => patch.kind === "update" ? Object.keys(patch.set ?? {}) : patch.kind === "set_reactions" ? ["reactions"] : patch.kind === "set_bindings" ? ["boundVariables"] : patch.kind === "layout_command" ? ["layout"] : [patch.kind]))]; }
 function stringProperty(properties: Record<string, JsonValue> | undefined, key: string, fallback: string): string { const value = properties?.[key]; return typeof value === "string" ? value : fallback; }
