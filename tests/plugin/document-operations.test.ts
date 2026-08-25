@@ -105,10 +105,10 @@ describe("typed document operations", () => {
     };
     const style = { id: "style:1", name: "Paper/Surface", key: "style-key", remote: false, getPublishStatusAsync: async () => "CURRENT" };
     const variable = { id: "variable:1", key: "variable-key", name: "color/surface", resolvedType: "COLOR", remote: false, variableCollectionId: "collection:1" };
-    const collection = { id: "collection:1", key: "collection-key", name: "Tri Brand / Paper", variableIds: [variable.id] };
+    const collection = { id: "collection:1", key: "collection-key", name: "Example / Surface", variableIds: [variable.id] };
     (globalThis as Record<string, unknown>).figma = {
       editorType: "figma",
-      root: { name: "Tri Brand Library", children: [page] },
+      root: { name: "Example Library", children: [page] },
       getLocalPaintStylesAsync: async () => [style],
       getLocalTextStylesAsync: async () => [],
       getLocalEffectStylesAsync: async () => [],
@@ -124,7 +124,7 @@ describe("typed document operations", () => {
     };
 
     await expect(queryDocument({ kind: "library_inventory" })).resolves.toMatchObject({
-      fileName: "Tri Brand Library",
+      fileName: "Example Library",
       local: {
         components: [
           { id: "set:1", type: "COMPONENT_SET", key: "set-key", publishStatus: "UNPUBLISHED", variantCount: 1 },

@@ -1,6 +1,6 @@
 # Strict audit execution
 
-Use this reference when a user supplies a large checklist such as the Luma Bank profile.
+Use this reference when a user supplies a large strict-audit checklist or profile.
 
 ## Work order
 

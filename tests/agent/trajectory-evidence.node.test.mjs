@@ -160,19 +160,3 @@ test("runtime provenance can be observed later without upgrading the model claim
     await rm(dir, { recursive: true, force: true });
   }
 });
-
-test("Luma live recipes use the shared recorder and require/accept exact bundle provenance", async () => {
-  const { readFile } = await import("node:fs/promises");
-  const rebuild = await readFile(new URL("../../scripts/run-luma-realistic-rebuild-live.mjs", import.meta.url), "utf8");
-  const repair = await readFile(new URL("../../scripts/repair-luma-realistic-live.mjs", import.meta.url), "utf8");
-  for (const source of [rebuild, repair]) {
-    assert.match(source, /createTrajectoryRecorder/);
-    assert.match(source, /\.raw\.jsonl/);
-    assert.match(source, /journal\.writeTool/);
-    assert.match(source, /summary\.trajectory = journal\.snapshot\(\)/);
-    assert.doesNotMatch(source, /function createJournal\(/);
-  }
-  assert.match(rebuild, /readOption\("--bundle-revision"\)/);
-  assert.match(repair, /requiredOption\("--bundle-revision"\)/);
-  assert.doesNotMatch(repair, /75d1ef41a8182e2f/);
-});

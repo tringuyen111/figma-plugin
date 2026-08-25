@@ -18,7 +18,7 @@ This document defines the current typed contract. Bundle revisions and run resul
 
 ## Strict-audit artifacts
 
-`AuditProfile`, `AuditReport`, and `UpgradeRun` are separate JSON artifacts. The Luma Bank checklist is stored as a profile fixture at `evals/fixtures/luma-bank-strict-audit.profile.json`; it contains obligations and regression cases, not verdicts. `skills/figma-verification/scripts/audit-run.mjs validate` rejects checklist PASS values, missing target/snapshot evidence, mismatched hashes, screenshot-only runtime claims, unresolved required overall PASS, incomplete BLOCKED packets, and `PARTIAL` statuses.
+`AuditProfile`, `AuditReport`, and `UpgradeRun` are separate JSON artifacts. A supplied audit profile contains obligations and regression cases, not verdicts. `skills/figma-verification/scripts/audit-run.mjs validate` rejects checklist PASS values, missing target/snapshot evidence, mismatched hashes, screenshot-only runtime claims, unresolved required overall PASS, incomplete BLOCKED packets, and `PARTIAL` statuses.
 
 ## Verification boundary
 

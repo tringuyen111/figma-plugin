@@ -20,7 +20,7 @@ For a current-candidate qualification run:
 
 1. bind the exact candidate archive SHA-256;
 2. pass `--candidate-sha256 <sha256>` to the live recipe;
-3. pin the exact companion bundle with `--bundle-revision <revision>`; `repair-luma-realistic-live.mjs` requires this argument, while the rebuild recipe keeps it optional for non-qualification dogfood;
+3. pin the exact companion bundle with `--bundle-revision <revision>`; every qualification recipe must require that revision explicitly, while non-qualification dogfood must keep its weaker scope visible;
 4. require the observed runtime status to match the pinned bundle/protocol/instance before relying on provider evidence;
 5. record model identity only when a model actually executed the frozen case.
 

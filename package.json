@@ -46,8 +46,6 @@
     "benchmark:figma": "node scripts/benchmark-figma-runtime.mjs",
     "demo:figma-capability": "node scripts/run-figma-capability-demo.mjs",
     "use:figma-playground-proof": "node scripts/use-figma-playground-cockpit.mjs",
-    "rebuild:luma-realistic-live": "node scripts/run-luma-realistic-rebuild-live.mjs",
-    "repair:luma-realistic-live": "node scripts/repair-luma-realistic-live.mjs",
     "build:ui": "node scripts/build-ui.mjs",
     "preview:ui-fixture": "node scripts/visual-operation-fixture.mjs",
     "check:docs": "node scripts/check-docs.mjs",

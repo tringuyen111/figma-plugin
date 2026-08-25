@@ -6,7 +6,8 @@ import { RuntimeClient, assert, readOption } from "./lib/runtime-client.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const runtime = new RuntimeClient({ name: "figma-library-api-live-smoke" });
 const requestedInstanceId = readOption("instance-id");
-const requestedFileName = readOption("file-name") || "Tri Brand / Personal Homepage Library";
+const requestedFileName = readOption("file-name");
+assert(requestedFileName, "Pass --file-name with the exact connected source-library file name.");
 const outputPath = resolve(root, "output/figma-evidence/library-api-live.json");
 
 try {

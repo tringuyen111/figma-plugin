@@ -2,7 +2,6 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 import { createTrajectoryRecorder } from "./lib/trajectory-evidence.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -36,15 +35,6 @@ try {
   if (!compact.includes('"kind":"AgentTrajectoryEntry"') || compact.includes("redact-me")) throw new Error("Compact trajectory is not bounded/redacted.");
   if (!raw.includes('"kind":"AgentTrajectoryRawEntry"') || !raw.includes('"redacted":true')) throw new Error("Raw sidecar is not inspectably sanitized.");
 
-  for (const relative of ["scripts/run-luma-realistic-rebuild-live.mjs", "scripts/repair-luma-realistic-live.mjs"]) {
-    const source = await readFile(resolve(root, relative), "utf8");
-    for (const marker of ["createTrajectoryRecorder", ".raw.jsonl", "journal.writeTool", "summary.trajectory = journal.snapshot()"] ) {
-      if (!source.includes(marker)) throw new Error(`${relative} is missing shared trajectory marker: ${marker}`);
-    }
-    if (source.includes("function createJournal(")) throw new Error(`${relative} still owns a duplicate journal implementation.`);
-    const checked = spawnSync(process.execPath, ["--check", resolve(root, relative)], { encoding: "utf8" });
-    if (checked.status !== 0) throw new Error(`${relative} syntax check failed: ${checked.stderr || checked.stdout}`);
-  }
   const contractDoc = await readFile(resolve(root, "docs/TRAJECTORY-EVIDENCE.md"), "utf8");
   for (const marker of ["--candidate-sha256", "--bundle-revision", "does not qualify an exact candidate", "behavioral claims remain `NOT_RUN`"]) {
     if (!contractDoc.includes(marker)) throw new Error(`Trajectory evidence contract is missing truth/provenance marker: ${marker}`);
@@ -57,12 +47,7 @@ try {
     if (!agentExecution.mechanismEvidence?.includes(evidencePath)) throw new Error(`Agent execution eval is missing P3-Q1 mechanism evidence: ${evidencePath}`);
   }
 
-  const repair = await readFile(resolve(root, "scripts/repair-luma-realistic-live.mjs"), "utf8");
-  if (repair.includes("75d1ef41a8182e2f") || !repair.includes('requiredOption("--bundle-revision")')) {
-    throw new Error("Repair runner is still bound to historical bundle provenance.");
-  }
-
-  process.stdout.write(`${JSON.stringify({ status: "PASS", recorder: "compact+raw", lumaRecipes: 2, behavioralComparison: "NOT_RUN" })}\n`);
+  process.stdout.write(`${JSON.stringify({ status: "PASS", recorder: "compact+raw", behavioralComparison: "NOT_RUN" })}\n`);
 } finally {
   await rm(temp, { recursive: true, force: true });
 }
