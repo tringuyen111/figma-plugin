@@ -172,6 +172,13 @@ describe("typed entity contract", () => {
     expect(validateEntityPatch({ kind: "variable_command", entityKind: "variable", target: { variableId: "VariableID:1" }, command: "set_value", payload: { modeName: "Dark", value: 12 } })).toMatchObject({ command: "set_value" });
     expect(() => validateEntityPatch({ kind: "variable_command", entityKind: "variable", target: { variableId: "VariableID:1" }, command: "set_value", payload: { modeId: "1:0", modeName: "Dark", value: 12 } })).toThrow(/exactly one mode selector/i);
     expect(() => validateEntityPatch({ kind: "variable_command", entityKind: "variable", target: { variableId: "VariableID:1" }, command: "set_code_syntax", payload: { platform: "DESKTOP", value: "x" } })).toThrow(/WEB.*ANDROID.*iOS/i);
+    expect(() => validateEntityPatch({ kind: "variable_command", entityKind: "variable", target: { variableId: "VariableID:1" }, command: "mystery", payload: {} })).toThrow(/variable_command command must be/i);
+  });
+
+  it("rejects unknown command families at the shared wire boundary", () => {
+    expect(() => validateEntityPatch({ kind: "component_command", entityKind: "node", target: { nodeId: "1:2" }, command: "mystery", payload: {} })).toThrow(/component_command command must be/i);
+    expect(() => validateEntityPatch({ kind: "style_command", entityKind: "style", target: { styleId: "S:1" }, command: "mystery", payload: {} })).toThrow(/style_command command must be rename/i);
+    expect(() => validateEntityPatch({ kind: "motion_command", entityKind: "node", target: { nodeId: "1:2" }, command: "mystery", payload: {} })).toThrow(/motion_command command must be set_tracks/i);
   });
 
   it("produces stable plan fingerprints independent of object key order", () => {

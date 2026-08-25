@@ -3,6 +3,7 @@ import {
   fingerprint,
   isRecord,
   planEntityPatchExecution,
+  producerOpRef,
   validateConflictPolicy,
   validateEntityPatches,
   validateEntityRef,
@@ -1257,11 +1258,6 @@ async function executePatch(patch: EntityPatchWire, traceId?: string): Promise<R
   if (patch.kind === "set_bindings") return executeBinding(target, patch);
   if (patch.kind === "layout_command") return executeLayoutCommand(target, patch.command, patch.payload ?? {});
   return executeCommand(target, patch.kind, patch.command, patch.payload ?? {}, traceId);
-}
-
-function producerOpRef(patch: EntityPatchWire): string | undefined {
-  if ((patch.kind === "create" || patch.kind === "clone" || (patch.kind === "component_command" && (patch.command === "create_slot" || patch.command === "combine_variants"))) && typeof patch.opRef === "string") return patch.opRef;
-  return undefined;
 }
 
 function materializeLocalPatchRefs(

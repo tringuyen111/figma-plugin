@@ -356,7 +356,28 @@ export function validateEntityPatch(value: unknown, label = "patch"): EntityPatc
   if (kind === "variable_command") validateVariableCommandWire(value, label);
   if (kind === "layout_command") validateLayoutCommandWire(value, label);
   if (kind === "set_bindings") validateSetBindingsWire(value, label);
+  if (kind === "component_command") validateComponentCommandWire(value, label);
+  if (kind === "style_command") validateStyleCommandWire(value, label);
+  if (kind === "motion_command") validateMotionCommandWire(value, label);
   return value as unknown as CommandEntityPatchWire;
+}
+
+function validateComponentCommandWire(value: Record<string, unknown>, label: string): void {
+  if (value.entityKind !== "node") throw new Error(`${label}.component_command requires entityKind=node.`);
+  const supported = ["set_properties", "add_property", "edit_property", "delete_property", "create_slot", "reset_slot"];
+  if (typeof value.command !== "string" || !supported.includes(value.command)) throw new Error(`${label}.component_command command must be one of: ${supported.join(", ")}, combine_variants.`);
+}
+
+function validateStyleCommandWire(value: Record<string, unknown>, label: string): void {
+  if (value.entityKind !== "style") throw new Error(`${label}.style_command requires entityKind=style.`);
+  if (value.command !== "rename") throw new Error(`${label}.style_command command must be rename.`);
+  const payload = isRecord(value.payload) ? value.payload : {};
+  if (typeof payload.name !== "string" || payload.name.length === 0) throw new Error(`${label}.style_command:rename requires payload.name.`);
+}
+
+function validateMotionCommandWire(value: Record<string, unknown>, label: string): void {
+  if (value.entityKind !== "node") throw new Error(`${label}.motion_command requires entityKind=node.`);
+  if (value.command !== "set_tracks") throw new Error(`${label}.motion_command command must be set_tracks.`);
 }
 
 function validateLayoutCommandWire(value: Record<string, unknown>, label: string): void {
@@ -442,6 +463,7 @@ function validateVariableCommandWire(value: Record<string, unknown>, label: stri
     if (!(payload.platform === "WEB" || payload.platform === "ANDROID" || payload.platform === "iOS")) throw new Error(`${label}.payload.platform must be WEB, ANDROID, or iOS.`);
     return;
   }
+  throw new Error(`${label}.variable_command command must be add_mode, rename_mode, remove_mode, set_value, set_code_syntax, or remove_code_syntax.`);
 }
 
 function validateModeSelector(payload: Record<string, unknown>, label: string): void {
@@ -454,7 +476,7 @@ function isStableOpRef(value: string): boolean {
   return value.length >= 1 && value.length <= 128 && /^[A-Za-z0-9._:-]+$/.test(value);
 }
 
-function producerOpRef(patch: EntityPatchWire): string | undefined {
+export function producerOpRef(patch: EntityPatchWire): string | undefined {
   if ((patch.kind === "create" || patch.kind === "clone" || (patch.kind === "component_command" && (patch.command === "create_slot" || patch.command === "combine_variants"))) && typeof patch.opRef === "string") return patch.opRef;
   return undefined;
 }
