@@ -43,5 +43,8 @@ jobs:
       - name: Verify package contents and metadata
         run: npm run check:package
 
+      - name: Install and execute the packed artifact
+        run: npm run test:package-install
+
       - name: Restore and verify source-clean state
         run: npm run clean && npm run clean:check

@@ -21,6 +21,7 @@ clean known generated paths
 -> production bundles and bundle smokes
 -> doctor
 -> dry-run package inventory validation
+-> fresh packed-install doctor and MCP smoke
 -> remove generated paths
 -> assert source-clean state
 ```
@@ -100,6 +101,7 @@ The check fails on a missing runtime file or any forbidden residue.
 | bundle smoke | compiled bundle mechanics | a currently loaded companion revision |
 | `doctor` | local package structure/readiness | MCP registration in the current task |
 | package check | exact package inventory hygiene | installation or live pickup |
+| packed-install smoke | fresh consumer install, installed-root doctor, and installed five-tool MCP startup | current Codex task pickup or live Figma behavior |
 
 Live proof begins only after the client loads the intended package, the companion reports the same `bundleRevision`, and the requested behavior is observed at its real target.
 

@@ -35,6 +35,7 @@
     "build:bundle": "node scripts/build.mjs",
     "prepack": "npm run build",
     "test:bundle": "node scripts/smoke-native-exec.mjs && node scripts/smoke-self-contained-server.mjs",
+    "test:package-install": "node scripts/smoke-packed-install.mjs",
     "test:mcp-operation": "node scripts/smoke-mcp-operation.mjs",
     "test:typed-tools-live": "node scripts/smoke-typed-tools-live.mjs",
     "test:library-api-live": "node scripts/smoke-library-api-live.mjs",

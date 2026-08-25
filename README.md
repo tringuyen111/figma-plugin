@@ -131,6 +131,7 @@ npm test
 npm run build:bundle
 npm run test:bundle
 npm run check:package
+npm run test:package-install
 ```
 
 Or run the complete source/build gate:
@@ -139,7 +140,7 @@ Or run the complete source/build gate:
 npm run build
 ```
 
-`npm run check:package` inspects `npm pack --dry-run` and fails if the package contains source trees, tests, scripts, output evidence, caches, archives, or source maps. The installed package intentionally contains compiled runtime bundles because Codex does not build them after installation.
+`npm run check:package` inspects `npm pack --dry-run` and fails if the package contains source trees, tests, scripts, output evidence, caches, archives, or source maps. `npm run test:package-install` then creates the real tarball in an isolated temporary directory, installs it as a consumer, runs `doctor`, and executes the five-tool MCP surface from that installed artifact. The installed package intentionally contains compiled runtime bundles because Codex does not build them after installation.
 
 Live commands such as `test:typed-tools-live`, `test:runtime-sdk-v2-live`, and Figma file maintenance require a connected companion. They are not part of source-only proof and may mutate the bound Figma file when their command contract says so.
 

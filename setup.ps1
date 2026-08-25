@@ -42,6 +42,7 @@ try {
   Invoke-Checked -Command $npmCommand -Arguments @('run', 'build')
   Invoke-Checked -Command $nodeCommand -Arguments @('dist/server/index.js', 'doctor', '--json')
   Invoke-Checked -Command $npmCommand -Arguments @('run', 'check:package')
+  Invoke-Checked -Command $npmCommand -Arguments @('run', 'test:package-install')
   $completed = $true
 }
 finally {
