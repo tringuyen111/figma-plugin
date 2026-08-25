@@ -250,7 +250,7 @@ for (const marker of ["collection: { ...ENTITY_REF_SCHEMA", "alias: { ...ENTITY_
   if (!mcpSource.includes(marker)) throw new Error(`P2-T1 MCP modeled identity edge missing: ${marker}`);
 }
 if (!mcpSource.includes("variable: { ...ENTITY_REF_SCHEMA")) throw new Error("P2-T2 MCP modeled variable binding edge is missing.");
-const layoutRuntimeSource = readFileSync(resolve(root, "src/plugin/handlers/entity-operations.ts"), "utf8");
+const layoutRuntimeSource = readFileSync(resolve(root, "src/plugin/handlers/entity-mutation-operations.ts"), "utf8");
 if (!protocolSource.includes('"layout_command"') || !layoutRuntimeSource.includes('command === "configure_grid"') || !layoutRuntimeSource.includes("setGridChildPosition")) throw new Error("P2-L1 typed Grid runtime contract is missing.");
 for (const marker of ["planId", "stepId", "representation"]) if (!protocolSource.includes(marker) || !mcpSource.includes(marker)) throw new Error(`Plan-aware operation marker missing: ${marker}`);
 
@@ -303,15 +303,17 @@ for (const relativePath of currentTruthDocs) {
     throw new Error(`Active truth protocol drift: ${relativePath} does not name protocol ${activeProtocolVersion}.`);
   }
 }
-const entityOperationsSource = readFileSync(resolve(root, "src/plugin/handlers/entity-operations.ts"), "utf8");
-if (!entityOperationsSource.includes('projection.has("visual")') || !entityOperationsSource.includes("fills: safeJson(dynamic.fills)") || !entityOperationsSource.includes("strokes: safeJson(dynamic.strokes)")) {
+const entityEvidenceSource = readFileSync(resolve(root, "src/plugin/handlers/entity-evidence.ts"), "utf8");
+const entityMutationSource = readFileSync(resolve(root, "src/plugin/handlers/entity-mutation-operations.ts"), "utf8");
+const entityOperationsSource = `${entityEvidenceSource}\n${entityMutationSource}`;
+if (!entityEvidenceSource.includes('projection.has("visual")') || !entityEvidenceSource.includes("fills: safeJson(dynamic.fills)") || !entityEvidenceSource.includes("strokes: safeJson(dynamic.strokes)")) {
   throw new Error("Accessibility visual evidence projection is missing from the typed entity query path.");
 }
-if (!entityOperationsSource.includes("applyManualKeyframeTrack") || entityOperationsSource.includes("dynamic.manualKeyframeTracks =")) {
+if (!entityMutationSource.includes("applyManualKeyframeTrack") || entityMutationSource.includes("dynamic.manualKeyframeTracks =")) {
   throw new Error("Typed motion mutation must use applyManualKeyframeTrack and must not assign readonly manualKeyframeTracks.");
 }
 for (const marker of ['resultMode !== "full" && resultMode !== "receipt"', 'resultMode === "receipt"', "compactMutationPlan(plan)", "compactChangedEntities(appliedByIndex, patches)", "beforeFingerprint", "afterRollbackFingerprint"]) {
-  if (!entityOperationsSource.includes(marker)) throw new Error(`P1 compact mutation receipt source marker missing: ${marker}`);
+  if (!entityMutationSource.includes(marker)) throw new Error(`P1 compact mutation receipt source marker missing: ${marker}`);
 }
 for (const marker of ['resultMode: { type: "string", enum: ["full", "receipt"]', '"maxOperations", "resultMode"']) {
   if (!mcpSource.includes(marker)) throw new Error(`P1 compact mutation receipt MCP marker missing: ${marker}`);
