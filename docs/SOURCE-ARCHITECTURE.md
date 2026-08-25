@@ -26,7 +26,15 @@ src/
     main.ts                 companion bootstrap and bridge client
     runtime-sdk.ts          opt-in native helper surface
     sync-engine.ts          document/style/variable observation and change journal
-    handlers/               typed query/apply/execute/export mechanics
+    handlers/
+      entity-operations.ts            compatibility facade for query/apply
+      entity-query-operations.ts      typed query dispatch
+      entity-evidence.ts              query/readback projection owner
+      entity-mutation-operations.ts   transaction, preflight, execute, rollback
+      entity-mutation-snapshot.ts     stable conflict/rollback state
+      entity-operation-support.ts     shared plugin-handler primitives
+      document-operations.ts          public document action facade
+      execute-js.ts / export-node.ts  raw escape hatch and export mechanics
 
   ui/
     template.html
@@ -82,6 +90,9 @@ Production builds disable source maps. `npm run build:debug` enables external ma
 - `bridge.ts` owns routing and connection orchestration, not per-window queue internals.
 - `plugin-connection.ts` owns one Figma window's queue/pending lifecycle.
 - `sync-engine.ts` observes Figma state; Figma remains source of truth.
+- `entity-query-operations.ts` and `entity-evidence.ts` own evidence reads; mutation identity never hashes that evolving projection.
+- `entity-mutation-operations.ts` owns transaction ordering and rollback; `entity-mutation-snapshot.ts` owns the stable mutable-state baseline used by `planHash`.
+- `sync-engine.ts` is the only owner of `controlId` namespace, allocation, collision, and metadata writes.
 - UI source lives only under `src/ui/`; generated `plugin/ui.html` is consumed output.
 - Skills own design judgment; the runtime owns bounded mechanics and evidence transport.
 
@@ -91,13 +102,15 @@ Production builds disable source maps. `npm run build:debug` enables external ma
 MCP schema
 -> shared entity contract validation
 -> dependency/execution plan
+-> stable mutation snapshot v1
 -> dry-run planHash + preconditions
--> plugin handler mutation
--> undo/readback/fingerprint
+-> plugin transaction mutation
+-> undo + mutation-state rollback verification
+-> separate evidence readback
 -> full result or compact receipt
 ```
 
-Transaction-local `opRef` edges let later operations consume identities produced earlier in the same patch. Invalid producer graphs, duplicate refs, kind mismatch, and cycles fail before mutation. Conflict and rollback evidence remain explicit.
+Transaction-local `opRef` edges let later operations consume identities produced earlier in the same patch. Invalid producer graphs, duplicate refs, kind mismatch, unknown typed commands, and cycles fail before mutation with `INVALID_PARAMS`. Conflict and rollback use an explicit mutable-state whitelist plus touched properties; evidence-only additions such as new geometry diagnostics do not invalidate a plan.
 
 ## Sync topology
 

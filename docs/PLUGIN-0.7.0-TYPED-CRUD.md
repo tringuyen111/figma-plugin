@@ -9,7 +9,7 @@ This document defines the current typed contract. Bundle revisions and run resul
 ## Runtime contract
 
 - `figma_query` adds `artifact_manifest`, paginated `entity_graph`, `change_feed`, `component_integrity`, `binding_inventory`, `prototype_graph`, `motion_snapshot`, and `accessibility_design_facts`. Extended results use schema version 2 with exact target, cursor, coverage, facts, limitations, and observation time.
-- `figma_apply(action=apply_entity_patch)` validates at most 100 operations, plans by deterministic `planHash`, requires `dryRun:false + confirm:true + expectedPlanHash` for execution, detects stale/overlapping changes, and returns typed readback plus `ROLLED_BACK` or `PARTIAL_COMMIT` recovery state.
+- `figma_apply(action=apply_entity_patch)` validates at most 100 operations, plans by deterministic `planHash`, requires `dryRun:false + confirm:true + expectedPlanHash` for execution, detects stale/overlapping changes, and returns typed readback plus `ROLLED_BACK` or `PARTIAL_COMMIT` recovery state. The plan exposes additive `snapshotSchemaVersion: 1` metadata.
 - `accessibility_design_facts` uses an explicit `visual` projection for fills/strokes/opacity instead of depending on the variable-binding projection.
 - `motion_command:set_tracks` accepts a bounded array of `{ field, track }` entries and applies them through Figma's native `applyManualKeyframeTrack`; `manualKeyframeTracks` is read-only evidence, never an assignment target.
 - Node metadata uses `controlId` in shared plugin data. Styles, variables, and collections use a bounded document-root registry. Duplicate identities are reconciled by preserving the first object and assigning a new ID with `forkedFrom`.
@@ -29,6 +29,8 @@ Source checks, typecheck, local tests, bundle smoke, `doctor`, and package valid
 `apply_entity_patch` accepts `resultMode: "full" | "receipt"`. `full` remains the backward-compatible default. `receipt` applies only to non-dry-run commit/rollback results: dry-run still returns the complete normalized plan required by the guarded plan -> execute flow.
 
 A committed receipt preserves plan identity (`snapshotId`, `planHash`, conflict policy, operation count), stable changed-entity identity (`entityKind`, `id`, `controlId` and relevant key/type/name fields), before/after fingerprints, rebase markers, undo state, and rollback state without repeating the complete `plan.before`, top-level `before`, full `after`, and full projected `changedEntities` payloads. Failure receipts preserve error/rollback truth and rollback fingerprints or limitations. Use `full` only when the caller genuinely needs complete mutation snapshots.
+
+Mutation identity is intentionally separate from evidence projection. `planHash`, property preconditions, and rollback verification use a versioned canonical mutable-state snapshot plus every requested touched property. Query-only additions such as bounding-box or evidence diagnostics therefore cannot invalidate a plan, while changes to mutable state still trigger re-plan or non-overlap rebase semantics.
 
 ## Transaction-local refs
 
