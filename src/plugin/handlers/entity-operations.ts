@@ -20,6 +20,12 @@ import {
 import { ErrorCode, type EntityKind, type QueryKind } from "../../shared/protocol.js";
 import { PluginExecError } from "./execute-js.js";
 import {
+  MUTATION_SNAPSHOT_SCHEMA_VERSION,
+  mutationSnapshotEntry,
+  mutationSnapshotFingerprint,
+  mutationSnapshotsEqual,
+} from "./entity-mutation-snapshot.js";
+import {
   changeFeed,
   controlMetadata,
   encodeCursor,
@@ -38,6 +44,11 @@ import {
 const MAX_GRAPH_LIMIT = 1_000;
 declare const __BUNDLE_REVISION__: string;
 const PLUGIN_BUNDLE_REVISION = typeof __BUNDLE_REVISION__ === "string" ? __BUNDLE_REVISION__ : "dev";
+
+interface ResolvedPatchTarget {
+  evidence: Record<string, unknown>;
+  mutation: Record<string, unknown>;
+}
 
 function patchAt(patches: EntityPatchWire[], index: number, source: string): EntityPatchWire {
   const patch = patches[index];
@@ -78,12 +89,15 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
   if (typeof dryRun !== "boolean") throw failure(ErrorCode.INVALID_PARAMS, "dryRun must be boolean.");
   if (input.confirm !== undefined && typeof input.confirm !== "boolean") throw failure(ErrorCode.INVALID_PARAMS, "confirm must be boolean.");
 
-  const before = await resolvePatchTargets(patches, executionPlan);
-  const normalizedPatches = normalizePatches(patches, before);
-  const snapshotId = await snapshotIdFor(before);
-  const planHash = fingerprint({ patches: canonicalPlanPatches(patches), before, snapshotId, conflictPolicy, executionOrder: executionPlan.order });
+  const resolvedBefore = await resolvePatchTargets(patches, executionPlan);
+  const before = resolvedBefore.map((item) => item.evidence);
+  const mutationBefore = resolvedBefore.map((item) => item.mutation);
+  const normalizedPatches = normalizePatches(patches, mutationBefore);
+  const snapshotId = mutationSnapshotFingerprint(mutationBefore);
+  const planHash = fingerprint({ patches: canonicalPlanPatches(patches), mutationBefore, snapshotId, conflictPolicy, executionOrder: executionPlan.order });
   const plan = {
     action: "apply_entity_patch",
+    snapshotSchemaVersion: MUTATION_SNAPSHOT_SCHEMA_VERSION,
     snapshotId,
     planHash,
     conflictPolicy,
@@ -102,7 +116,7 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
   let rebasedFromPlanHash: string | undefined;
   let rebasedFromCursor: string | undefined;
   if (input.expectedPlanHash !== planHash) {
-    if (conflictPolicy !== "merge_non_overlapping" || !canRebaseNonOverlapping(patches, before)) {
+    if (conflictPolicy !== "merge_non_overlapping" || !canRebaseNonOverlapping(patches, mutationBefore)) {
       throw failure(ErrorCode.DRIFT_CONFLICT, "expectedPlanHash does not match the current Figma document snapshot and the patch overlaps the observed drift.", "Re-run dryRun and inspect the new target fingerprints before executing.");
     }
     rebasedFromPlanHash = input.expectedPlanHash;
@@ -127,7 +141,7 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
       if (opRef) localRefs.set(opRef, { entityKind: patch.entityKind, ref: concreteEntityRef(patch.entityKind, summary) });
     }
     const applied = orderedApplied();
-    const after = applied.length ? applied : await resolvePatchTargets(patches, executionPlan);
+    const after = applied.length ? applied : (await resolvePatchTargets(patches, executionPlan)).map((item) => item.evidence);
     if (resultMode === "receipt") {
       return {
         dryRun: false,
@@ -135,7 +149,7 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
         state: "COMMITTED",
         resultMode: "receipt",
         plan: compactMutationPlan(plan),
-        beforeFingerprint: fingerprint(before),
+        beforeFingerprint: mutationSnapshotFingerprint(mutationBefore),
         afterFingerprint: fingerprint(after),
         changedEntities: compactChangedEntities(appliedByIndex, patches),
         ...(rebasedFromPlanHash ? { rebasedFromPlanHash } : {}),
@@ -161,9 +175,11 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
     const applied = orderedApplied();
     try {
       figma.triggerUndo();
-      const rolledBack = await resolvePatchTargets(patches, executionPlan);
+      const resolvedRolledBack = await resolvePatchTargets(patches, executionPlan);
+      const rolledBack = resolvedRolledBack.map((item) => item.evidence);
+      const mutationRolledBack = resolvedRolledBack.map((item) => item.mutation);
       const survivingProducedEntities = await findSurvivingProducedEntities(patches, appliedByIndex);
-      const rollbackFingerprintMatches = fingerprint(rolledBack) === fingerprint(before);
+      const rollbackFingerprintMatches = mutationSnapshotsEqual(mutationRolledBack, mutationBefore);
       const rollbackVerified = rollbackFingerprintMatches && survivingProducedEntities.length === 0;
       const rollbackFailureDetail = rollbackVerified ? undefined : rollbackFailureMessage(rollbackFingerprintMatches, survivingProducedEntities);
       if (resultMode === "receipt") {
@@ -173,9 +189,9 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
           state: rollbackVerified ? "ROLLED_BACK" : "PARTIAL_COMMIT",
           resultMode: "receipt",
           plan: compactMutationPlan(plan),
-          beforeFingerprint: fingerprint(before),
+          beforeFingerprint: mutationSnapshotFingerprint(mutationBefore),
           changedEntities: compactChangedEntities(appliedByIndex, patches),
-          afterRollbackFingerprint: fingerprint(rolledBack),
+          afterRollbackFingerprint: mutationSnapshotFingerprint(mutationRolledBack),
           rollbackState: rollbackVerified ? "verified" : "unverified",
           error: error instanceof Error ? error.message : String(error),
           ...(rollbackVerified ? {} : { rollbackError: rollbackFailureDetail, survivingProducedEntities }),
@@ -201,7 +217,7 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
           state: "PARTIAL_COMMIT",
           resultMode: "receipt",
           plan: compactMutationPlan(plan),
-          beforeFingerprint: fingerprint(before),
+          beforeFingerprint: mutationSnapshotFingerprint(mutationBefore),
           changedEntities: compactChangedEntities(appliedByIndex, patches),
           rollbackState: "unverified",
           error: error instanceof Error ? error.message : String(error),
@@ -255,6 +271,7 @@ const COMPACT_CHANGED_ENTITY_FIELDS = [
 function compactMutationPlan(plan: Record<string, unknown>): Record<string, unknown> {
   return {
     action: plan.action,
+    snapshotSchemaVersion: plan.snapshotSchemaVersion,
     snapshotId: plan.snapshotId,
     planHash: plan.planHash,
     conflictPolicy: plan.conflictPolicy,
@@ -575,8 +592,8 @@ function componentFacts(node: SceneNode): Record<string, unknown> {
 async function resolvePatchTargets(
   patches: EntityPatchWire[],
   executionPlan = planEntityPatchExecution(patches),
-): Promise<Array<Record<string, unknown>>> {
-  const output: Array<Record<string, unknown>> = [];
+): Promise<ResolvedPatchTarget[]> {
+  const output: ResolvedPatchTarget[] = [];
   const producers = new Map(executionPlan.producers.map((producer) => [producer.opRef, producer]));
   for (const [patchIndex, patch] of patches.entries()) {
     if (patch.kind === "create") {
@@ -611,7 +628,7 @@ async function resolvePatchTargets(
           collectionFact = { id: collection.id, name: collection.name, legacyCollectionId: true };
         }
       }
-      output.push({
+      const evidence = {
         operation: "create",
         entityKind: patch.entityKind,
         controlId: patch.controlId ?? null,
@@ -620,11 +637,13 @@ async function resolvePatchTargets(
         ...(patch.parent?.opRef ? { parentOpRef: patch.parent.opRef } : {}),
         ...(collectionFact ? { collection: collectionFact } : {}),
         preflight: deferred ? "deferred_to_execution" : "complete",
-      });
+      };
+      output.push(resolvedPatchTarget(patch, evidence));
       continue;
     }
     if (isCombineVariantsPatch(patch)) {
-      output.push(await preflightCombineVariantsPatch(patch, producers, patches, patchIndex));
+      const evidence = await preflightCombineVariantsPatch(patch, producers, patches, patchIndex);
+      output.push(resolvedPatchTarget(patch, evidence));
       continue;
     }
     const target = patch.target;
@@ -635,7 +654,7 @@ async function resolvePatchTargets(
       const producerPatch = patchAt(patches, producer.patchIndex, "Local target producer");
       validateLocalExpectedType(target, producerPatch);
       await preflightDeferredLocalTarget(patch, producers, patches, patchIndex);
-      output.push({
+      const evidence = {
         operation: "local_ref",
         entityKind: patch.entityKind,
         opRef: target.opRef,
@@ -643,7 +662,8 @@ async function resolvePatchTargets(
         producerKind: producerPatch.kind,
         producerEntityType: producerPatch.kind === "create" ? producerPatch.entityType ?? null : null,
         preflight: "deferred_to_execution",
-      });
+      };
+      output.push(resolvedPatchTarget(patch, evidence));
       continue;
     }
     const resolved = await resolveEntity(target, patch.entityKind);
@@ -656,9 +676,21 @@ async function resolvePatchTargets(
       ...("variable" in patch && patch.variable?.opRef ? { variableOpRef: patch.variable.opRef } : {}),
     };
     const withDeferred = Object.keys(deferredEdges).length ? { ...summary, ...deferredEdges, preflight: "deferred_to_execution" } : summary;
-    output.push(producerOpRef(patch) ? { ...withDeferred, producesOpRef: producerOpRef(patch) } : withDeferred);
+    const evidence = producerOpRef(patch) ? { ...withDeferred, producesOpRef: producerOpRef(patch) } : withDeferred;
+    output.push(resolvedPatchTarget(patch, evidence, resolved));
   }
   return output;
+}
+
+function resolvedPatchTarget(
+  patch: EntityPatchWire,
+  evidence: Record<string, unknown>,
+  target?: BaseNode | BaseStyle | Variable | VariableCollection,
+): ResolvedPatchTarget {
+  return {
+    evidence,
+    mutation: mutationSnapshotEntry(patch, target, evidence, patchTouchedProperties(patch)),
+  };
 }
 
 async function preflightCombineVariantsPatch(
@@ -1966,7 +1998,6 @@ function changedProperties(patches: EntityPatchWire[]): string[] { return [...ne
 function stringProperty(properties: Record<string, JsonValue> | undefined, key: string, fallback: string): string { const value = properties?.[key]; return typeof value === "string" ? value : fallback; }
 function numberProperty(properties: Record<string, JsonValue>, key: string): number | undefined { const value = properties[key]; return typeof value === "number" && Number.isFinite(value) ? value : undefined; }
 function safeJson(value: unknown): unknown { try { return value === undefined ? null : JSON.parse(JSON.stringify(value)); } catch { return null; } }
-function snapshotIdFor(before: Array<Record<string, unknown>>): Promise<string> { return Promise.resolve(fingerprint(before)); }
 function parseOffset(cursor: unknown): number {
   if (typeof cursor !== "string") return 0;
   const match = /^offset:(\d+)$/.exec(cursor);

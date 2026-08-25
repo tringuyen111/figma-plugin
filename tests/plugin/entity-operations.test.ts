@@ -111,6 +111,28 @@ describe("typed entity graph and CRUD", () => {
     });
   });
 
+  it("keeps planHash stable across evidence-only projection drift", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const frame = fixture.makeNode("FRAME", {
+      name: "Stable mutation target",
+      x: 0,
+      absoluteBoundingBox: { x: 0, y: 0, width: 100, height: 40 },
+    });
+    fixture.page.appendChild(frame);
+    const request = { action: "apply_entity_patch", patches: [{ kind: "update", entityKind: "node", target: { nodeId: frame.id }, set: { x: 24 } }], dryRun: true };
+
+    const first = await applyDocument(request) as any;
+    frame.absoluteBoundingBox = { x: 999, y: 999, width: 100, height: 40 };
+    const evidenceOnlyChange = await applyDocument(request) as any;
+    expect(evidenceOnlyChange.plan.planHash).toBe(first.plan.planHash);
+    expect(evidenceOnlyChange.plan.snapshotSchemaVersion).toBe(1);
+
+    frame.x = 1;
+    const mutableChange = await applyDocument(request) as any;
+    expect(mutableChange.plan.planHash).not.toBe(first.plan.planHash);
+  });
+
   it("keeps compact rollback failure evidence without restoring full entity payloads", async () => {
     const fixture = makeFixture();
     (globalThis as Record<string, unknown>).figma = fixture.figma;
