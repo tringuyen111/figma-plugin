@@ -15,6 +15,20 @@ Produce or repair a visual system where dominant/support/accent distribution, su
 
 This Skill earns its place by solving **system color/material roles and perceptual composition as separate truths**. A token can be semantically correct yet visually wrong because surrounding hue/temperature, lightness/chroma, occupied area, repetition, opacity, backdrop, shape, and depth cues change perception. Correct the smallest causal visual relation instead of minting a new token/effect for every symptom.
 
+## Operational vocabulary
+
+**VISUAL ROLE** — the reusable semantic role that should remain stable when literal color/effect values change. Name the role before minting a new visual value.
+
+**PERCEPTUAL FIELD** — the surrounding backdrop, area, repetition, temperature, lightness, chroma, and neighboring cues that change how one visual value is perceived. Diagnose the field before assuming the token is wrong.
+
+**ATTENTION BUDGET** — the finite whole-scene capacity for chroma, contrast, enclosure, type mass, motion, and depth. A locally valid accent can still overspend the global budget.
+
+**SURFACE ROLE** — the visual material responsibility of a region: canvas, work surface, raised region, overlay surface, scrim, or another meaningful material layer. Do not infer a new semantic object from a new fill alone.
+
+**CUE ECONOMY** — the smallest set of border, tone, clipping, overlap, shadow, scrim, blur, or shape cues that communicates the intended hierarchy. More cues are not more proof.
+
+**SHAPE GRAMMAR** — the repeatable relation between object responsibility and silhouette/radius/stroke treatment. Repetition without role distinction creates visual sameness rather than a system.
+
 ## Skill I/O contract
 
 **Minimum input**
@@ -131,7 +145,7 @@ Express brand through controlled system roles rather than hard-coding brand iden
 semantic role -> brand/theme realization -> consumer
 ```
 
-Brand can influence palette temperature/chroma, typography, icon language, material character, shape grammar, and motion; this Skill owns only visual-system aspects. Multi-brand variable inheritance belongs to `figma-tokens`.
+Brand can influence palette temperature/chroma, typography, icon language, material character, shape grammar, and motion; this Skill owns only visual-system aspects. Multi-brand variable inheritance is outside this visual-composition workflow; preserve that unresolved value-system concern instead of inventing local inheritance here.
 
 ## Native execution discipline
 
@@ -155,10 +169,6 @@ Brand can influence palette temperature/chroma, typography, icon language, mater
 
 ## Boundaries
 
-- `figma-verification` owns a fixed-artifact audit/verdict; this Skill owns authoring/repair decisions in its domain.
-
-- `figma-tokens` owns reusable value taxonomy, aliases, modes, scopes, and code syntax.
-- `figma-scene` owns structural/plane/clipping/silhouette ownership and transforms.
-- `figma-typography` owns type roles and font geometry.
-- `figma-components` owns visual-role consumption inside reusable component contracts.
-- `figma-motion` owns temporal salience and motion language.
+- Fixed-artifact audit/verdict is outside this authoring/repair workflow.
+- Reusable value taxonomy/modes, structural plane/clipping relations, typography metrics, component anatomy, and temporal choreography remain separate semantic concerns.
+- This workflow owns perceptual composition and reusable visual-role decisions, not every upstream/downstream system contract that consumes them.

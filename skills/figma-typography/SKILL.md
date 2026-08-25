@@ -15,6 +15,20 @@ Map information roles to reusable Figma text styles/variables and component text
 
 This Skill earns its place by treating typography as **information hierarchy plus geometry**. A Text Style is justified by repeated role behavior, not merely shared font metrics; font availability, fallback metrics, measure, line height, numeric alignment, localization, and text scaling can invalidate a layout even when style bindings are technically correct.
 
+## Operational vocabulary
+
+**INFORMATION ROLE** — the stable communicative job of text, such as page title, control label, metric value, or validation message. Choose the role before literal font metrics.
+
+**TYPE RECIPE** — the reusable composite of family, weight, size, line height, tracking, and related type behavior that realizes an Information Role. Equal metrics do not prove equal roles.
+
+**MEASURE CONTRACT** — the allowed line length/wrap behavior for a role in its representative context. A readable font size can still fail when the measure contract collapses hierarchy or scanning.
+
+**METRIC PRESSURE** — valid variation whose font metrics can change geometry: longer content, locale/RTL, fallback font, numeric width, scaling, or weight changes.
+
+**TEXT-SLOT PRESSURE** — the content behavior a reusable text region must survive: fixed identity, wrapping label, user-generated value, optional metadata, or growing feedback. Shrinking type is not a substitute for a viable slot contract.
+
+**OPTICAL ALIGNMENT** — perceptual alignment after mathematical bounds are correct. Use it only after shared anatomy/metrics are correct; repeated local nudges signal a deeper contract problem.
+
 ## Skill I/O contract
 
 **Minimum input**
@@ -135,10 +149,6 @@ A component text slot must declare its pressure contract: fixed identity, wrappi
 
 ## Boundaries
 
-- `figma-verification` owns a fixed-artifact audit/verdict; this Skill owns authoring/repair decisions in its domain.
-
-- `figma-layout` owns the container/grid response to typography pressure.
-- `figma-tokens` owns shared scalar/string variable architecture.
-- `figma-components` owns the text slot anatomy and configurable text properties.
-- `figma-visual-system` owns color/material composition beyond text-role hierarchy.
-- `figma-design-authoring` owns whole-screen composition.
+- Fixed-artifact audit/verdict is outside this authoring/repair workflow.
+- Container/grid response to typography pressure, reusable scalar/token architecture, component text-slot anatomy, and non-typographic material/color composition are separate semantic concerns.
+- Whole-screen composition may consume typography evidence, but this workflow stays accountable for type roles, metrics, geometry, reuse, and pressure behavior.

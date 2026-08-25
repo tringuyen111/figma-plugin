@@ -15,6 +15,19 @@ Produce or repair the bounded Figma design so semantic, layout, component, style
 
 This Skill earns its place by compiling **approved Product Design truth into one coherent Figma scene across simultaneous graphs**. It prevents API-first drawing and local-polish drift: every visible choice must agree with semantic, layout, component, style/type, plane/input, and state/time relations, then re-enter the whole composition after local decisions.
 
+## Working vocabulary
+
+Use these terms literally inside this workflow; do not rotate synonyms when the distinction changes the decision.
+
+- **ACTIVE DECISION** — the smallest unresolved design decision that can change the next action. If two independent decisions can change different actions, separate them instead of pretending one packet owns both.
+- **DESIGN RESPONSIBILITY** — the semantic or structural obligation a region/relation must enforce. Choose the responsibility before choosing the Figma object that expresses it.
+- **DECISION-CHANGING DEPTH** — additional context or methodology capable of changing the Active Decision, its proof requirement, or its correction. Background that cannot change the decision does not earn context.
+- **FIDELITY** — the minimum representation detail needed to answer the Active Decision and falsify the current decision. Escalate only when the lower level cannot carry the required proof.
+- **ATTENTION BUDGET** — the limited visual salience available to express task priority. If every region asks for equal attention, hierarchy has failed even when the layout is technically valid.
+- **PRESSURE** — a valid content, geometry, state, mode, input, or consumer variation capable of exposing a broken invariant.
+- **RECOMPOSITION** — changing the causal relation/structure when local adaptation cannot preserve the intended invariant. It is not a synonym for polishing or resizing.
+- **WHOLE-SCENE CHECK** — re-evaluating the simultaneous semantic/layout/component/style/plane/state graphs after a local decision. A locally correct edit that creates a cross-graph contradiction is not complete.
+
 ## Skill I/O contract
 
 **Minimum input**
@@ -22,23 +35,23 @@ This Skill earns its place by compiling **approved Product Design truth into one
 - real or representative content/states/constraint pressure;
 - only the current Figma/system/code evidence needed for that question.
 
-**Escalate input by fidelity**, not by curiosity: topology -> structural frame -> system specimen -> rendered composition -> interaction/motion proof only when the active question requires it. Reuse design-system search/context before broad local inspection when provider evidence is stronger.
+**Escalate input by fidelity**, not by curiosity: topology -> structural frame -> system specimen -> rendered composition -> interaction/motion proof only when the Active Decision requires it. Reuse design-system search/context before broad local inspection when provider evidence is stronger.
 
-**Return** the design decision/changes, owners/representations chosen, affected IDs, unresolved Product truth, and the minimum proof that supports the claimed fidelity. A concise result is preferred, but never omit a material design rationale or failed evidence dimension merely to save output.
+**Return** the design decision/changes, Design Responsibilities/representations chosen, affected IDs, unresolved Product truth, and the minimum proof that supports the claimed Fidelity. A concise result is preferred, but never omit a material design rationale or failed evidence dimension merely to save output.
 
 WHEN choosing proof for authored structure, system reuse, layout, visuals, content, interaction, or motion, READ `references/authoring-proof.md` because each claimed fidelity dimension requires its own matching evidence.
 
-## Progressive multi-skill orchestration
+## Progressive authoring workflow
 
-When the job has several independent decision/proof boundaries, needs more than one specialist, or must survive a context/session boundary, **READ** `references/progressive-workflow.md` because it defines the work-packet graph, immediate rolling notes, just-in-time specialist activation and reasoning-shape representation compiler. Use `templates/work-plan.json` plus `scripts/work-plan.mjs` when durable state materially reduces omission or context loss. WHEN another tool generates or consumes the plan, READ `schemas/work-plan.schema.json` because it is the canonical machine contract for that durable state.
+When the job has several independent decision/proof boundaries or must survive a context/session boundary, **READ** `references/progressive-workflow.md` because it defines the work-packet graph, **ACTIVE DECISION**, **DECISION-CHANGING DEPTH**, rolling **CHECKPOINT**, **RE-ENTRY**, and **FRONTIER** semantics. Use `templates/work-plan.json` plus `scripts/work-plan.mjs` only when durable state materially reduces omission or context loss. WHEN another tool generates or consumes the plan, READ `schemas/work-plan.schema.json` because it is the canonical machine contract for that durable state.
 
-Do not preload every possibly relevant Figma Skill. Keep one active packet, load only the specialist depth that can change its decision, note the mechanism/fact/failure/evidence immediately, execute or inspect, then shed that depth before activating the next packet. A small direct edit remains direct and does not earn planning ceremony.
+Keep one active packet. Load only context capable of changing its Active Decision, note the mechanism/fact/failure/evidence immediately, execute or inspect when evidence is sufficient, then shed branch detail that no longer changes the Frontier. A small direct edit remains direct and does not earn planning ceremony. Skill discovery and selection remain Agent-owned; this workflow may expose an unresolved concern but does not prescribe which sibling Skill must be activated.
 
-Prefer a flow, tree, state diagram, typed graph, table, bar, component specimen or wireframe when it exposes sequence, branch, state, ownership, comparison, progress, reuse or spatial hierarchy more clearly than prose. Keep text for labels, real content, exact values, decisions and exceptions; do not use paragraphs to simulate a relationship that geometry or data marks can communicate directly.
+Choose representation from the relation that must become easier to perceive: flow/tree/state/graph/table/chart/specimen/wireframe/render only when that representation exposes structure prose would hide. Deterministic work-plan code validates state/evidence and renders an already-formed graph; it does not choose the representation for the Agent.
 
 ## Distillation and provider authority
 
-Read `references/provenance.md` for audit/provider-conflict work. Resolve the destination and only the context needed for the active design question; then inspect Code Connect/existing screens/libraries before authoring. This reuse-first sequence is supported by both Figma’s published screen-authoring workflow and independent public Agent Skills.
+Read `references/provenance.md` for audit/provider-conflict work. Resolve the destination and only the context needed for the Active Decision; then inspect Code Connect/existing screens/libraries before authoring. This reuse-first sequence is supported by both Figma’s published screen-authoring workflow and independent public Agent Skills.
 
 For web/code sources, generated/captured canvas output may be used as **visual evidence**, while native Variables/Styles/Components/Auto Layout remain the reusable design representation. Never promote a pixel-accurate capture into design-system truth by appearance alone.
 
@@ -48,7 +61,7 @@ Hold these graphs simultaneously:
 
 ```text
 SEMANTIC        page -> region -> content -> action/state
-LAYOUT          owner -> flow/grid -> sizing -> spacing -> adaptation
+LAYOUT          layout owner -> flow/grid -> sizing -> spacing -> adaptation
 COMPONENT       job -> anatomy -> slot -> property/state -> instance
 STYLE / TYPE    semantic role -> token/style -> mode -> consumer
 PLANE / INPUT   clip / persist / overlay / anchor / occlude / input priority
@@ -70,9 +83,9 @@ Establish:
 
 If product behavior is unresolved, expose the gap instead of using Figma to silently decide it.
 
-## Active question and fidelity
+## Active decision and fidelity
 
-Choose the minimum representation that can answer the current question:
+Choose the minimum representation that can answer the Active Decision:
 
 | Question | Minimum faithful representation |
 |---|---|
@@ -90,13 +103,13 @@ Do not force every task through every fidelity stage.
 ## Whole-scene composition loop
 
 1. **Meaning**: establish reading/action priority.
-2. **Ownership**: assign structure, layout, component, style/type, and plane owners.
+2. **Responsibility**: assign each structural, layout, component, style/type, and plane Design Responsibility to the relation/object that must enforce it.
 3. **Relations**: choose alignment/grid, spacing, slots, token/style roles, and plane relations.
-4. **Visual distribution**: allocate type mass, contrast, hue/chroma, negative space, shape, depth, imagery, and motion according to attention budget.
-5. **Adaptation**: preserve semantic/system invariants while geometry/disclosure/presentation recomposes under pressure.
+4. **Visual distribution**: allocate type mass, contrast, hue/chroma, negative space, shape, depth, imagery, and motion according to the Attention Budget.
+5. **Adaptation**: preserve semantic/system invariants while geometry/disclosure/presentation responds to Pressure; Recompose only when adaptation cannot preserve them.
 6. **Native compile**: choose the Figma objects that truthfully express each responsibility.
-7. **Render/inspect**: inspect part -> whole -> representative state/mode/consumer.
-8. **Recompose**: fix the smallest causal relation, not the nearest visible symptom.
+7. **Whole-scene check**: render/inspect part -> whole -> representative state/mode/consumer, then re-evaluate the simultaneous graphs for contradiction.
+8. **Recomposition**: fix the smallest causal relation, not the nearest visible symptom.
 
 ## Craft quality ladder
 
@@ -130,7 +143,7 @@ transient plane                     -> owned frame + overlay/prototype relation
 state continuity                    -> explicit states + Prototype for interaction path; Motion for choreography when earned
 ```
 
-Use the dedicated Figma capabilities for deep decisions instead of embedding tool-specific folklore here.
+Keep deep domain decisions explicit instead of embedding tool-specific folklore in the whole-scene workflow. If another decision mechanism becomes material, name the unresolved concern and required return; normal Agent capability discovery remains responsible for any additional Skill selection.
 
 ## Reuse before invention
 
@@ -138,7 +151,7 @@ Before drawing primitives from scratch:
 
 1. inspect current screen and local design-system assets;
 2. inspect local/shared components, variables, and styles accessible to the file;
-3. compare semantics/API/system ownership, not just appearance;
+3. compare semantic contract/API/system authority, not just appearance;
 4. reuse or extend compatible assets;
 5. create new roles/components only where current system cannot express the meaning truthfully.
 
@@ -162,11 +175,11 @@ Reuse repeated semantic jobs with invariant anatomy and controlled variation. Si
 Adapt to constraint space, not device labels: width, height, usable viewport, content pressure, input mode, and state can change independently.
 
 ### Interaction and Motion
-Use `figma-prototype` when the design question is trigger/action/condition/navigation/overlay/recovery. Use `figma-motion` when the question is timeline/keyframe/timing/easing choreography. Preserve state meaning and operability when motion is reduced.
+Keep interaction-path reasoning separate from temporal choreography. Triggers/actions/conditions/navigation/overlay/recovery belong to the state-path decision; timeline/keyframe/timing/easing belong to the temporal decision. Preserve state meaning and operability when motion is reduced. If either decision needs depth outside this Skill, keep the unresolved concern explicit and let normal capability discovery select any additional help.
 
 ## Native/runtime discipline
 
-ControlMux Figma uses `figma_status` + typed `figma_query` entity facts + guarded `figma_apply(action=apply_entity_patch)` as the common execution kernel, with `figma_exec` only for an uncovered/provider-gated API and `figma_export` as typed artifact egress. Drain/read the change cursor before each patch, preserve `controlId` identity, keep writes incremental, inspect before mutate, use async Plugin API methods where required, return affected ids/readback, and render/export visible evidence when craft is material. Runtime facts do not become Design or verification verdicts automatically.
+Use the runtime's bounded query and guarded typed-mutation path for modeled operations; use the native escape hatch only for an uncovered/provider-gated API, and use typed artifact egress when the result is a durable file. Keep target identity explicit, drain/read change state before dependent patches, preserve stable continuation identity, mutate incrementally, inspect before mutate, use async Plugin API methods where required, and return bounded readback/render evidence. Exact transaction/reference syntax belongs to the native execution contract, not this Design workflow. Runtime facts do not become Design or verification verdicts automatically.
 
 ## Failure and correction
 
@@ -178,17 +191,6 @@ ControlMux Figma uses `figma_status` + typed `figma_query` entity facts + guarde
 - **Responsive = breakpoint copy:** identify the actual invariant that fails under geometry/content/input pressure.
 - **Agent invents missing UX:** mark blocked Product truth and stop that decision branch.
 
-## Composition boundaries
+## Capability boundary
 
-Use the smallest deep owner when needed:
-
-- `figma-scene`: scene/plane/depth/shape ownership.
-- `figma-layout`: Auto Layout/Grid/sizing/responsive geometry.
-- `figma-tokens`: variables/modes/aliases/token naming.
-- `figma-typography`: fonts/Text Styles/text geometry.
-- `figma-visual-system`: color/material/shape/effect composition.
-- `figma-components`: reusable component APIs.
-- `figma-prototype`: executable interaction/state paths.
-- `figma-motion`: Motion timeline and temporal choreography.
-- `figma-verification`: fixed-artifact audit/acceptance when assessment, not redesign, is the terminal job.
-- `figma-design-system`: whole reusable system/library work.
+This Skill owns coherent Figma authoring across the whole scene; it does not own every deep domain method or fixed-artifact acceptance verdict. When an unresolved concern requires depth outside this accountable job, name the concern, required return, and proof consequence, then let normal Agent capability discovery decide whether additional Skill context is useful. Do not encode sibling-Skill routes or activation order inside this workflow.

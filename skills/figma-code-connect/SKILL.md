@@ -13,13 +13,25 @@ Produce or repair a mapping whose Figma component identity, code component ident
 
 ## Current provider direction
 
-As of 2026-08-18, Figma recommends the framework-agnostic **template file** format for new Code Connect work. Legacy framework-specific parsers are no longer actively maintained after 2026-08-17. Prefer `.figma.ts` templates (or `.figma.js` when intentionally using JavaScript) unless a bound existing project requires legacy compatibility.
+Current Figma guidance recommends the framework-agnostic **template file** format for new Code Connect work. Legacy framework-specific parsers are no longer actively maintained. Prefer `.figma.ts` templates (or `.figma.js` when intentionally using JavaScript) unless a bound existing project requires legacy compatibility. Revalidate provider guidance before consequential migration when this detail may have changed.
 
 Do not migrate parser files blindly; preserve existing published behavior until the replacement template is verified.
 
 ## Decision advantage
 
 This Skill earns its place by treating Code Connect as **semantic API translation with migration proof**, not name matching or provider setup. Both Figma and code identities are independent authorities; every mapped property must correspond to a real code mechanism, nested content must preserve Slot/Instance Swap semantics, and parser/template migration must close old/new active truth deliberately.
+
+## Operational vocabulary
+
+**MAPPING IDENTITY** — the bound pair of exact Figma component identity and exact code component/export identity. Similar names are not one mapping.
+
+**CORRESPONDENCE** — one verified semantic relation between a Figma property/content dimension and a real code API mechanism. Omit an unmatched dimension rather than inventing a prop.
+
+**TEMPLATE TRUTH** — the mapping artifact that should be active after authoring/migration, including imports, property translation, snippet behavior, and label/id semantics. Parser/template syntax validity is only part of this truth.
+
+**TRANSLATION PARITY** — equivalence between Figma and code for explicitly mapped dimensions. It does not mean every Figma property or code prop must have a counterpart.
+
+**MIGRATION CUTOVER** — the point at which replacement Template Truth has sufficient parity/proof to supersede the legacy mapping. Deleting the old parser before cutover creates missing active truth.
 
 ## Skill I/O contract
 
@@ -109,7 +121,5 @@ For parser -> template migration:
 
 ## Boundaries
 
-- `figma-components` owns the Figma component/property contract.
-- `figma-design-to-code` consumes mappings during implementation.
-- `figma-code-to-design` may use mappings to identify corresponding design assets.
-- Production source/code correctness remains an engineering concern outside this Skill.
+- Figma component design/API creation, production component implementation, Figma redesign, and reverse code-to-design reconstruction are outside this mapping workflow.
+- This workflow may consume those identities as authorities, but it owns only verified correspondence, template/mapping artifacts, migration cutover, and translation-parity proof.

@@ -6,62 +6,43 @@ import { pathToFileURL } from "node:url";
 const STATUS = new Set(["PENDING", "ACTIVE", "PASS", "FAIL", "BLOCKED", "NOT_RUN"]);
 const NODE_TYPE = new Set(["FOUNDATION", "WALKING_SKELETON", "VERTICAL_SLICE", "HARDENING", "VERIFICATION"]);
 const RELATION = new Set(["BLOCKS_TRUTH", "PROVED_BY", "INVALIDATES", "CONFLICTS_WRITE_WITH"]);
-const VISUAL = new Set(["text", "table", "flow", "timeline", "tree", "state-diagram", "typed-graph", "bar", "metric-cards", "wireframe", "component-specimen"]);
-const ACTOR = new Set([
-  "engineering-planning", "figma-code-connect", "figma-code-to-design", "figma-components",
-  "figma-design-authoring", "figma-design-system", "figma-design-to-code", "figma-design-to-design",
-  "figma-layout", "figma-motion", "figma-native", "figma-prototype", "figma-scene", "figma-tokens",
-  "figma-typography", "figma-verification", "figma-visual-system", "frontend-engineering",
-  "plugin-runtime", "skill-plugin-engineering",
-]);
 const ID = /^[a-z0-9][a-z0-9._:-]{0,127}$/;
+const PLAN_KEYS = new Set(["schemaVersion", "planId", "objective", "terminalTruth", "state", "obligations", "nodes", "edges", "frontier", "notesPath"]);
+const OBLIGATION_KEYS = new Set(["id", "sourceText", "required", "proofRequired", "status", "evidenceRefs", "blocker"]);
+const NODE_KEYS = new Set(["id", "type", "label", "outcome", "status", "obligationIds", "dependsOn", "entrypoint", "proof", "evidenceRefs", "nonGoals", "recovery", "blocker"]);
+const EDGE_KEYS = new Set(["from", "relation", "to"]);
 
 export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {}) {
   const errors = [];
   if (!plan || typeof plan !== "object" || Array.isArray(plan)) return ["plan must be an object"];
-  if (![1, 2].includes(plan.schemaVersion)) errors.push("schemaVersion must equal 1 or 2");
-  const obligationLedgerEnabled = plan.schemaVersion === 2;
+  validateKnownKeys("plan", plan, PLAN_KEYS, errors);
+  if (plan.schemaVersion !== 3) errors.push("schemaVersion must equal 3");
   if (typeof plan.planId !== "string" || !ID.test(plan.planId)) errors.push("planId is invalid");
   if (!bounded(plan.objective, 500)) errors.push("objective must be 1-500 characters");
   if (!bounded(plan.terminalTruth, 500)) errors.push("terminalTruth must be 1-500 characters");
   if (!["ACTIVE", "PASS", "FAIL", "BLOCKED"].includes(plan.state)) errors.push("state is invalid");
 
-  const context = plan.contextPolicy;
-  if (!context || context.mode !== "progressive") errors.push("contextPolicy.mode must be progressive");
-  if (!Number.isInteger(context?.maxActiveDeepResources) || context.maxActiveDeepResources < 1 || context.maxActiveDeepResources > 2) errors.push("maxActiveDeepResources must be 1-2");
-  if (context?.noteAfterEachLoad !== true) errors.push("noteAfterEachLoad must be true");
-  if (context?.distillBeforeNextLoad !== true) errors.push("distillBeforeNextLoad must be true");
-
-  const representation = plan.representationPolicy;
-  if (!representation || !VISUAL.has(representation.default)) errors.push("representationPolicy.default is invalid");
-  if (!Array.isArray(representation?.rules) || representation.rules.length < 6) errors.push("representationPolicy.rules must contain at least 6 rules");
-  const shapes = new Set();
-  for (const [index, rule] of (representation?.rules ?? []).entries()) {
-    if (!bounded(rule?.shape, 64) || !VISUAL.has(rule?.use)) errors.push(`representation rule ${index} is invalid`);
-    if (shapes.has(rule?.shape)) errors.push(`duplicate representation shape ${rule.shape}`);
-    shapes.add(rule?.shape);
-  }
-
+  const ledgerEnabled = plan.obligations !== undefined;
   const obligations = new Map();
-  if (obligationLedgerEnabled && (!Array.isArray(plan.obligations) || plan.obligations.length === 0)) {
-    errors.push("obligations must be a non-empty array");
+  if (ledgerEnabled && (!Array.isArray(plan.obligations) || plan.obligations.length === 0)) {
+    errors.push("obligations must be a non-empty array when present");
   }
   for (const [index, obligation] of (plan.obligations ?? []).entries()) {
     if (!obligation || typeof obligation !== "object" || Array.isArray(obligation)) {
       errors.push(`obligation ${index} must be an object`);
       continue;
     }
+    validateKnownKeys(`obligation ${obligation.id ?? index}`, obligation, OBLIGATION_KEYS, errors);
     if (typeof obligation.id !== "string" || !ID.test(obligation.id)) errors.push(`obligation ${index} id is invalid`);
     if (obligations.has(obligation.id)) errors.push(`duplicate obligation id ${obligation.id}`);
     obligations.set(obligation.id, obligation);
     if (!bounded(obligation.sourceText, 1000)) errors.push(`obligation ${obligation.id} sourceText is invalid`);
     if (typeof obligation.required !== "boolean") errors.push(`obligation ${obligation.id} required is invalid`);
-    if (!ACTOR.has(obligation.owner)) errors.push(`obligation ${obligation.id} owner is not canonical`);
     if (typeof obligation.proofRequired !== "boolean") errors.push(`obligation ${obligation.id} proofRequired is invalid`);
     if (!STATUS.has(obligation.status)) errors.push(`obligation ${obligation.id} status is invalid`);
     if (!uniqueStringList(obligation.evidenceRefs, 0, 300)) errors.push(`obligation ${obligation.id} evidenceRefs are invalid`);
-    if (obligation.status === "PASS" && (obligation.evidenceRefs?.length ?? 0) === 0) errors.push(`passed obligation ${obligation.id} requires evidenceRefs`);
-    if (obligation.status === "PASS") validateEvidenceRefs(`passed obligation ${obligation.id}`, obligation.evidenceRefs, evidenceBaseDir, errors);
+    if (obligation.status === "PASS" && obligation.proofRequired && (obligation.evidenceRefs?.length ?? 0) === 0) errors.push(`passed obligation ${obligation.id} requires evidenceRefs`);
+    if (obligation.status === "PASS" && obligation.proofRequired) validateEvidenceRefs(`passed obligation ${obligation.id}`, obligation.evidenceRefs, evidenceBaseDir, errors);
     if (obligation.status === "BLOCKED" && !bounded(obligation.blocker, 500)) errors.push(`blocked obligation ${obligation.id} requires blocker`);
     if (obligation.status !== "BLOCKED" && obligation.blocker !== "") errors.push(`non-blocked obligation ${obligation.id} must have an empty blocker`);
   }
@@ -70,7 +51,8 @@ export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {})
   const ids = new Set();
   const nodes = new Map();
   for (const [index, node] of (plan.nodes ?? []).entries()) {
-    if (!node || typeof node !== "object") { errors.push(`node ${index} must be an object`); continue; }
+    if (!node || typeof node !== "object" || Array.isArray(node)) { errors.push(`node ${index} must be an object`); continue; }
+    validateKnownKeys(`node ${node.id ?? index}`, node, NODE_KEYS, errors);
     if (typeof node.id !== "string" || !ID.test(node.id)) errors.push(`node ${index} id is invalid`);
     if (ids.has(node.id)) errors.push(`duplicate node id ${node.id}`);
     ids.add(node.id);
@@ -79,15 +61,14 @@ export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {})
     if (!bounded(node.label, 100)) errors.push(`node ${node.id} label is invalid`);
     if (!bounded(node.outcome, 500)) errors.push(`node ${node.id} outcome is invalid`);
     if (!STATUS.has(node.status)) errors.push(`node ${node.id} status is invalid`);
-    if (!ACTOR.has(node.owner)) errors.push(`node ${node.id} owner is not canonical`);
-    if (!uniqueActorList(node.specialists) || node.specialists.includes(node.owner)) errors.push(`node ${node.id} specialists are invalid`);
-    if (obligationLedgerEnabled && !uniqueIdList(node.obligationIds, 1)) errors.push(`node ${node.id} obligationIds are invalid`);
+    if (ledgerEnabled && !uniqueIdList(node.obligationIds, 1)) errors.push(`node ${node.id} obligationIds are invalid`);
+    if (!ledgerEnabled && node.obligationIds !== undefined && !uniqueIdList(node.obligationIds, 0)) errors.push(`node ${node.id} obligationIds are invalid`);
     if (!Array.isArray(node.dependsOn) || new Set(node.dependsOn).size !== node.dependsOn.length) errors.push(`node ${node.id} dependsOn is invalid`);
     if (!bounded(node.entrypoint, 300)) errors.push(`node ${node.id} entrypoint is invalid`);
     if (!stringList(node.proof, 1, 300)) errors.push(`node ${node.id} proof is invalid`);
-    if (obligationLedgerEnabled && !uniqueStringList(node.evidenceRefs, 0, 300)) errors.push(`node ${node.id} evidenceRefs are invalid`);
-    if (obligationLedgerEnabled && node.status === "PASS" && (node.evidenceRefs?.length ?? 0) === 0) errors.push(`passed node ${node.id} requires evidenceRefs`);
-    if (obligationLedgerEnabled && node.status === "PASS") validateEvidenceRefs(`passed node ${node.id}`, node.evidenceRefs, evidenceBaseDir, errors);
+    if (node.evidenceRefs !== undefined && !uniqueStringList(node.evidenceRefs, 0, 300)) errors.push(`node ${node.id} evidenceRefs are invalid`);
+    if (ledgerEnabled && node.status === "PASS" && (node.evidenceRefs?.length ?? 0) === 0) errors.push(`passed node ${node.id} requires evidenceRefs`);
+    if (ledgerEnabled && node.status === "PASS") validateEvidenceRefs(`passed node ${node.id}`, node.evidenceRefs, evidenceBaseDir, errors);
     if (!stringList(node.nonGoals, 0, 300)) errors.push(`node ${node.id} nonGoals is invalid`);
     if (!bounded(node.recovery, 500)) errors.push(`node ${node.id} recovery is invalid`);
     if (node.status === "BLOCKED" && !bounded(node.blocker, 500)) errors.push(`blocked node ${node.id} requires blocker`);
@@ -107,7 +88,7 @@ export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {})
   }
   if (hasCycle(nodes)) errors.push("dependency graph contains a cycle");
 
-  if (obligationLedgerEnabled) {
+  if (ledgerEnabled) {
     for (const obligation of obligations.values()) {
       if (obligation.required && ![...nodes.values()].some((node) => node.obligationIds?.includes(obligation.id))) {
         errors.push(`required obligation ${obligation.id} is not covered by any node`);
@@ -118,6 +99,7 @@ export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {})
   if (!Array.isArray(plan.edges)) errors.push("edges must be an array");
   const edgeKeys = new Set();
   for (const [index, edge] of (plan.edges ?? []).entries()) {
+    if (edge && typeof edge === "object" && !Array.isArray(edge)) validateKnownKeys(`edge ${index}`, edge, EDGE_KEYS, errors);
     if (!nodes.has(edge?.from) || !nodes.has(edge?.to) || !RELATION.has(edge?.relation)) errors.push(`edge ${index} is invalid`);
     const key = `${edge?.from}|${edge?.relation}|${edge?.to}`;
     if (edgeKeys.has(key)) errors.push(`duplicate edge ${key}`);
@@ -133,17 +115,16 @@ export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {})
     for (const dependency of node?.dependsOn ?? []) {
       if (nodes.get(dependency)?.status !== "PASS") errors.push(`frontier node ${id} has incomplete dependency ${dependency}`);
     }
-    if (obligationLedgerEnabled && node) {
+    if (ledgerEnabled && node) {
       const mapped = (node.obligationIds ?? []).map((obligationId) => obligations.get(obligationId)).filter(Boolean);
       if (mapped.some((obligation) => ["FAIL", "BLOCKED"].includes(obligation.status))) errors.push(`frontier node ${id} has a failed or blocked obligation`);
-      if (mapped.length > 0 && mapped.every((obligation) => obligation.status === "PASS")) errors.push(`frontier node ${id} has no unresolved obligation`);
     }
   }
   for (const node of activeNodes) {
     if (!plan.frontier?.includes(node.id)) errors.push(`active node ${node.id} must be in frontier`);
   }
 
-  if (obligationLedgerEnabled && plan.state === "PASS") {
+  if (ledgerEnabled && plan.state === "PASS") {
     if ((plan.frontier?.length ?? 0) !== 0) errors.push("a PASS plan requires an empty frontier");
     for (const obligation of obligations.values()) {
       if (!obligation.required) continue;
@@ -154,11 +135,6 @@ export function validateWorkPlan(plan, { evidenceBaseDir = process.cwd() } = {})
   }
   if (!bounded(plan.notesPath, 260)) errors.push("notesPath is invalid");
   return errors;
-}
-
-export function selectRepresentation(plan, shape) {
-  const match = plan?.representationPolicy?.rules?.find((rule) => rule.shape === shape);
-  return match?.use ?? plan?.representationPolicy?.default ?? "text";
 }
 
 export function renderWorkPlanSvg(plan) {
@@ -201,7 +177,7 @@ export function renderWorkPlanSvg(plan) {
     `<rect width="100%" height="100%" fill="#f4f2ed"/>`,
     `<text x="46" y="50" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="700" letter-spacing="1.2" fill="#626772">${esc(plan.planId.toUpperCase())}</text>`,
     `<text x="46" y="84" font-family="Inter,Segoe UI,sans-serif" font-size="26" font-weight="750" fill="#17191d">${esc(trim(plan.objective, 76))}</text>`,
-    `<text x="46" y="112" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#626772">Current frontier: ${esc(frontierLabel)} · context: progressive / max ${plan.contextPolicy.maxActiveDeepResources} deep resources</text>`,
+    `<text x="46" y="112" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#626772">Current frontier: ${esc(frontierLabel)} · semantic work state / evidence graph</text>`,
     `<g font-family="Inter,Segoe UI,sans-serif">`,
   ];
   for (const edge of plan.edges) {
@@ -225,7 +201,7 @@ export function renderWorkPlanSvg(plan) {
     parts.push(`<text x="26" y="31" font-size="10" font-weight="800" fill="${palette.fg}">${esc(node.status)}</text>`);
     parts.push(`<text x="16" y="58" font-size="15" font-weight="750" fill="#17191d">${esc(trim(node.label, 30))}</text>`);
     wrap(node.outcome, 42, 2).forEach((line, index) => parts.push(`<text x="16" y="${79 + index * 16}" font-size="11" fill="#626772">${esc(line)}</text>`));
-    parts.push(`<text x="16" y="119" font-size="9.5" font-weight="650" fill="#4b66e8">${esc(node.owner)}</text>`);
+    parts.push(`<text x="16" y="119" font-size="9.5" font-weight="650" fill="#4b66e8">${esc(node.type)}</text>`);
     parts.push(`</g>`);
   }
   parts.push(`</g>`);
@@ -234,11 +210,13 @@ export function renderWorkPlanSvg(plan) {
   return parts.join("\n");
 }
 
+function validateKnownKeys(label, value, allowed, errors) {
+  for (const key of Object.keys(value)) if (!allowed.has(key)) errors.push(`${label} contains unsupported field ${key}`);
+}
 function bounded(value, max) { return typeof value === "string" && value.length > 0 && value.length <= max; }
 function stringList(value, min, max) { return Array.isArray(value) && value.length >= min && value.every((item) => bounded(item, max)); }
 function uniqueStringList(value, min, max) { return stringList(value, min, max) && new Set(value).size === value.length; }
 function uniqueIdList(value, min) { return Array.isArray(value) && value.length >= min && value.every((item) => typeof item === "string" && ID.test(item)) && new Set(value).size === value.length; }
-function uniqueActorList(value) { return Array.isArray(value) && value.every((item) => ACTOR.has(item)) && new Set(value).size === value.length; }
 function hasCycle(nodes) {
   const visiting = new Set();
   const visited = new Set();

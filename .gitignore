@@ -6,3 +6,8 @@ dist/
 tunnel-id.txt
 coverage/
 plugin/code.js
+output/
+figma-plugin-*.tgz
+plugin/code.js.map
+plugin/ui.html
+*.tsbuildinfo

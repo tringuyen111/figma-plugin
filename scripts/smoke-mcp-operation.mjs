@@ -25,6 +25,10 @@ try {
   assert(queryTool?.inputSchema?.properties?.kind?.enum?.includes("file_inventory"), "figma_query is missing file_inventory schema.");
   assert(applyTool?.inputSchema?.properties?.action?.enum?.includes("clear_file_owned_assets"), "figma_apply is missing clear_file_owned_assets schema.");
   assert(applyTool?.inputSchema?.properties?.action?.enum?.includes("import_library_asset"), "figma_apply is missing import_library_asset schema.");
+  assert(JSON.stringify(applyTool?.inputSchema?.properties?.resultMode?.enum) === JSON.stringify(["full", "receipt"]), "figma_apply is missing compact resultMode schema.");
+  const patchSchema = applyTool?.inputSchema?.properties?.patches?.items;
+  assert(Boolean(patchSchema?.properties?.opRef), "figma_apply entity patch schema is missing producer opRef.");
+  assert(Boolean(patchSchema?.properties?.target?.properties?.opRef), "figma_apply entity target schema is missing transaction-local opRef.");
   assert(queryTool?.inputSchema?.properties?.kind?.enum?.includes("library_inventory"), "figma_query is missing library_inventory schema.");
   assert(JSON.stringify(queryTool?.inputSchema?.properties?.operation?.properties?.kind?.enum) === JSON.stringify(["read"]), "figma_query operation schema/runtime kind drifted.");
   assert(JSON.stringify(applyTool?.inputSchema?.properties?.operation?.properties?.kind?.enum) === JSON.stringify(["write"]), "figma_apply operation schema/runtime kind drifted.");

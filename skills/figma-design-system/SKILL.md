@@ -1,6 +1,6 @@
 ---
 name: figma-design-system
-description: "Build, reconcile, audit, or evolve a reusable Figma Design System across foundations, components, layout, motion, libraries, naming, publishing, and code alignment. Use when the terminal outcome is a shared system/library rather than one object. Own cross-capability governance; delegate local specialist decisions."
+description: "Build, reconcile, audit, or evolve a reusable Figma Design System across foundations, components, layout, motion, libraries, naming, publishing, and code alignment. Use when the terminal outcome is a shared system/library rather than one object. Own system-level authority, reuse, propagation, distribution, and reconciliation; local object-level craft remains outside the terminal job."
 ---
 
 # Figma Design System
@@ -13,7 +13,21 @@ Produce or repair a Figma system whose foundations and components have explicit 
 
 ## Decision advantage
 
-This Skill earns its place by governing **cross-capability reuse, authority, propagation, and distribution**. It decides what belongs in the system, where it belongs, which source wins a conflict, and how a change reaches consumers. It must not become a super-Skill that reimplements token/component/type/layout methods; compose those owners while retaining the system-level reconciliation and publication decision.
+This Skill earns its place by governing **cross-capability reuse, authority, propagation, and distribution**. It decides what belongs in the system, where it belongs, which source wins a conflict, and how a change reaches consumers. It must not become a super-workflow that reimplements local value/component/type/layout craft; keep those local decisions explicit while retaining system-level reconciliation, propagation, distribution, and publication responsibility.
+
+## Operational vocabulary
+
+**SYSTEM ROLE** — a reusable semantic responsibility that belongs to the shared system rather than one feature instance. Repetition alone does not make a value/component/system-worthy.
+
+**SYSTEM AUTHORITY** — the authority allowed to define one disputed system dimension. Different dimensions may have different System Authorities; do not choose one file globally because it is newest.
+
+**PROPAGATION PATH** — how an approved system change reaches libraries, instances, bindings, mappings, and representative consumers. A copied value has no propagation path by itself.
+
+**DISTRIBUTION CONTRACT** — whether a system asset is local, published, subscribed/imported, or otherwise shared, plus the update relationship consumers are expected to retain.
+
+**CONSUMER PROOF** — representative real usage that demonstrates the shared contract survives actual content/state/mode/density pressure. Definitions alone do not prove a system.
+
+**MIGRATION TRUTH** — the explicit state of old/new identities, consumers, compatibility, cutover, and removal. Two competing active systems are not a completed migration.
 
 ## Skill I/O contract
 
@@ -114,22 +128,24 @@ Use only phases that the current system needs, but preserve dependency truth:
 
 Do not create components before their required variable/style foundations exist unless the source intentionally has no such system.
 
-## Compose dedicated capabilities
+## Resolve system dimensions without absorbing local craft
 
-Use these as the deep owner when material:
+The system workflow coordinates these semantic dimensions only when they affect the shared terminal result:
 
-- `figma-tokens`: variables, modes, aliases, scopes, code syntax, extended collections.
-- `figma-typography`: fonts, Text Styles, type roles and geometry.
-- `figma-visual-system`: color/material/shape/effect composition.
-- `figma-layout`: layout conventions and responsive geometry.
-- `figma-components`: component APIs, variants, slots, instances.
-- `figma-prototype`: reusable prototype interaction/state behavior where it belongs to the system contract.
-- `figma-motion`: temporal system, Timing/Easing roles, and reusable Motion.
-- `figma-verification`: fixed-system audit/acceptance; this Skill still owns system creation/repair.
-- `figma-code-connect`: deterministic component mapping.
-- `figma-design-to-design`: consume/reuse/wrap/fork/migrate/sync system assets across Figma files while preserving the intended identity/update path.
+| System concern | Required system-level return |
+|---|---|
+| value architecture | role/mode/alias/source decision + affected consumer graph |
+| typography system | information-role contract + reusable type identity + pressure proof |
+| visual system | shared visual roles/material language + representative perceptual proof |
+| layout convention | reusable geometric invariant + pressure/adaptation rule |
+| component contract | semantic job/API/state/slot compatibility + consumer proof |
+| interaction state | reusable state-path obligation that must survive system reuse |
+| temporal system | reusable Temporal Role/easing/timing semantics + reduced-motion meaning |
+| verification | exact shared-system claim + required evidence dimension, without self-approving it |
+| code mapping | correspondence/parity obligation between design identity and production identity |
+| cross-file identity | intended upstream/update relationship for consumption, migration, or synchronization |
 
-This Skill remains accountable for cross-capability consistency and the system-level terminal result.
+Do not turn this matrix into a capability route table. Resolve the system-level consequence and leave local craft depth to normal Agent capability discovery when it becomes decision-changing.
 
 ## Library and publication reasoning
 
@@ -147,7 +163,7 @@ proof targets
 
 Publishing is an authority/release side effect, not an automatic step. If the user has not authorized publication, keep the candidate local and report readiness separately. Inspect `getPublishStatusAsync()` where supported to distinguish unpublished/current/changed readiness, but do not turn readiness into a publication claim. Library enablement is likewise a Figma/user action; local `figma.teamLibrary` inspection requires the `teamlibrary` permission and does not grant authority to enable libraries.
 
-Once another file must **consume, migrate, or synchronize** the system, hand the transfer job to `figma-design-to-design`; this Skill remains owner of the system source/governance itself.
+Once another file must **consume, migrate, or synchronize** the system, return the exact source/target identities and intended upstream/update relationship as a cross-design transfer concern. This workflow remains accountable for the system source/governance itself; normal Agent capability discovery owns what executes the transfer job.
 
 ## Proof matrix
 
@@ -174,4 +190,4 @@ A system claim needs more than valid objects. Check:
 
 ## Native/runtime boundary
 
-ControlMux Figma exposes `figma_status`, read-only `figma_query`, guarded `figma_apply`, raw `figma_exec`, and typed `figma_export` as the local runtime/egress kernel. Prefer typed query/apply for common inventory, structure, handoff, and file-owned cleanup; use raw execution only when no typed operation exists. Preserve missing provider capabilities explicitly rather than hallucinating them.
+Use the installed Figma execution surface as mechanics, not as the design-system ontology. Prefer bounded structured inventory/mutation/readback when it can express the decided system relation; use the narrow native escape path only for an uncovered provider operation. Preserve missing provider capabilities explicitly rather than hallucinating them, and do not convert tool availability into publication/library authority.

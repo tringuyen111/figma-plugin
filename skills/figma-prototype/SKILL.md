@@ -17,6 +17,20 @@ Read `references/prototype-method.md` when the interaction has branching, variab
 
 This Skill earns its place by treating a prototype as an **interaction state graph**, not a bag of click links. Resolve source state, trigger, ordered actions, conditions/variables, destination/context, focus/input consequences, and recovery. Multiple actions on one Reaction are one ordered behavioral contract; Motion choreography is a separate temporal concern.
 
+## Operational vocabulary
+
+**STATE PATH** — one traceable progression from source state through trigger/condition/actions to destination/context and recovery. A collection of links is not a path until the causal sequence is explicit.
+
+**SOURCE STATE** — the exact semantic state in which an interaction becomes available. Do not infer source state from canvas proximity.
+
+**TRIGGER** — the user/system input that begins the path. Essential meaning must not depend on an unavailable input modality.
+
+**ACTION SET** — the ordered consequences attached to one trigger. Multiple actions on a reaction are one behavioral contract, not independent decoration.
+
+**CONTEXT CONTINUITY** — what remains, changes, receives focus, or must be restored across navigation, overlays, and reusable state changes.
+
+**RECOVERY PATH** — the dismiss/back/cancel/error/reset route required to leave or correct a state. A happy path without required recovery is incomplete.
+
 ## Skill I/O contract
 
 **Minimum input**
@@ -51,7 +65,7 @@ Keep product behavior authoritative. Figma reactions/actions are representations
 - Use **variables/conditions** only when state/data logic is necessary to represent the approved path; do not simulate a product backend in prototype variables.
 - Keep explicit static states when executable interaction adds no learning or proof value.
 
-If the material question is keyframe timing, easing, animation styles, springs, or timeline choreography, hand to `figma-motion`. A transition may compose Prototype + Motion, but each has a different source of truth.
+If the material question is keyframe timing, easing, springs, or timeline choreography, return a **TEMPORAL CHOREOGRAPHY** concern while keeping the interaction State Path explicit. State-transition truth and authored time are different contracts.
 
 ## State-path contract
 
@@ -88,7 +102,7 @@ Avoid duplicating identical reactions across many local instances when a shared 
 
 ## Interactive components as reusable behavior
 
-When the interaction belongs to a reusable component rather than one screen instance, compose with `figma-components` instead of wiring every consumer independently.
+When the interaction belongs to a reusable component rather than one screen instance, keep the reusable component/state contract explicit instead of wiring every consumer independently.
 
 ```text
 component state vocabulary
@@ -104,7 +118,7 @@ component state vocabulary
 - When component state must persist/share across frames, verify whether state memorization, variables, or explicit reset semantics are intended rather than assuming every navigation resets state.
 - Distinguish portable variant interactions from main-component-to-frame navigation wiring. Do not claim that every prototype connection on a main component will propagate through a published team library.
 
-`figma-components` owns the state names/API; this Skill owns the transition/action graph; `figma-motion` owns richer timeline choreography.
+The reusable component contract supplies state names/API; this workflow owns the transition/action graph. Rich temporal choreography remains a separate concern.
 
 ## Native/provider execution
 
@@ -137,12 +151,10 @@ Prototype evidence can support the interaction paths, visible focus treatment, t
 - **Variables imitate backend/business logic:** keep only interaction state needed for the prototype question.
 - **No dismiss/back/recovery path:** model the state machine, not only the happy path.
 - **Duplicate local reactions drift:** move shared interaction to the correct reusable component/state owner.
-- **Timeline/keyframe work dominates:** hand the temporal choreography to `figma-motion`.
+- **Timeline/keyframe work dominates:** return the temporal-choreography concern without rewriting the State Path.
 
 ## Boundaries
 
-- `figma-design-authoring` owns approved whole-experience composition and decides when an interaction needs executable prototype proof.
-- `figma-components` owns component anatomy/properties/variants; this Skill owns prototype reactions/state progression.
-- `figma-motion` owns Motion timelines/keyframes/timing/easing and temporal craft.
-- `figma-verification` owns an audit/verdict when the terminal job is assessment of a fixed prototype rather than authoring/repair.
-- `figma-native` owns targeting and raw Plugin API execution.
+- Approved whole-experience behavior is input authority; this workflow represents it rather than inventing it.
+- Reusable component anatomy/state vocabulary, temporal choreography, fixed-artifact assessment, and low-level execution mechanics remain separate semantic concerns.
+- This workflow owns reactions, conditions, ordered actions, state progression, context continuity, and recovery that are actually represented in Figma.

@@ -17,6 +17,8 @@ Use this file only when auditing/updating **figma-code-connect**, resolving a co
 
 Provider documentation is evidence for current Figma behavior; it is **not** the ControlMux ontology. Re-check current docs/typings/runtime when a provider detail can change execution.
 
+Revalidated on 2026-08-25 against current Figma Developer Docs: template files remain the recommended approach for new Code Connect work, and the parser-to-template migration guide states that legacy framework-specific parsers are no longer actively maintained after 2026-08-17.
+
 ## Installed Figma plugin Skills compared
 
 Installed `figma-code-connect` and `figma-generate-library` Code Connect guidance: inspect property definitions, resolve code component, map verified correspondences, validate before publish.

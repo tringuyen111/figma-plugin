@@ -1,35 +1,14 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "planId": "replace-me",
   "objective": "Replace with the bounded multi-step design objective.",
   "terminalTruth": "Name the exact changed artifact and proof required for completion.",
   "state": "ACTIVE",
-  "contextPolicy": {
-    "mode": "progressive",
-    "maxActiveDeepResources": 2,
-    "noteAfterEachLoad": true,
-    "distillBeforeNextLoad": true
-  },
-  "representationPolicy": {
-    "default": "text",
-    "rules": [
-      { "shape": "sequence", "use": "flow" },
-      { "shape": "branch", "use": "tree" },
-      { "shape": "state", "use": "state-diagram" },
-      { "shape": "ownership", "use": "typed-graph" },
-      { "shape": "comparison", "use": "table" },
-      { "shape": "progress", "use": "bar" },
-      { "shape": "screen-layout", "use": "wireframe" },
-      { "shape": "reusable-contract", "use": "component-specimen" },
-      { "shape": "local-fact", "use": "text" }
-    ]
-  },
   "obligations": [
     {
       "id": "req-first-packet",
       "sourceText": "Replace with one verbatim user obligation that this plan must satisfy.",
       "required": true,
-      "owner": "figma-design-authoring",
       "proofRequired": true,
       "status": "ACTIVE",
       "evidenceRefs": [],
@@ -43,8 +22,6 @@
       "label": "First accountable packet",
       "outcome": "Describe the observable result.",
       "status": "ACTIVE",
-      "owner": "figma-design-authoring",
-      "specialists": [],
       "obligationIds": ["req-first-packet"],
       "dependsOn": [],
       "entrypoint": "Bind the exact Figma target before mutation.",

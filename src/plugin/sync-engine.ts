@@ -95,7 +95,7 @@ export function initializeSync(listener?: SyncListener): Promise<void> {
       await reconcileControlIds();
       await rescanDocument("initial");
       runtime.state = "ready";
-      await rescanVariables("initial").catch((error) => { runtime.lastError = error instanceof Error ? error.message : String(error); });
+      await rescanVariables().catch((error) => { runtime.lastError = error instanceof Error ? error.message : String(error); });
     } catch (error) {
       runtime.state = "degraded_page_scope";
       runtime.lastError = error instanceof Error ? error.message : String(error);
@@ -103,7 +103,7 @@ export function initializeSync(listener?: SyncListener): Promise<void> {
         await subscribePage(figma.currentPage);
         await reconcileControlIds();
         await rescanDocument("degraded_page_scope");
-        await rescanVariables("degraded_page_scope").catch((error) => { runtime.lastError = error instanceof Error ? error.message : String(error); });
+        await rescanVariables().catch((error) => { runtime.lastError = error instanceof Error ? error.message : String(error); });
       } catch (fallbackError) {
         runtime.lastError = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
       }
@@ -122,7 +122,7 @@ export async function subscribePage(page: PageNode): Promise<void> {
   if (runtime.state === "ready") return;
   await page.loadAsync();
   if (runtime.subscribedPageIds.has(page.id)) return;
-  page.on("nodechange", (event) => onNodeChange(event, page.id));
+  page.on("nodechange", onNodeChange);
   runtime.subscribedPageIds.add(page.id);
 }
 
@@ -197,7 +197,7 @@ export async function refreshSync(): Promise<void> {
     }
     await reconcileControlIds();
     await rescanDocument("refresh");
-    await rescanVariables("refresh");
+    await rescanVariables();
     runtime.lastRescanAt = Date.now();
   } catch (error) {
     runtime.lastError = error instanceof Error ? error.message : String(error);
@@ -296,7 +296,7 @@ function onDocumentChange(event: DocumentChangeEvent): void {
   }
 }
 
-function onNodeChange(event: NodeChangeEvent, pageId: string): void {
+function onNodeChange(event: NodeChangeEvent): void {
   for (const change of event.nodeChanges) {
     const node = "node" in change ? change.node : null;
     const entityId = typeof change.id === "string" ? change.id : "unknown";
@@ -360,7 +360,7 @@ function matchingTrace(entityId: string, properties: string[], metadataTraceId?:
   return undefined;
 }
 
-async function rescanVariables(reason: string): Promise<void> {
+async function rescanVariables(): Promise<void> {
   const collections = await figma.variables.getLocalVariableCollectionsAsync();
   const variables = await figma.variables.getLocalVariablesAsync();
   const next = fingerprint({
@@ -416,7 +416,7 @@ async function reconcileControlIds(): Promise<void> {
 function scheduleVariableScan(): void {
   const timer = setTimeout(async () => {
     if (runtime.initialized) {
-      await rescanVariables("interval").catch((error) => { runtime.lastError = error instanceof Error ? error.message : String(error); });
+      await rescanVariables().catch((error) => { runtime.lastError = error instanceof Error ? error.message : String(error); });
       scheduleVariableScan();
     }
   }, VARIABLE_SCAN_MS);

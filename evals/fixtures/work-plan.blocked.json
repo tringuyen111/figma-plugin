@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 3,
+  "planId": "fixture-blocked-no-obligations",
+  "objective": "Exercise blocked semantic work state without a historical obligation ledger.",
+  "terminalTruth": "The blocked frontier remains explicit and no Skill routing field is encoded.",
+  "state": "BLOCKED",
+  "nodes": [
+    {
+      "id": "foundation",
+      "type": "FOUNDATION",
+      "label": "Established foundation",
+      "outcome": "The prerequisite contract is already established.",
+      "status": "PASS",
+      "dependsOn": [],
+      "entrypoint": "Read the fixed prerequisite contract.",
+      "proof": ["Deterministic fixture state."],
+      "nonGoals": ["Do not infer live runtime proof."],
+      "recovery": "Re-open the prerequisite only if later evidence invalidates it."
+    },
+    {
+      "id": "blocked-frontier",
+      "type": "VERIFICATION",
+      "label": "Blocked qualification frontier",
+      "outcome": "Qualification resumes only when the external prerequisite exists.",
+      "status": "BLOCKED",
+      "dependsOn": ["foundation"],
+      "entrypoint": "Check whether the external prerequisite is available.",
+      "proof": ["Observed prerequisite availability."],
+      "nonGoals": ["Do not fabricate the missing prerequisite."],
+      "recovery": "Resume from this node when the prerequisite becomes observable.",
+      "blocker": "Required external prerequisite is unavailable."
+    }
+  ],
+  "edges": [
+    { "from": "foundation", "relation": "BLOCKS_TRUTH", "to": "blocked-frontier" }
+  ],
+  "frontier": [],
+  "notesPath": "evals/fixtures/work-plan.blocked.notes.md"
+}

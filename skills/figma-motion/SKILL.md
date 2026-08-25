@@ -13,11 +13,25 @@ Translate an approved transition/motion intent into the smallest Figma Motion re
 
 Read `references/motion-method.md` for timeline/timing/easing decisions. Read `references/provenance.md` only for audit/provider-conflict work.
 
-If the material question is trigger/action/navigation/overlay/interactive-component state logic or prototype variables/conditions, use `figma-prototype` first. Prototype may initiate a transition whose visual choreography is then owned here.
+If the material question is trigger/action/navigation/overlay/state logic or interaction variables/conditions, the temporal job is not ready. Return the unresolved **INTERACTION-STATE CONTRACT** before authoring choreography; Motion may represent a transition only after the state meaning is known.
 
 ## Decision advantage
 
 This Skill earns its place by reasoning about **temporal continuity and choreography**, not by decorating transitions. Select authored time only when timing changes comprehension, feedback, plane continuity, emphasis, or perceived physical relation. Reuse temporal roles when the relationship is shared; equal millisecond values alone do not prove one motion token.
+
+## Operational vocabulary
+
+**TEMPORAL ROLE** — the reusable meaning of a timing/easing relationship, such as immediate feedback, enter, exit, emphasized transition, or deliberate progression. Equal milliseconds do not prove equal roles.
+
+**PHASE** — a meaningful point in temporal behavior such as rest/start, commit/peak change, settle, or final. Sample phases because they change interpretation, not to satisfy an arbitrary frame count.
+
+**COHORT** — subjects that share one temporal lifecycle or causal sequence. Similar animations are not one cohort unless their timing relationship should evolve together.
+
+**SETTLE** — the phase where the change resolves into a stable readable result. A motion that never establishes a clear settle state makes the animation itself the only evidence of outcome.
+
+**TEMPORAL SALIENCE** — attention created by authored time. Spend it on meaningful change, consequence, continuity, or causal sequence rather than constant decoration.
+
+**REDUCED-MOTION MEANING** — the state/result meaning that must remain understandable when authored movement is reduced or removed.
 
 ## Skill I/O contract
 
@@ -74,6 +88,11 @@ Use Timing/Easing variables only when they express a shared temporal role. Do no
 - Stagger should reveal sequence/causality, not create decorative delay across scan-heavy UI.
 - Preserve reduced-motion meaning by keeping state/result legible without requiring the animation.
 
+
+## Contrastive calibration
+
+**Near-miss — same duration, different Temporal Role:** a short control-state confirmation and a panel traveling across a large distance may both happen to use `180ms`. Reusing one motion role from that number alone is wrong. Classify consequence, distance/visual weight, plane continuity, sequence, and settle behavior first; literal duration is implementation evidence, not semantic identity.
+
 ## Coordination
 
 When multiple nodes share a timeline/cohort, reason about common lifecycle first. Reuse identical motion definitions instead of copy-pasting per node; parameterize the values that legitimately vary such as delay/offset/target.
@@ -106,14 +125,11 @@ Do not label a timeline correct merely because all keyframes serialize. Temporal
 - **Motion hides state result:** make final/resting state understandable without animation.
 - **Repeated snippets drift:** factor shared animation identity and parameterize controlled differences.
 - **Static + animated transforms fight:** separate layout transform ownership from Motion transform ownership.
-- **Prototype logic appears here:** move triggers/actions/conditions/navigation to `figma-prototype` and keep only choreography here.
+- **Interaction-state logic appears here:** return the unresolved trigger/action/condition/navigation contract and keep only temporal choreography here.
 - **API unsupported:** preserve `NOT_SUPPORTED`/`PARTIAL`; do not fabricate a custom provider capability.
 
 ## Boundaries
 
-- `figma-prototype` owns reactions, triggers/actions, navigation/overlay, conditions/variables, and interaction state paths.
-- `figma-design-authoring` owns approved whole-scene/state intent.
-- `figma-tokens` owns variable mechanics/naming; this Skill owns semantics of timing/easing roles.
-- `figma-components` owns component anatomy; this Skill owns reusable Motion behavior/animated components.
-- `figma-verification` owns a fixed-artifact temporal verdict when assessment is the terminal job.
-- `figma-design-to-code` currently owns production implementation of exported motion context; `figma-motion-to-code` remains an eval candidate, not an installed Skill.
+- Trigger/action/navigation/condition state logic is outside temporal choreography.
+- Whole-scene/state intent, reusable value mechanics, component anatomy, fixed-artifact verdicts, and production implementation remain separate semantic concerns.
+- This workflow may preserve reusable Motion behavior attached to a component, but it does not redefine that component contract.

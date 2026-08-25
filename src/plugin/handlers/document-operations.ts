@@ -28,6 +28,7 @@ export async function queryDocument(params: Record<string, unknown>): Promise<un
 
 export async function applyDocument(params: Record<string, unknown>): Promise<unknown> {
   const action = params.action;
+  if (params.resultMode !== undefined && action !== "apply_entity_patch") throw failure(ErrorCode.INVALID_PARAMS, "resultMode is only supported by apply_entity_patch.");
   if (action === "import_library_asset") return importLibraryAsset(params);
   if (action === "apply_entity_patch") return applyEntityPatch(params);
   if (action !== "clear_file_owned_assets") {

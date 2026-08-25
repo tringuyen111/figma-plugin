@@ -29,7 +29,7 @@ async function query(kind, stepId, extra = {}) {
 async function typedApply(patches, stepId, conflictPolicy = "merge_non_overlapping") {
   const base = { action: "apply_entity_patch", patches, conflictPolicy, ...targetArgs(), capability: "figma-native", traceId: `${traceRoot}:${stepId}`, attempt: 1 };
   const plan = await runtime.call("figma_apply", { ...base, dryRun: true, operation: op(`Plan ${stepId}`, "write", "plan", `${stepId}-plan`) });
-  const raw = await runtime.callRaw("figma_apply", { ...base, patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, operation: op(`Execute ${stepId}`, "write", "execute", stepId) });
+  const raw = await runtime.callRaw("figma_apply", { ...base, patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt", operation: op(`Execute ${stepId}`, "write", "execute", stepId) });
   if (raw.isError === true) throw new Error(`Typed apply ${stepId} failed: ${JSON.stringify(textPayload(raw))}`);
   const result = textPayload(raw);
   evidence.steps.push({ stepId, plan: plan.plan, result });

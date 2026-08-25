@@ -1,128 +1,87 @@
-# Craft depth & Golden Teaching Cases — Figma Plugin 0.5.6
+# Craft and behavioral teaching cases
 
-## Nguyên tắc
+Current package: `0.7.0` · Protocol: `10`.
 
-Design/UI Skill không được tối ưu theo hướng “nhiều guardrail hơn là đủ”. Một Skill mạnh phải dạy agent **nhìn ra vấn đề, cân các phương án, chọn cách làm tốt, tự critique và sửa lại**.
+## Teaching-case contract
 
-Với example:
-
-> Không có example còn tốt hơn một example trung bình khiến model cargo-cult sai pattern.
-
-Golden Teaching Case vì vậy không chỉ là `prompt -> output`. Nó phải expose đường suy luận:
+A strong case teaches an agent to observe, compare, choose, construct, critique, and correct. It is not a reusable screenshot template.
 
 ```text
 product truth
--> mediocre/default attempt
+-> default or mediocre attempt
 -> expert observation
 -> decision variables
 -> plausible alternatives
--> reject/select with reasons
+-> selection rationale
 -> exact Figma construction
 -> render critique
 -> causal correction
--> final rationale
--> anti-copy transfer rule
+-> transfer and anti-copy rule
 ```
 
-Literal pixel/color/type values chỉ là **specimen evidence**. Chúng không trở thành reusable truth nếu task/system mới không có cùng quan hệ.
+Literal pixels, colors, fonts, and density are specimen evidence only. Reuse the relation when the new task has the same responsibility and pressure; otherwise re-enter at the decision.
 
-## 5 craft-core Skills trong 0.5.4
+## Craft-core Skills
 
-0.5.4 giữ nguyên topology 15 Skill và deepens 5 Skill có ảnh hưởng trực tiếp nhất tới chất lượng Design/UI:
+- `figma-design-authoring` — task hierarchy, whole-scene composition, native compilation, and craft proof.
+- `figma-layout` — geometric responsibility, scan/comparison axes, density, flexible-space ownership, pressure, and recomposition.
+- `figma-scene` — semantic containment versus plane/input relation, silhouette ownership, and cue economy.
+- `figma-visual-system` — system role versus perception, chroma area, repetition, material, depth, and shape distribution.
+- `figma-typography` — information role, type mass, metrics, numeric scanning, localization, and geometry pressure.
 
-- `figma-design-authoring` — task hierarchy -> whole-scene composition -> native Figma compile -> craft proof.
-- `figma-layout` — geometric responsibility, scan/comparison axes, density, flexible-space ownership và pressure/recomposition.
-- `figma-scene` — semantic containment vs plane/input relation, silhouette ownership và cue economy.
-- `figma-visual-system` — system role vs perception, occupied chroma area, repetition, surface/depth/shape distribution.
-- `figma-typography` — information role, whole-scene type mass, font metrics, numeric scanning, localization và geometry pressure.
+Each keeps a local `references/golden-teaching-cases.md` so direct invocation remains sufficient. There is no shared cookbook that must be loaded by every Skill.
 
-Mỗi Skill có `references/golden-teaching-cases.md` riêng để giữ local methodological sufficiency. Không tạo một shared “design cookbook” bắt Skill khác phải load ngầm.
+## Behavioral-core Skills
+
+- `figma-components` covers interactive component contracts, constrained Slots, exact component-property keys, and API migration.
+- `figma-prototype` covers inherited versus instance-trigger precedence, transient-state recovery, and bounded local validation.
+
+Prototype proof remains scoped: authored reaction/focus/recovery evidence does not prove production DOM semantics, full keyboard/screen-reader support, or real assistive-technology behavior.
 
 ## Quality ladder
 
-`figma-design-authoring` dùng ladder:
-
 ```text
 VALID
-  native/relationship truth không broken
+  native structure and required relations are not broken
 
 COHERENT
-  semantic/layout/type/color/plane/state cùng kể một câu chuyện
+  semantic, layout, type, color, plane, and state tell one story
 
 CRAFTED
-  rhythm, density, optical alignment, type/color mass, negative space,
-  silhouette và state treatment đã được refine có chủ đích
+  rhythm, density, optical alignment, mass, negative space,
+  silhouette, and state treatment are intentionally refined
 
 PRODUCT-FIT
-  composition phản ánh đúng task frequency, information pressure,
-  audience và product character thay vì generic UI pattern
+  composition fits task frequency, information pressure,
+  audience, and product character
 ```
 
-User yêu cầu polished/high-quality thì `VALID` không phải điểm dừng hợp lệ nếu còn đủ truth/render capability để tiếp tục.
+A request for polished or high-quality work does not stop at `VALID` while enough product and render evidence exists to continue.
 
-## Example qualification
+## Qualification evidence
 
-Project-level evidence nằm ở:
+Project specimens live under `design/exemplars/`; `evals/craft-exemplars.json` records the actual qualification state.
+
+Keep these claims separate:
 
 ```text
-design/direction-approved.md
-
-design/exemplars/
-  README.md
-  controlmux-observability-golden.html
-  controlmux-request-sheet-golden.html
-  renders/
-    controlmux-observability-golden.png
-    controlmux-request-sheet-golden.png
-
-evals/craft-exemplars.json
+product-truth binding
+rendered self-review
+structure/method review
+live Figma execution
+independent expert review
+behavioral same-task comparison
 ```
 
-Main specimen dùng product truth thật của Figma Plugin companion thay vì bịa một dashboard mẫu. Render đã được self-review về task hierarchy, density, type mass, semantic chroma, surface/plane ownership và request-row comparison axes.
+The current frozen contracts preserve independent review and behavioral comparison as `NOT_RUN` unless a matching run updates the authoritative evidence.
 
-Proof state vẫn tách rõ:
+## Anti-copy examples
 
-```text
-product-truth binding       PASS
-rendered visual self-review PASS
-structure/method review     PASS
-independent expert review   NOT_RUN
-behavioral Skill A/B        NOT_RUN
-```
-
-Không được gọi self-review là independent qualification. Không được gọi Skill behavioral uplift PASS chỉ vì example nhìn tốt hoặc native validator PASS.
-
-## Anti-cargo-cult rule
-
-Mỗi detailed reference phải có anti-copy/counterexample để model học **relation** thay vì học layout/template:
-
-- ControlMux log ưu tiên một working surface lớn vì điều tra request là task chính; peer-comparison analytics có thể cần symmetry.
-- Request detail dùng bottom sheet trong compact companion; desktop workspace rộng có thể cần persistent inspector.
-- Operational UI dùng quiet neutral field; brand/marketing surface có thể chủ động dùng chroma lớn hơn.
-- Dense observability typography không phải scale cho editorial onboarding.
+- A large operation log can be correct for an investigation-first companion but wrong for peer analytics that needs symmetric comparison.
+- A bottom sheet can suit a compact panel but be inferior to a persistent inspector in a wide workspace.
+- Quiet operational color can fit observability and still be wrong for a marketing surface.
+- Dense telemetry typography is not an onboarding or editorial scale.
 
 ## Performance boundary
 
-Craft depth không bị token-budget cắt ngắn. Các case dài được progressive-load chỉ khi ambiguity/craft calibration cần chúng.
-
-Performance vẫn nằm ở I/O quanh Skill:
-
-```text
-strong reasoning
--> smallest sufficient evidence
--> bounded provider/local execution
--> render/proof đúng claim
--> compact decision packet
-```
-
-Không đổi quality lấy token/call reduction.
-
-
-## 0.5.6 behavioral-component exemplars
-
-Hai capability có ảnh hưởng trực tiếp tới reusable behavior được nâng từ HOW sang HOW + SHOW:
-
-- `figma-components/references/golden-teaching-cases.md`: interactive Toggle, constrained Slot và component API migration. Case bắt buộc dùng exact component-property keys từ API (`#…` suffix), đọc Slot constraints/`limitViolations`, và không giả rằng `setProperties()` set được SLOT content.
-- `figma-prototype/references/golden-teaching-cases.md`: inherited/instance-trigger precedence, transient Select recovery, và local conditional validation không giả backend. Prototype tự giữ accessibility proof boundary: authored interaction/focus/recovery evidence không chứng minh production DOM/accessibility tree, complete keyboard/screen-reader hay real assistive-technology behavior.
-
-`evals/craft-exemplars.json` giữ `methodReview: PASS` nhưng `figmaExecution: NOT_RUN` và `independentExpertReview: NOT_RUN`. Detailed example không được tự nâng thành behavioral proof.
+Teaching-case depth is progressive-loaded only when it can change the craft decision. I/O optimization happens around the reasoning—minimum sufficient evidence, bounded execution, claim-matched proof, and compact output—not by deleting the reasoning itself.

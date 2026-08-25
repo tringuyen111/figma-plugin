@@ -33,7 +33,7 @@ export type ApplyAction = (typeof APPLY_ACTIONS)[number];
 
 export const ENTITY_KINDS = ["node", "style", "variable", "variable_collection"] as const;
 export type EntityKind = (typeof ENTITY_KINDS)[number];
-export const PATCH_OPERATION_KINDS = ["create", "update", "move", "clone", "delete", "set_bindings", "set_reactions", "component_command", "style_command", "variable_command", "motion_command"] as const;
+export const PATCH_OPERATION_KINDS = ["create", "update", "move", "clone", "delete", "set_bindings", "set_reactions", "component_command", "style_command", "variable_command", "layout_command", "motion_command"] as const;
 export type PatchOperationKind = (typeof PATCH_OPERATION_KINDS)[number];
 export const PATCH_CONFLICT_POLICIES = ["reject", "merge_non_overlapping"] as const;
 export type PatchConflictPolicy = (typeof PATCH_CONFLICT_POLICIES)[number];

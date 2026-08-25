@@ -2,14 +2,18 @@ param(
   [Parameter(Mandatory = $true)][string]$Archive,
   [Parameter(Mandatory = $true)][string]$Target,
   [Parameter(Mandatory = $true)][string]$BackupRoot,
-  [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{16}$')][string]$ExpectedBundleRevision
+  [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{16}$')][string]$ExpectedBundleRevision,
+  [string]$AllowedMarketplaceRoot = (Join-Path $HOME '.codex\marketplaces\figma-plugin-local\plugins')
 )
 
 $ErrorActionPreference = 'Stop'
 
 $archivePath = (Resolve-Path -LiteralPath $Archive).Path
 $targetPath = (Resolve-Path -LiteralPath $Target).Path
-$allowedRoot = [IO.Path]::GetFullPath('C:\Users\DELFI\.codex\marketplaces\figma-plugin-local\plugins')
+$allowedRoot = [IO.Path]::GetFullPath($AllowedMarketplaceRoot)
+$sourcePackagePath = Join-Path $PSScriptRoot '..\package.json'
+$sourcePackage = Get-Content -LiteralPath $sourcePackagePath -Encoding UTF8 | ConvertFrom-Json
+$expectedVersion = [string]$sourcePackage.version
 $backupRootPath = [IO.Path]::GetFullPath($BackupRoot)
 
 if (-not $targetPath.StartsWith($allowedRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
@@ -28,7 +32,7 @@ $extracted = Join-Path $tempRoot 'package'
 $manifestPath = Join-Path $extracted '.codex-plugin\plugin.json'
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { throw 'Extracted package is missing .codex-plugin/plugin.json' }
 $manifest = Get-Content -LiteralPath $manifestPath -Encoding UTF8 | ConvertFrom-Json
-if ($manifest.name -ne 'figma-plugin' -or $manifest.version -ne '0.7.0') {
+if ($manifest.name -ne 'figma-plugin' -or $manifest.version -ne $expectedVersion) {
   throw "Unexpected extracted identity: $($manifest.name)@$($manifest.version)"
 }
 $bundlePath = Join-Path $extracted 'dist\server\index.js'
@@ -42,7 +46,7 @@ if (-not (Select-String -LiteralPath $pluginBundlePath -SimpleMatch $ExpectedBun
 
 New-Item -ItemType Directory -Path $backupRootPath -Force | Out-Null
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$backupPath = Join-Path $backupRootPath ("$stamp-figma-plugin-0.7.0-pre-$ExpectedBundleRevision")
+$backupPath = Join-Path $backupRootPath ("$stamp-figma-plugin-$expectedVersion-pre-$ExpectedBundleRevision")
 if (Test-Path -LiteralPath $backupPath) { throw "Backup destination already exists: $backupPath" }
 
 Move-Item -LiteralPath $targetPath -Destination $backupPath

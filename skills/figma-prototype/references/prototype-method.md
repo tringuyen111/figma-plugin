@@ -8,7 +8,7 @@
 | transient modal/menu/popover | overlay/open/close relation | a full navigation that loses background context |
 | same reusable control changes state | interactive component / change-to | separate unrelated screens for every local state |
 | branch based on prototype state | variable + condition | variables that simulate backend truth not needed for the interaction question |
-| timing/keyframe choreography | `figma-motion` | forcing Motion timeline concerns into reaction wiring |
+| timing/keyframe choreography | return a temporal-choreography concern | forcing authored-time concerns into reaction wiring |
 
 ## State-path matrix
 

@@ -13,7 +13,18 @@ Produce a layout graph and native Figma structure that preserves the intended se
 
 ## Decision advantage
 
-This Skill earns its place by treating layout as a **relation under pressure**, not a collection of Auto Layout properties. Choose the geometry owner and flow/comparison relation first, then sizing and spacing. Test the invariant against width, height, content, localization, usable viewport, and input/state pressure instead of assuming a breakpoint or current screenshot defines the layout contract.
+This Skill earns its place by treating layout as a **relation under pressure**, not a collection of Auto Layout properties. Choose the Layout Owner and flow/comparison Relation first, then sizing and spacing. Test the invariant against width, height, content, localization, usable viewport, and input/state pressure instead of assuming a breakpoint or current screenshot defines the layout contract.
+
+## Working vocabulary
+
+Use these terms literally when they carry the decision.
+
+- **RELATION** — the geometric dependency that must remain coherent across allowed change. Current coordinates are evidence about the relation, not the contract itself.
+- **LAYOUT OWNER** — the nearest container whose layout mechanism enforces the Relation. If several children need compensating nudges to preserve the same relation, reopen the Layout Owner.
+- **FLEX OWNER** — the child/region intentionally entitled to absorb remaining space. Multiple accidental flex owners create competition rather than resilience.
+- **PRESSURE** — a valid content, viewport, density, state, input, or locale variation capable of falsifying the layout contract.
+- **INVARIANT** — the semantic/geometric relation that must survive Pressure, such as comparison alignment, primary-action visibility, or selection/detail continuity.
+- **RECOMPOSITION** — changing the relation or structural arrangement because sizing/spacing adaptation can no longer preserve the Invariant. A breakpoint is only an implementation threshold for this decision.
 
 ## Skill I/O contract
 
@@ -120,7 +131,7 @@ A repeatable layout earns a Component only when a stable semantic/anatomy contra
 ## Native execution discipline
 
 - Inspect parent `layoutMode`, sizing, padding, item spacing, child sizing, wrapping, constraints, and absolute flags before edits.
-- Prefer typed `figma_apply(action=apply_entity_patch)` for stable geometry/layout properties, with dry-run plan hash, conflict preconditions, and typed readback. Use small focused `figma_exec` writes only for uncovered/provider-gated layout APIs, then force a change-feed/manifest rescan and return affected node ids.
+- Prefer guarded typed layout mutation for stable geometry/layout mechanics, including modeled Grid configuration and manual child placement, and verify the affected Layout Owner/children through bounded layout readback before treating the Relation as preserved. Use the narrow native escape hatch only for uncovered/provider-gated layout mechanics, then rescan/read back the affected scope. Exact command names and transaction-reference syntax belong to the native execution contract.
 - Preserve current page/window targeting explicitly when several Figma instances are online.
 - After writes, read back geometry and export the smallest representative region when visual reflow matters.
 
@@ -134,12 +145,6 @@ A repeatable layout earns a Component only when a stable semantic/anatomy contra
 - **Ultrawide stretches everything:** bound readable/scan fields; add parallel context only if it improves the task.
 - **Localization solved by shrinking font:** reopen text-slot and layout contract; typography pressure is structural evidence.
 
-## Boundaries
+## Capability boundary
 
-- `figma-verification` owns a fixed-artifact audit/verdict; this Skill owns authoring/repair decisions in its domain.
-
-- `figma-scene` owns container/plane/surface/clipping semantics beyond child layout.
-- `figma-components` owns reusable component anatomy and configurable dimensions.
-- `figma-tokens` owns reusable spacing/sizing variables and modes.
-- `figma-typography` owns text roles/metrics whose pressure the layout must absorb.
-- `figma-design-authoring` owns whole-scene composition from Product truth.
+This Skill owns layout authoring/repair: geometric Relations, Layout Owners, sizing, alignment, wrapping, Grid/flow choice, constraints, and responsive Recomposition. It does not own fixed-artifact acceptance verdicts, plane/surface semantics beyond child layout, reusable component anatomy, token architecture, typography role design, or whole-scene Product composition. When one of those concerns becomes decision-material, keep the unresolved concern and required return explicit; normal Agent capability discovery decides whether additional Skill context is useful.

@@ -97,3 +97,8 @@ A visually successful component migration can still break the reusable API. Incl
 - inherited prototype reactions and deliberate instance interaction overrides.
 
 For TEXT/BOOLEAN/INSTANCE_SWAP properties, preserve/map the full Figma property key including the unique `#...` suffix when native API calls require it. Do not treat visible property labels as stable API keys. SLOT content is not migrated through `InstanceNode.setProperties()`; inspect/rebuild the actual slot content contract.
+## 9. Provider/native transfer mechanics
+
+When current provider/native surfaces support them, published identities may be imported through operations such as `importComponentByKeyAsync`, `importComponentSetByKeyAsync`, `importStyleByKeyAsync`, and `variables.importVariableByKeyAsync`. Provider library discovery may expose tools such as `get_libraries` / `search_design_system`. These names are execution evidence, not the cross-design ontology; revalidate current availability before consequential writes.
+
+For original/raw image or SVG transfer, prefer provider asset download/upload surfaces when available (for example `download_assets` / `upload_assets`) rather than screenshotting or re-encoding. Local export-only egress does not prove target-file ingress. If no authorized import/upload path exists, preserve binary transfer as `BLOCKED` rather than embedding large bytes into generic execution code.

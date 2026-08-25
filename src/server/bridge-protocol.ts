@@ -237,7 +237,3 @@ export function readBody(req: IncomingMessage): Promise<string> {
     });
   });
 }
-
-export function isAddrInUse(err: unknown): boolean {
-  return !!err && typeof err === "object" && (err as { code?: string }).code === "EADDRINUSE";
-}

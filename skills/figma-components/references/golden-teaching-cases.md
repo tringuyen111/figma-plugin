@@ -22,7 +22,7 @@ The repeated job is not “two pictures of a switch.” It is one semantic contr
 - Does state alter the same semantic job or create another job? Same job -> one component set.
 - Is Disabled an independent dimension from On/Off? Yes -> model independently rather than `DisabledOff`, `DisabledOn` names.
 - Does every consumer navigate after click? No -> navigation is not reusable component behavior.
-- Does visual timing materially matter? If yes, hand choreography to `figma-motion`; do not hide it inside state naming.
+- Does visual timing materially matter? If yes, keep temporal choreography as a separate decision concern; do not hide it inside state naming.
 
 ### Rejected alternatives
 - **Separate components per state:** rejects propagation and turns state into identity.
@@ -35,8 +35,8 @@ The repeated job is not “two pictures of a switch.” It is one semantic contr
 2. Create state variants with independent axes, for example `State=Off|On` and `Disabled=false|true` where the system genuinely needs both axes.
 3. Expose only intended public properties; keep internal geometry private.
 4. Read `componentPropertyDefinitions` from the component/set after creation. For TEXT/BOOLEAN/INSTANCE_SWAP properties, keep the **full returned API key including its `#...` suffix** for later API calls; do not reconstruct keys from visible labels.
-5. Compose `figma-prototype` to add the approved `CHANGE_TO` edges between sibling variants for enabled states.
-6. If motion is material, compose `figma-motion` for thumb/track timing rather than adding more variants to encode animation phases.
+5. Add the approved `CHANGE_TO` edges between sibling variants for enabled states as interaction-path evidence, without treating those edges as component identity.
+6. If motion is material, keep thumb/track timing in the separate temporal-choreography concern rather than adding more variants to encode animation phases.
 7. Create representative instances: default consumer, disabled consumer, and one consumer with an instance-level product interaction.
 
 ### Proof

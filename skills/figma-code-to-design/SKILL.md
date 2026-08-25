@@ -15,6 +15,18 @@ Produce/update Figma variables/styles/components/views that faithfully represent
 
 This Skill earns its place by translating **production design semantics rather than implementation structure**. DOM/view hierarchy, CSS classes, and component props are evidence, not the Figma ontology. Reconcile code, current Figma, Code Connect, rendered UI, and system authority so Figma remains editable/reusable instead of becoming a traced snapshot of production.
 
+## Operational vocabulary
+
+**PRODUCTION TRUTH** — the verified code/runtime behavior or reusable system contract that may inform the design representation. Incidental implementation structure is not Production Truth by itself.
+
+**DESIGN CONTRACT** — the editable/reusable Figma meaning that should represent Production Truth: role, component job/API, layout relation, visual/type system role, or state.
+
+**RECONCILIATION** — deciding `REUSE | UPDATE_FIGMA | DESIGN_AHEAD | TRANSLATE | CREATE | OBSOLETE | CONFLICT` per semantic dimension rather than globally choosing code or Figma.
+
+**REPRESENTATION GAP** — a difference caused by code and Figma having different useful ontologies, not necessarily a product mismatch. Translate responsibility instead of copying implementation syntax.
+
+**TRANSLATION PARITY** — the explicit dimensions in which the resulting Figma representation must agree with verified production behavior/system truth. Visual parity does not prove reusable design semantics.
+
 ## Skill I/O contract
 
 **Minimum input**
@@ -28,7 +40,7 @@ This Skill earns its place by translating **production design semantics rather t
 
 ## Distillation and provider authority
 
-Read `references/provenance.md` for audit/provider-conflict work. Prefer Code Connect, existing Figma consumers, and library/design-system search as translation evidence before reconstructing objects. A web capture (`generate_figma_design` or equivalent) can prove appearance and supply otherwise unavailable raster/image evidence, but it does not own reusable system semantics.
+Read `references/provenance.md` for audit/provider-conflict work. Prefer Code Connect, existing Figma consumers, and library/design-system search as translation evidence before reconstructing objects. A provider-native web/design capture can prove appearance and supply otherwise unavailable raster/image evidence, but it does not own reusable system semantics.
 
 Keep the translation boundary explicit: implementation structure is evidence for semantic roles, not a one-to-one blueprint for Figma Frames/Groups/Components.
 
@@ -112,7 +124,5 @@ A syntactically valid generated Figma structure is not visual/system parity.
 
 ## Boundaries
 
-- `figma-design-system` owns whole-system governance/publication.
-- `figma-tokens`, `figma-typography`, `figma-components`, `figma-layout`, and `figma-visual-system` own deep Figma representation decisions.
-- `figma-code-connect` owns deterministic component mapping artifacts.
-- `figma-design-to-code` owns the reverse implementation direction.
+- Whole-system governance/publication, deep local token/type/component/layout/visual craft, deterministic design↔code mapping artifacts, reverse design-to-code implementation, and production code mutation remain separate concerns.
+- This workflow owns Production Truth extraction, semantic Reconciliation, native editable Figma representation, and representative translation/system/visual proof.

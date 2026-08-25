@@ -60,6 +60,7 @@ const MCP_CONTRACT_SCHEMA_VERSION = 2;
 const ENTITY_REF_SCHEMA = {
   type: "object",
   properties: {
+    opRef: { type: "string", minLength: 1, maxLength: 128, pattern: "^[A-Za-z0-9._:-]+$", description: "Transaction-local identity produced by create/clone or another explicitly typed producer such as component_command:create_slot or component_command:combine_variants in the same apply_entity_patch transaction. It is resolved internally and never replaces the persistent id/controlId returned after commit." },
     controlId: { type: "string", minLength: 1, maxLength: 128 },
     nodeId: { type: "string", minLength: 1, maxLength: 256 },
     styleId: { type: "string", minLength: 1, maxLength: 256 },
@@ -76,8 +77,13 @@ const ENTITY_PATCH_SCHEMA = {
   properties: {
     kind: { type: "string", enum: [...PATCH_OPERATION_KINDS] },
     entityKind: { type: "string", enum: ["node", "style", "variable", "variable_collection"] },
+    opRef: { type: "string", minLength: 1, maxLength: 128, pattern: "^[A-Za-z0-9._:-]+$", description: "Optional transaction-local output identity. Create/clone and explicitly typed producer commands such as component_command:create_slot or component_command:combine_variants may declare it; later modeled identity edges in the same patch list may consume it." },
     target: ENTITY_REF_SCHEMA,
+    members: { type: "array", minItems: 1, maxItems: 64, items: ENTITY_REF_SCHEMA, description: "Modeled multi-identity input edge used by component_command:combine_variants. Member opRefs participate in the transaction dependency graph; arbitrary payload references are not resolved." },
     parent: ENTITY_REF_SCHEMA,
+    collection: { ...ENTITY_REF_SCHEMA, description: "Modeled owning variable-collection identity for create entityKind=variable. A collection opRef participates in the transaction dependency graph; do not also provide properties.collectionId." },
+    alias: { ...ENTITY_REF_SCHEMA, description: "Modeled source-variable identity for variable_command:set_value aliasing. An alias opRef participates in the transaction dependency graph; use exactly one of alias or payload.value." },
+    variable: { ...ENTITY_REF_SCHEMA, description: "Modeled consumer-variable identity for set_bindings. A variable opRef participates in the transaction dependency graph; omit it only when payload.binding.unbind=true." },
     controlId: { type: "string", minLength: 1, maxLength: 128 },
     index: { type: "integer", minimum: 0 },
     entityType: { type: "string", minLength: 1, maxLength: 128 },
@@ -272,6 +278,7 @@ const APPLY_TOOL: Tool = {
       conflictPolicy: { type: "string", enum: [...PATCH_CONFLICT_POLICIES] },
       allowDelete: { type: "boolean" },
       maxOperations: { type: "integer", minimum: 1, maximum: 100 },
+      resultMode: { type: "string", enum: ["full", "receipt"], description: "For apply_entity_patch commits, full preserves the legacy result; receipt returns compact identity/conflict/rollback evidence. Dry-run planning remains full." },
       sessionId: { type: "string", minLength: 1, maxLength: 256 },
       instanceId: { type: "string", minLength: 1, maxLength: 256 },
       pageId: { type: "string", minLength: 1, maxLength: 256 },
@@ -351,7 +358,7 @@ async function callTool(ctx: ToolContext, name: string, args: Record<string, unk
     const traceId = requiredTraceId(args["traceId"], name);
     const operation = requiredOperation(args["operation"], traceId, name, "write");
     const params: Record<string, unknown> = {};
-    for (const key of ["action", "dryRun", "confirm", "pageIds", "removeLocalAssets", "assetType", "key", "instanceName", "x", "y", "propertyValues", "patches", "expectedPlanHash", "conflictPolicy", "allowDelete", "maxOperations"]) if (args[key] !== undefined) params[key] = args[key];
+    for (const key of ["action", "dryRun", "confirm", "pageIds", "removeLocalAssets", "assetType", "key", "instanceName", "x", "y", "propertyValues", "patches", "expectedPlanHash", "conflictPolicy", "allowDelete", "maxOperations", "resultMode"]) if (args[key] !== undefined) params[key] = args[key];
     return handleApply(
       ctx,
       params,

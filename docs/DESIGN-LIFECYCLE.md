@@ -1,69 +1,76 @@
-# Design lifecycle — Figma Plugin 0.5.6
+# Design lifecycle
 
-Figma Plugin treats design as durable identity, behavior, and distribution truth rather than only canvas pixels.
+Current package: `0.7.0` · Protocol: `10`.
+
+Figma Plugin treats design as identity, behavior, distribution, and future update truth—not only canvas pixels.
 
 ## Lifecycle
 
 ```text
 AUTHOR
-  -> component/token/style identity
-  -> publication readiness
-  -> USER/Figma publish + library enable authority
-  -> DISCOVER / IMPORT
-  -> REUSE / WRAP / FORK / MIGRATE / SYNC
-  -> COMPONENT BEHAVIOR (Prototype + Motion)
-  -> VERIFY
-  -> EXPORT / CODE TRANSLATION
+-> component / token / style identity
+-> publication readiness
+-> user or Figma publication and enablement authority
+-> DISCOVER / IMPORT
+-> REUSE / WRAP / FORK / MIGRATE / SYNC
+-> COMPONENT + PROTOTYPE + MOTION behavior
+-> VERIFY
+-> EXPORT or CODE TRANSLATION
 ```
 
-## Cross-file strategy
+## Cross-file strategies
 
-| Strategy | Future relationship |
+| Strategy | Intended future relationship |
 |---|---|
-| `REUSE_REMOTE` | Keep published upstream identity/update path |
-| `WRAP` | Keep upstream core; add bounded local responsibility |
-| `FORK` | Deliberately create independent local identity; upstream propagation ends |
-| `MIGRATE` | Replace predecessor consumers with a new source while preserving compatible overrides/state |
-| `SYNC` | Reconcile two meaningful active design truths and record ownership of differences |
+| `REUSE_REMOTE` | preserve the published upstream identity and update path |
+| `WRAP` | preserve the upstream core and add bounded local responsibility |
+| `FORK` | create an intentionally independent identity; propagation ends |
+| `MIGRATE` | replace predecessor consumers while preserving required compatibility |
+| `SYNC` | reconcile two meaningful truths and record ownership of differences |
 
-The terminal proof is the intended future relationship, not current visual similarity.
+Completion proves the intended relationship, identity, consumers, and update path. Current visual similarity is insufficient.
 
 ## Library authority
 
-`teamlibrary` permission enables local inspection of relevant enabled library data. It does not let ControlMux silently enable or publish a library. Publication/readiness/status and actual publish/enable actions remain distinct evidence/authority states.
+`teamlibrary` permission supports inspection of accessible local/enabled library data. It does not silently publish a library, publish updates, or enable a library in another file. Readiness, status, user authority, and completed publication are different states.
 
-## Reusable behavioral component
+Published-key import requires the exact published identity. A local key or `getPublishStatusAsync()` value by itself is not a publish command.
 
-```text
-COMPONENTS: semantic job -> anatomy -> props/slots/variants -> state vocabulary
-PROTOTYPE:  trigger -> actions/conditions -> CHANGE_TO/navigation -> state path
-MOTION:     keyframes/timing/easing -> temporal choreography
-```
-
-Variant interactions can be inherited by instances. A direct instance interaction with the same trigger can take precedence; diagnose precedence before duplicating reactions. When transferring/migrating components, interaction state is part of parity when the reusable contract owns it.
-
-## Design -> Code result
-
-- `IMPLEMENT`: repository bytes are the artifact; return compact change/proof record.
-- `HANDOFF`: return a Design Translation Packet; do not claim code changed.
-
-Provider design context/reference code remains evidence, not final output.
-
-
-## Transactional transfer — 0.5.6
-
-Cross-design work must bind **two exact targets** before any consequential write:
+## Reusable behavior
 
 ```text
-source: instanceId + fileKey + evidenceBoundary
-target: instanceId + fileKey + evidenceBoundary
-strategy: REUSE_REMOTE | WRAP | FORK | MIGRATE | SYNC
-        ↓
-Transfer Ledger
-        ↓
-completed writes + target postconditions + pending proof
+COMPONENTS  semantic job -> anatomy -> props / Slots / variants -> state vocabulary
+PROTOTYPE   trigger -> condition -> action -> destination / state / recovery
+MOTION      subject -> keyframes -> timing / easing -> temporal settle
 ```
 
-Initialize with `scripts/init_transfer_ledger.py`, validate with `scripts/validate_transfer_packet.py`, and re-read target identity before a resumed write. The ledger is resumability/idempotency state, not Design truth by itself. `references/design-transfer-packet.schema.json` serializes the intended transfer relationship; `references/transfer-ledger.schema.json` serializes execution progress.
+An instance may inherit variant reactions; a direct instance reaction on the same trigger may take precedence. Diagnose ownership and precedence before adding duplicate reactions.
 
-Migration parity now includes component property API, Slot constraints/content legality, reusable prototype reactions when owned by the component contract, and explicit upstream relationship after transfer. Visual similarity alone is insufficient.
+When a reusable component owns behavior, migration parity includes its property API, Slot legality, state vocabulary, reactions, motion obligation, and upstream relationship—not only appearance.
+
+## Transactional transfer
+
+Consequential cross-file writes bind two exact targets first:
+
+```text
+source: instanceId + fileKey + evidence boundary
+target: instanceId + fileKey + evidence boundary
+strategy
+-> Transfer Ledger
+-> completed writes
+-> target postconditions
+-> pending proof
+```
+
+The ledger supports resumability and idempotency; it is not Design truth by itself. Re-read target identity before a resumed write. Schemas and validators live under `skills/figma-design-to-design/`.
+
+## Design to code
+
+- `IMPLEMENT` — production repository bytes change; return the bounded changed surface and proof.
+- `HANDOFF` — return a validated Design Translation Packet; do not claim implementation.
+
+Provider design context and generated reference code are input evidence. They are not the final implementation or parity proof.
+
+## Verification and export
+
+Verification is claim-scoped and read-only by default. Export is a runtime egress primitive. Neither one silently upgrades missing visual, interaction, temporal, accessibility, publication, or UAT evidence.

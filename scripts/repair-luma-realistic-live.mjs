@@ -1,8 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
-import { appendFile, copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { RuntimeClient, assert, textPayload } from "./lib/runtime-client.mjs";
+import { createTrajectoryRecorder } from "./lib/trajectory-evidence.mjs";
 
 const WAIT_TIMEOUT_MS = 5 * 60_000;
 const STATUS_POLL_MS = 1_000;
@@ -11,7 +12,6 @@ const EXEC_TIMEOUT_MS = 330_000;
 const EXPORT_TIMEOUT_MS = 330_000;
 const EXPECTED_SERVER_PREFIX = "0.7.";
 const EXPECTED_PROTOCOL_VERSION = 10;
-const EXPECTED_BUNDLE_REVISION = "75d1ef41a8182e2f";
 const REGISTRY_NAMESPACE = "luma.realistic.authoring";
 const EXPECTED_PAGE_NAMES = Object.freeze({
   system: "01 — Luma Bank / System & Components",
@@ -21,15 +21,28 @@ const EXPECTED_PAGE_NAMES = Object.freeze({
 
 export async function main() {
   const registryKey = requiredOption("--registry-key");
+  const expectedBundleRevision = requiredOption("--bundle-revision");
   const startedAt = new Date().toISOString();
   const runId = `${compactTimestamp(startedAt)}-${process.pid}-${randomUUID().slice(0, 8)}`;
   const traceRoot = `luma-realistic-repair:${runId}`;
   const planId = `luma-realistic-repair:${runId}`;
   const evidenceDir = resolve("output/figma-evidence");
-  const journalPath = resolve(evidenceDir, `luma-realistic-repair-${runId}.jsonl`);
+  const journalPath = resolve(evidenceDir, `luma-realistic-repair-${runId}.trajectory.jsonl`);
+  const rawJournalPath = resolve(evidenceDir, `luma-realistic-repair-${runId}.raw.jsonl`);
   const summaryPath = resolve(evidenceDir, `luma-realistic-repair-${runId}.summary.json`);
   const runtime = new RuntimeClient({ name: "luma-realistic-repair-live" });
-  const journal = createJournal(journalPath, runId);
+  const journal = createTrajectoryRecorder({
+    runId,
+    caseId: "luma-realistic-repair-live",
+    compactPath: journalPath,
+    rawPath: rawJournalPath,
+    provenance: {
+      candidate: { archiveSha256: requiredOption("--candidate-sha256", false), sourceRevision: null },
+      runner: { name: "luma-realistic-repair-live", version: "1" },
+      model: { state: "NOT_RUN", id: null },
+      runtime: { state: "NOT_RUN", bundleRevision: expectedBundleRevision, protocolVersion: EXPECTED_PROTOCOL_VERSION, instanceId: null },
+    },
+  });
   const summary = {
     schemaVersion: 1,
     kind: "LumaRealisticRepairRun",
@@ -56,7 +69,7 @@ export async function main() {
       "Presentation playback, accessibility runtime behavior, publication, UAT, and release remain NOT_RUN.",
       "The repair is intentionally bound to one registry key, three exact page names, and one exact 0.7 bundle revision.",
     ],
-    evidence: { journalPath, summaryPath },
+    evidence: { journalPath, rawJournalPath, summaryPath },
   };
 
   let connected = false;
@@ -67,7 +80,7 @@ export async function main() {
   try {
     await runtime.connect();
     connected = true;
-    const status = await waitForPinnedCompanion(runtime, journal, WAIT_TIMEOUT_MS);
+    const status = await waitForPinnedCompanion(runtime, journal, WAIT_TIMEOUT_MS, expectedBundleRevision);
     const instance = status.instances[0];
     pinned = {
       instanceId: instance.instanceId,
@@ -81,6 +94,7 @@ export async function main() {
     };
     summary.target = pinned;
     summary.workflowState = "TARGET_PINNED";
+    journal.observeProvenance({ runtime: { state: "OBSERVED", bundleRevision: pinned.bundleRevision, protocolVersion: pinned.protocolVersion, instanceId: pinned.instanceId, serverVersion: pinned.serverVersion, fileKey: pinned.fileKey, fileName: pinned.fileName } });
     await journal.write("target-pinned", "OBSERVED", pinned);
 
     const inventory = await query(runtime, journal, pinned, traceRoot, planId, "pre-inventory", "file_inventory");
@@ -91,7 +105,7 @@ export async function main() {
     await assertPinnedRuntime(runtime, journal, pinned, "before-repair");
 
     const repairResult = await mutationStep(runtime, journal, "repair-execute", "figma_exec", {
-      code: buildRepairCode({ registryKey, pageIds }),
+      code: buildRepairCode({ registryKey, pageIds, expectedBundleRevision }),
       runtimeSdk: "v2",
       maxOutputChars: 100_000,
       instanceId: pinned.instanceId,
@@ -197,17 +211,18 @@ export async function main() {
       }
     }
     summary.finishedAt = new Date().toISOString();
-    await writeFile(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
     await journal.write("session-summary", summary.workflowState, {
       summaryPath,
       boundedVerdict: summary.boundedVerdict,
       failure: summary.failure,
     });
-    process.stdout.write(`${JSON.stringify({ runId, workflowState: summary.workflowState, boundedVerdict: summary.boundedVerdict, journalPath, summaryPath })}\n`);
+    summary.trajectory = journal.snapshot();
+    await writeFile(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+    process.stdout.write(`${JSON.stringify({ runId, workflowState: summary.workflowState, boundedVerdict: summary.boundedVerdict, journalPath, rawJournalPath, summaryPath })}\n`);
   }
 }
 
-export function buildRepairCode({ registryKey, pageIds }) {
+export function buildRepairCode({ registryKey, pageIds, expectedBundleRevision }) {
   const config = {
     namespace: REGISTRY_NAMESPACE,
     registryKey,
@@ -326,7 +341,7 @@ registry.states.failure = Object.assign({}, registry.states.failure, { statusIns
 registry.evidence = registry.evidence || {};
 registry.evidence.targetedRepair = {
   schemaVersion: 1,
-  bundleRevision: ${JSON.stringify(EXPECTED_BUNDLE_REVISION)},
+  bundleRevision: ${JSON.stringify(expectedBundleRevision)},
   removedStatusLabelProperties: labelPropertyKeys,
   fixedStatusLabels: REPAIR.fixedStatusLabels,
   loginY: REPAIR.loginY,
@@ -360,42 +375,46 @@ return {
 };`;
 }
 
-async function waitForPinnedCompanion(runtime, journal, timeoutMs) {
+async function waitForPinnedCompanion(runtime, journal, timeoutMs, expectedBundleRevision) {
   const deadline = Date.now() + timeoutMs;
   let last = null;
   while (Date.now() <= deadline) {
     try {
-      const raw = await runtime.callRaw("figma_status", { verbose: true }, 20_000);
+      const statusArgs = { verbose: true };
+      const statusStarted = performance.now();
+      const raw = await runtime.callRaw("figma_status", statusArgs, 20_000);
       const status = unwrapToolPayload(textPayload(raw));
       last = status;
-      await journal.write("wait-for-companion", raw.isError === true ? "ERROR" : "OBSERVED", sanitizeResult(status));
-      if (raw.isError !== true && isExactCompanion(status)) return status;
+      await journal.writeTool("wait-for-companion", raw.isError === true ? "ERROR" : "OBSERVED", { tool: "figma_status", arguments: statusArgs, result: status, elapsedMs: performance.now() - statusStarted });
+      if (raw.isError !== true && isExactCompanion(status, expectedBundleRevision)) return status;
     } catch (error) {
       last = { error: serializeError(error) };
       await journal.write("wait-for-companion", "INCONCLUSIVE", last);
     }
     await delay(STATUS_POLL_MS);
   }
-  throw new WorkflowError("BLOCKED", `No single exact 0.7 companion with bundle ${EXPECTED_BUNDLE_REVISION} became available within ${timeoutMs}ms.`, { lastStatus: last });
+  throw new WorkflowError("BLOCKED", `No single exact 0.7 companion with bundle ${expectedBundleRevision} became available within ${timeoutMs}ms.`, { lastStatus: last });
 }
 
-function isExactCompanion(status) {
-  if (!status || status.pluginConnected !== true || !String(status.serverVersion ?? "").startsWith(EXPECTED_SERVER_PREFIX) || status.protocolVersion !== EXPECTED_PROTOCOL_VERSION || status.bundleRevision !== EXPECTED_BUNDLE_REVISION) return false;
+function isExactCompanion(status, expectedBundleRevision) {
+  if (!status || status.pluginConnected !== true || !String(status.serverVersion ?? "").startsWith(EXPECTED_SERVER_PREFIX) || status.protocolVersion !== EXPECTED_PROTOCOL_VERSION || status.bundleRevision !== expectedBundleRevision) return false;
   const instances = Array.isArray(status.instances) ? status.instances : [];
   if (instances.length !== 1) return false;
   const instance = instances[0];
-  return instance.bundleRevision === EXPECTED_BUNDLE_REVISION && Array.isArray(instance.runtimeSdks) && instance.runtimeSdks.includes("v2");
+  return instance.bundleRevision === expectedBundleRevision && Array.isArray(instance.runtimeSdks) && instance.runtimeSdks.includes("v2");
 }
 
 async function assertPinnedRuntime(runtime, journal, pinned, stepId, requireIdle = false) {
-  const raw = await runtime.callRaw("figma_status", { verbose: true }, 20_000);
+  const statusArgs = { verbose: true };
+  const statusStarted = performance.now();
+  const raw = await runtime.callRaw("figma_status", statusArgs, 20_000);
   const status = unwrapToolPayload(textPayload(raw));
-  await journal.write(stepId, raw.isError === true ? "ERROR" : "OBSERVED", sanitizeResult(status));
+  await journal.writeTool(stepId, raw.isError === true ? "ERROR" : "OBSERVED", { tool: "figma_status", arguments: statusArgs, result: status, elapsedMs: performance.now() - statusStarted });
   if (raw.isError === true) throw toolFailure(stepId, "figma_status", status);
   const instance = status.instances?.find((candidate) => candidate.instanceId === pinned.instanceId);
   assert(status.pluginConnected === true && instance, `Pinned Figma instance ${pinned.instanceId} is not connected.`);
-  assert(status.serverVersion === pinned.serverVersion && status.protocolVersion === EXPECTED_PROTOCOL_VERSION && status.bundleRevision === EXPECTED_BUNDLE_REVISION, "Pinned server identity drifted.");
-  assert(instance.bundleRevision === EXPECTED_BUNDLE_REVISION && instance.fileName === pinned.fileName && (instance.fileKey ?? null) === pinned.fileKey, "Pinned file or companion identity drifted.");
+  assert(status.serverVersion === pinned.serverVersion && status.protocolVersion === EXPECTED_PROTOCOL_VERSION && status.bundleRevision === pinned.bundleRevision, "Pinned server identity drifted.");
+  assert(instance.bundleRevision === pinned.bundleRevision && instance.fileName === pinned.fileName && (instance.fileKey ?? null) === pinned.fileKey, "Pinned file or companion identity drifted.");
   if (requireIdle) assert(status.queueLength === 0 && status.pendingCount === 0 && instance.inFlight === 0, "Pinned runtime is not idle.");
   return status;
 }
@@ -446,7 +465,7 @@ function repairTargets(result, pageIds) {
 }
 
 async function query(runtime, journal, pinned, traceRoot, planId, stepId, kind, extra = {}) {
-  const { routePageId = pinned.initialPageId, ...queryParams } = extra;
+  const { routePageId = pinned.initialPageId, evidenceTags = {}, ...queryParams } = extra;
   return toolStep(runtime, journal, stepId, "figma_query", {
     kind,
     ...queryParams,
@@ -456,20 +475,21 @@ async function query(runtime, journal, pinned, traceRoot, planId, stepId, kind, 
     traceId: `${traceRoot}:${stepId}`,
     attempt: 1,
     operation: operation(planId, stepId, `Capture ${kind} repair evidence`, "read", "verify", `${pinned.fileName} / pinned Luma file`, kind === "structure" ? "tree" : "table", ["Facts are bound to the exact pinned companion and file"]),
-  });
+  }, NORMAL_TIMEOUT_MS, evidenceTags);
 }
 
-async function toolStep(runtime, journal, stepId, tool, args, timeout = NORMAL_TIMEOUT_MS) {
+async function toolStep(runtime, journal, stepId, tool, args, timeout = NORMAL_TIMEOUT_MS, evidenceTags = {}) {
+  const started = performance.now();
   let raw;
   try {
     raw = await runtime.callRaw(tool, args, timeout);
   } catch (error) {
     const failure = new WorkflowError(tool === "figma_exec" ? "INCONCLUSIVE" : "BLOCKED", `${tool} transport failed during ${stepId}.`, { tool, stepId, providerStateUnknown: tool === "figma_exec", cause: serializeError(error) });
-    await journal.write(stepId, failure.state, failure.details);
+    await journal.writeTool(stepId, failure.state, { tool, arguments: args, result: { transportError: failure.details }, elapsedMs: performance.now() - started, tags: evidenceTags });
     throw failure;
   }
   const payload = unwrapToolPayload(textPayload(raw));
-  await journal.write(stepId, raw.isError === true ? "ERROR" : "OBSERVED", { tool, traceId: args.traceId ?? null, result: sanitizeResult(payload), structuredContent: sanitizeResult(raw.structuredContent ?? null) });
+  await journal.writeTool(stepId, raw.isError === true ? "ERROR" : "OBSERVED", { tool, arguments: args, result: payload, elapsedMs: performance.now() - started, tags: evidenceTags });
   if (raw.isError === true) throw toolFailure(stepId, tool, payload);
   return payload;
 }
@@ -488,8 +508,8 @@ async function mutationStep(runtime, journal, stepId, tool, args, timeout, recon
 async function reconcileAmbiguousMutation(runtime, journal, pinned, traceRoot, planId, failure) {
   await journal.write("repair-reconcile-start", "INCONCLUSIVE", { failure: serializeError(failure) });
   try { await assertPinnedRuntime(runtime, journal, pinned, "repair-reconcile-status"); } catch {}
-  try { await query(runtime, journal, pinned, traceRoot, planId, "repair-reconcile-manifest", "artifact_manifest", { refresh: true }); } catch {}
-  try { await query(runtime, journal, pinned, traceRoot, planId, "repair-reconcile-inventory", "file_inventory"); } catch {}
+  try { await query(runtime, journal, pinned, traceRoot, planId, "repair-reconcile-manifest", "artifact_manifest", { refresh: true, evidenceTags: { requery: true } }); } catch {}
+  try { await query(runtime, journal, pinned, traceRoot, planId, "repair-reconcile-inventory", "file_inventory", { evidenceTags: { requery: true } }); } catch {}
 }
 
 async function collectCompleteComponentIntegrity(runtime, journal, pinned, traceRoot, planId) {
@@ -600,7 +620,7 @@ function componentIds(result) {
 
 async function probeExportIntegrity({ runtime, journal, pinned, traceRoot, planId, evidenceDir, runId, nodeId, pageId }) {
   const stepId = "probe-motion-export-integrity";
-  const raw = await runtime.callRaw("figma_export", {
+  const exportArgs = {
     nodeId,
     format: "PNG",
     constraint: { type: "SCALE", value: 1 },
@@ -614,8 +634,11 @@ async function probeExportIntegrity({ runtime, journal, pinned, traceRoot, planI
     traceId: `${traceRoot}:${stepId}`,
     attempt: 1,
     operation: operation(planId, stepId, "Probe server-side PNG dimension integrity on an animated Motion specimen", "export", "verify", `${pinned.fileName} / ${nodeId}`, "artifact", ["A valid raster is persisted with actual pixel dimensions, or a mismatched 1x1 provider raster is rejected before persistence"]),
-  }, EXPORT_TIMEOUT_MS);
+  };
+  const exportStarted = performance.now();
+  const raw = await runtime.callRaw("figma_export", exportArgs, EXPORT_TIMEOUT_MS);
   const payload = unwrapToolPayload(textPayload(raw));
+  await journal.writeTool(stepId, raw.isError === true ? "ERROR" : "OBSERVED", { tool: "figma_export", arguments: exportArgs, result: payload, elapsedMs: performance.now() - exportStarted });
   if (raw.isError === true) {
     const disposition = payload?.error && typeof payload.error === "object" ? payload.error : payload;
     const message = `${disposition?.code ?? ""} ${disposition?.message ?? ""} ${disposition?.hint ?? ""}`;
@@ -649,7 +672,7 @@ async function probeExportIntegrity({ runtime, journal, pinned, traceRoot, planI
 
 async function exportEvidence({ runtime, journal, pinned, traceRoot, planId, evidenceDir, runId, target, index }) {
   const stepId = `export-${index + 1}-${target.key}`;
-  const raw = await runtime.callRaw("figma_export", {
+  const exportArgs = {
     nodeId: target.nodeId,
     format: "PNG",
     constraint: { type: "SCALE", value: 1 },
@@ -663,10 +686,12 @@ async function exportEvidence({ runtime, journal, pinned, traceRoot, planId, evi
     traceId: `${traceRoot}:${stepId}`,
     attempt: 1,
     operation: operation(planId, stepId, `Export repaired ${target.key}`, "export", "verify", `${pinned.fileName} / ${target.nodeId}`, "artifact", ["Persisted PNG has decoded width and height greater than one pixel"]),
-  }, EXPORT_TIMEOUT_MS);
+  };
+  const exportStarted = performance.now();
+  const raw = await runtime.callRaw("figma_export", exportArgs, EXPORT_TIMEOUT_MS);
   const payload = unwrapToolPayload(textPayload(raw));
   const artifact = raw.structuredContent?.artifact ?? payload?.artifact ?? payload;
-  await journal.write(stepId, raw.isError === true ? "ERROR" : "OBSERVED", { result: sanitizeResult(payload), artifact: sanitizeResult(artifact) });
+  await journal.writeTool(stepId, raw.isError === true ? "ERROR" : "OBSERVED", { tool: "figma_export", arguments: exportArgs, result: { payload, artifact }, elapsedMs: performance.now() - exportStarted });
   if (raw.isError === true) throw toolFailure(stepId, "figma_export", payload);
   assert(typeof artifact?.path === "string" && artifact.path.length > 0, `Export ${target.key} returned no artifact path.`);
   const evidencePath = resolve(evidenceDir, `luma-realistic-repair-${runId}-${String(index + 1).padStart(2, "0")}-${target.key}.png`);
@@ -701,7 +726,7 @@ function operation(planId, stepId, label, kind, phase, target, representation, p
   return { label, kind, phase, planId, stepId, target, representation, postconditions };
 }
 
-function requiredOption(name) {
+function requiredOption(name, required = true) {
   const equals = process.argv.find((value) => value.startsWith(`${name}=`));
   if (equals) {
     const value = equals.slice(name.length + 1).trim();
@@ -709,10 +734,13 @@ function requiredOption(name) {
     return value;
   }
   const index = process.argv.indexOf(name);
-  assert(index >= 0 && typeof process.argv[index + 1] === "string" && !process.argv[index + 1].startsWith("--"), `${name} is required. Example: ${name}=luma-realistic-rebuild:<run-id>`);
-  const value = process.argv[index + 1].trim();
-  assert(value.length > 0, `${name} requires a non-empty value.`);
-  return value;
+  if (index >= 0 && typeof process.argv[index + 1] === "string" && !process.argv[index + 1].startsWith("--")) {
+    const value = process.argv[index + 1].trim();
+    assert(value.length > 0, `${name} requires a non-empty value.`);
+    return value;
+  }
+  if (!required) return null;
+  throw new Error(`${name} is required.`);
 }
 
 function toolFailure(stepId, tool, payload) {
@@ -732,16 +760,6 @@ class WorkflowError extends Error {
 
 function classifyFailure(error) {
   return error instanceof WorkflowError && ["BLOCKED", "INCONCLUSIVE", "FAIL"].includes(error.state) ? error.state : "FAIL";
-}
-
-function createJournal(path, runId) {
-  let sequence = 0;
-  return {
-    async write(stepId, state, data) {
-      sequence += 1;
-      await appendFile(path, `${JSON.stringify({ schemaVersion: 1, kind: "LumaRealisticRepairJournalEntry", runId, sequence, observedAt: new Date().toISOString(), stepId, state, data: sanitizeResult(data) })}\n`, { encoding: "utf8", flag: "a" });
-    },
-  };
 }
 
 function unwrapToolPayload(payload) {

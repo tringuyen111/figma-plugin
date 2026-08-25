@@ -13,7 +13,19 @@ Given code/design-system truth and current Figma variables, produce a coherent v
 
 ## Decision advantage
 
-This Skill earns its place by distinguishing **semantic role identity from raw value equality** and by reasoning through the consumer graph. Decide whether a value is primitive, semantic, component-scoped, mode-dependent, or not reusable at all from meaning and propagation—not from repeated literals. A correct token decision includes migration/blast radius, scope, aliasing, and code-facing identity where relevant.
+This Skill earns its place by distinguishing **Role Identity from raw value equality** and by reasoning through the consumer graph. Decide whether a value is primitive, semantic, component-scoped, mode-dependent, or not reusable at all from meaning and propagation—not from repeated literals. A correct token decision includes migration/blast radius, scope, aliasing, and code-facing identity where relevant.
+
+## Working vocabulary
+
+Use these terms literally when they carry token-system decisions.
+
+- **ROLE IDENTITY** — the meaning a reusable value represents independent of its current literal resolution. Equal values do not imply equal Role Identity; one Role Identity may resolve to different values across Modes.
+- **PRIMITIVE** — a raw scale/value candidate with minimal semantic promise. A Primitive is useful as an alias target; it is not automatically a product-facing role.
+- **SEMANTIC TOKEN** — a reusable role whose identity remains stable while literal value, Mode, or implementation mapping can change.
+- **ALIAS** — an identity-preserving relationship to another variable/token. Copying the same literal value is not an Alias.
+- **MODE** — an authorized context-specific resolution of the same Role Identity, such as theme, density, platform, locale, or brand when the system actually supports that axis.
+- **CONSUMER GRAPH** — the bound consumers through which a token decision propagates. Definitions without representative bound consumers do not prove reuse.
+- **BLAST RADIUS** — the material Consumer Graph affected by a role, Alias, Mode, naming, or collection change. Widen migration only after evidence establishes this radius.
 
 ## Skill I/O contract
 
@@ -36,7 +48,7 @@ Never derive canonical code syntax from a Figma token name when an authoritative
 
 ## System-plane invariants
 
-- One semantic decision has one token owner/source of truth.
+- One Semantic Token role has one authoritative source of truth.
 - Equal raw values do not prove equal roles; different mode values can realize the same role.
 - Distinguish foundation value, semantic role, and component-specific contract.
 - Widen migration only when consumer evidence proves shared impact.
@@ -71,7 +83,7 @@ Reason independently about:
 - **Code syntax**: valid Web/iOS/Android representation used in handoff; map to the real codebase naming.
 - **Extended collection**: parent/derived collection for multi-brand inheritance when the Figma plan/runtime supports it; do not fake this with duplicate disconnected collections.
 
-Variable types include color, number, string, boolean and current Figma timing/easing forms. Domain semantics still belong to the consuming capability: timing/easing naming comes from `figma-motion`, typography role composition from `figma-typography`.
+Variable types include color, number, string, boolean and current Figma timing/easing forms. A variable type does not grant authority over the consuming domain: timing/easing values do not define motion semantics, and number/string values do not define typography recipes.
 
 ## Naming grammar
 
@@ -111,9 +123,9 @@ printf '%s\n' 'color/surface/canvas' 'space/group/medium' | python scripts/valid
 For each material variable record:
 
 ```text
-identity -> semantic role -> collection -> mode values/aliases
+identity -> Role Identity -> collection -> Mode values/Aliases
 -> allowed scopes -> code syntax -> representative consumers
--> owner/source -> migration/deprecation rule
+-> authority/source -> migration/deprecation rule
 ```
 
 Before creating a variable:
@@ -133,7 +145,7 @@ Before creating a variable:
 - Set variable scopes explicitly.
 - Set code syntax only from verified code/platform naming; do not invent production identifiers.
 - Import a library variable before local aliasing when the API/runtime requires a local imported object.
-- Prefer typed variable/collection `figma_apply(action=apply_entity_patch)` with a fingerprint rescan before writes and typed readback. Use `figma_exec` only when a variable API is not yet typed, and rescan bindings immediately after; return created/mutated ids and never infer cross-file publication from local mutation.
+- Prefer guarded typed variable/collection mutation for modeled collection/mode lifecycle, value/Alias updates, code syntax, and supported consumer bindings, with a fingerprint rescan before dependent writes and bounded readback after them. When collection/variable creation and immediate alias/binding work share one causal transaction, use the runtime's modeled transaction-local identity mechanism instead of splitting the work merely to discover provider IDs. Request deep variable or Consumer Graph evidence only when it can change the token decision. Use the narrow native escape hatch only for an unmodeled variable API, then rescan/read back the affected bindings. Exact operation, selector, and identity-edge syntax belongs to the native execution contract.
 - Inspect representative bound nodes after changes; a variable table alone does not prove correct use.
 
 ## Migration method
@@ -155,12 +167,6 @@ Before creating a variable:
 - **Code syntax invented from Figma names:** verify codebase token source first.
 - **Renaming breaks handoff:** treat token path/code syntax as API; plan migration and downstream consumers.
 
-## Boundaries
+## Capability boundary
 
-- `figma-verification` owns a fixed-artifact audit/verdict; this Skill owns authoring/repair decisions in its domain.
-
-- `figma-visual-system` chooses perceptual color/material relationships; this Skill materializes reusable value roles.
-- `figma-typography` owns text-role/style recipes and consumes number/string variables as appropriate.
-- `figma-components` owns component anatomy and may consume component-level tokens.
-- `figma-motion` owns motion semantics for timing/easing variables.
-- `figma-design-system` owns whole-system reconciliation and publication strategy.
+This Skill owns reusable value semantics: Role Identity, Primitive/Semantic layers, collections, Modes, Aliases, scopes, code-facing identity, Consumer Graph, migration, and Blast Radius. It does not own fixed-artifact acceptance verdicts, perceptual color/material composition, typography recipes, component anatomy, motion semantics, or whole-system publication governance. When one of those concerns becomes decision-material, preserve the unresolved concern and required return; normal Agent capability discovery decides whether additional Skill context is useful.

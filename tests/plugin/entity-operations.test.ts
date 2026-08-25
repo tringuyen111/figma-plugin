@@ -47,6 +47,125 @@ describe("typed entity graph and CRUD", () => {
     await expect(applyDocument({ action: "apply_entity_patch", patches: [{ kind: "delete", entityKind: "node", target: { controlId } }], dryRun: true })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.INVALID_PARAMS } });
   });
 
+  it("keeps full mutation results by default and emits compact opt-in receipts", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+
+    const patches = [{ kind: "create", entityKind: "node", entityType: "FRAME", controlId: "receipt-root", properties: { name: "Receipt specimen", width: 320, height: 180 } }];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true }) as any;
+    const full = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash }) as any;
+    expect(full.state).toBe("COMMITTED");
+    expect(full.plan.before).toBeDefined();
+    expect(full.before).toBeDefined();
+    expect(full.after).toBeDefined();
+    expect(full.resultMode).toBeUndefined();
+
+    const updatePlan = await applyDocument({ action: "apply_entity_patch", patches: [{ kind: "update", entityKind: "node", target: { controlId: "receipt-root" }, set: { x: 24 } }], dryRun: true, resultMode: "receipt" }) as any;
+    expect(updatePlan.plan.before).toBeDefined();
+    const receipt = await applyDocument({ action: "apply_entity_patch", patches: updatePlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: updatePlan.plan.planHash, resultMode: "receipt" }) as any;
+
+    expect(receipt).toMatchObject({
+      dryRun: false,
+      writePerformed: true,
+      state: "COMMITTED",
+      resultMode: "receipt",
+      plan: expect.objectContaining({ planHash: updatePlan.plan.planHash, snapshotId: updatePlan.plan.snapshotId, operationCount: 1 }),
+      changedEntities: [expect.objectContaining({ id: full.changedEntities[0].id, controlId: "receipt-root", entityKind: "node" })],
+      rollbackState: "not_needed",
+      undoCommitted: true,
+    });
+    expect(receipt.plan.before).toBeUndefined();
+    expect(receipt.plan.patches).toBeUndefined();
+    expect(receipt.before).toBeUndefined();
+    expect(receipt.after).toBeUndefined();
+    expect(receipt.beforeFingerprint).toMatch(/^fnv1a-/);
+    expect(receipt.afterFingerprint).toMatch(/^fnv1a-/);
+    expect(receipt.changedEntities[0].layoutMode).toBeUndefined();
+    await expect(applyDocument({ action: "clear_file_owned_assets", dryRun: true, resultMode: "receipt" })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.INVALID_PARAMS } });
+  });
+
+  it("keeps compact rollback failure evidence without restoring full entity payloads", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const frame = fixture.makeNode("FRAME", { name: "Rollback frame", x: 0 });
+    const instance = fixture.makeNode("INSTANCE", { name: "Failing instance" });
+    instance.setProperties = vi.fn(() => { throw new Error("synthetic command failure"); });
+    fixture.page.appendChild(frame);
+    fixture.page.appendChild(instance);
+
+    const patches = [
+      { kind: "update", entityKind: "node", target: { nodeId: frame.id }, set: { x: 42 } },
+      { kind: "component_command", entityKind: "node", target: { nodeId: instance.id }, command: "set_properties", payload: { properties: { State: "Pressed" } } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true, resultMode: "receipt" }) as any;
+    const failed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt" }) as any;
+
+    expect(failed).toMatchObject({
+      dryRun: false,
+      writePerformed: true,
+      state: "PARTIAL_COMMIT",
+      resultMode: "receipt",
+      rollbackState: "unverified",
+      error: "synthetic command failure",
+      plan: expect.objectContaining({ planHash: plan.plan.planHash, operationCount: 2 }),
+      changedEntities: [expect.objectContaining({ id: frame.id, entityKind: "node" })],
+    });
+    expect(failed.before).toBeUndefined();
+    expect(failed.afterRollback).toBeUndefined();
+    expect(failed.beforeFingerprint).toMatch(/^fnv1a-/);
+    expect(failed.afterRollbackFingerprint).toMatch(/^fnv1a-/);
+    expect(failed.rollbackError).toContain("fingerprint");
+  });
+
+  it("executes forward local-ref dependencies atomically and returns persistent continuation identities in request order", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+
+    const patches = [
+      { kind: "update", entityKind: "node", target: { opRef: "child" }, set: { x: 24 } },
+      { kind: "create", entityKind: "node", entityType: "RECTANGLE", opRef: "child", parent: { opRef: "root" }, controlId: "local-child", properties: { name: "Child", width: 80, height: 40 } },
+      { kind: "create", entityKind: "node", entityType: "FRAME", opRef: "root", controlId: "local-root", properties: { name: "Root", width: 320, height: 180 } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true, resultMode: "receipt" }) as any;
+    expect(plan.plan.executionOrder).toEqual([2, 1, 0]);
+    expect(plan.plan.dependencies).toEqual([
+      { patchIndex: 0, dependsOn: [1], opRefs: ["child"] },
+      { patchIndex: 1, dependsOn: [2], opRefs: ["root"] },
+      { patchIndex: 2, dependsOn: [], opRefs: [] },
+    ]);
+    expect(plan.plan.before[0]).toMatchObject({ operation: "local_ref", opRef: "child", producerIndex: 1, preflight: "deferred_to_execution" });
+    expect(plan.plan.before[1]).toMatchObject({ operation: "create", opRef: "child" });
+
+    const committed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(committed.state).toBe("COMMITTED");
+    expect(committed.changedEntities.map((item: any) => item.opRef ?? null)).toEqual([null, "child", "root"]);
+    expect(committed.changedEntities[1]).toMatchObject({ opRef: "child", controlId: "local-child", entityKind: "node" });
+    expect(committed.changedEntities[2]).toMatchObject({ opRef: "root", controlId: "local-root", entityKind: "node" });
+    const root = fixture.page.children.find((item: any) => item.getSharedPluginData("figmaplugin", "control").includes("local-root"));
+    expect(root.children).toHaveLength(1);
+    expect(root.children[0].x).toBe(24);
+  });
+
+  it("does not certify rollback when a produced entity survives undo", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const failing = fixture.makeNode("INSTANCE", { name: "Failing instance" });
+    failing.setProperties = vi.fn(() => { throw new Error("synthetic local-ref failure"); });
+    fixture.page.appendChild(failing);
+
+    const patches = [
+      { kind: "create", entityKind: "node", entityType: "FRAME", opRef: "created", controlId: "rollback-created", properties: { name: "Created" } },
+      { kind: "component_command", entityKind: "node", target: { nodeId: failing.id }, command: "set_properties", payload: { properties: { State: "Pressed" } } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true, resultMode: "receipt" }) as any;
+    const failed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt" }) as any;
+
+    expect(failed.state).toBe("PARTIAL_COMMIT");
+    expect(failed.rollbackState).toBe("unverified");
+    expect(failed.rollbackError).toContain("produced entities");
+    expect(fixture.page.children.some((item: any) => item.getSharedPluginData("figmaplugin", "control").includes("rollback-created"))).toBe(true);
+  });
+
   it("aligns component integrity facts to graph pages instead of repeating the full inventory", async () => {
     const fixture = makeFixture();
     (globalThis as Record<string, unknown>).figma = fixture.figma;
@@ -173,7 +292,7 @@ describe("typed entity graph and CRUD", () => {
   it("scopes and paginates accessibility facts by current or explicit page with page-aligned interactive coverage", async () => {
     const fixture = makeFixture();
     (globalThis as Record<string, unknown>).figma = fixture.figma;
-    const currentActionA = fixture.makeNode("FRAME", { name: "Action / Current A", width: 44, height: 44 });
+    const currentActionA = fixture.makeNode("FRAME", { name: "Action / Current A", width: 44, height: 44, opacity: 0.8, fills: [{ type: "SOLID", color: { r: 1, g: 0, b: 0 } }], strokes: [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }] });
     const currentPlain = fixture.makeNode("FRAME", { name: "Plain current node" });
     const currentActionB = fixture.makeNode("FRAME", { name: "Action / Current B", width: 48, height: 48 });
     currentActionA.reactions = [{ trigger: { type: "ON_CLICK" }, actions: [{ type: "CLOSE" }] }];
@@ -194,6 +313,11 @@ describe("typed entity graph and CRUD", () => {
     expect(first.coverage).toMatchObject({ scope: "page", scanned: 3, total: 3, returned: 2, truncated: true, nextCursor: "offset:2" });
     expect(first.facts.interactive.map((item: any) => item.id)).toEqual([currentActionA.id]);
     expect(first.facts.interactiveCoverage).toEqual({ returned: 1, alignedTo: "graph_page" });
+    expect(first.facts.interactive[0].contrastInputs).toEqual({
+      fills: [{ type: "SOLID", color: { r: 1, g: 0, b: 0 } }],
+      strokes: [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }],
+      opacity: 0.8,
+    });
     expect(second.coverage).toMatchObject({ scope: "page", scanned: 3, total: 3, returned: 1, truncated: false });
     expect(second.facts.interactive.map((item: any) => item.id)).toEqual([currentActionB.id]);
     expect(second.facts.interactiveCoverage).toEqual({ returned: 1, alignedTo: "graph_page" });
@@ -201,6 +325,280 @@ describe("typed entity graph and CRUD", () => {
     expect(explicitOther.facts.interactive.map((item: any) => item.id)).toEqual([otherAction.id]);
     expect(explicitOther.facts.interactiveCoverage).toEqual({ returned: 1, alignedTo: "graph_page" });
     expect([...first.facts.interactive, ...second.facts.interactive].map((item: any) => item.id)).not.toContain(otherAction.id);
+  });
+
+  it("manages component property lifecycle without raw execution", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const component = fixture.makeComponent("Card");
+    fixture.page.appendChild(component);
+
+    const add = [{
+      kind: "component_command", entityKind: "node", target: { nodeId: component.id }, command: "add_property",
+      payload: { name: "Label", propertyType: "TEXT", defaultValue: "Card title" },
+    }];
+    const addPlan = await applyDocument({ action: "apply_entity_patch", patches: add, dryRun: true, resultMode: "receipt" }) as any;
+    const added = await applyDocument({ action: "apply_entity_patch", patches: addPlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: addPlan.plan.planHash, resultMode: "receipt" }) as any;
+    const propertyKey = added.changedEntities[0].componentPropertyKey;
+    expect(propertyKey).toMatch(/^Label#/);
+    expect(component.componentPropertyDefinitions[propertyKey]).toMatchObject({ type: "TEXT", defaultValue: "Card title" });
+
+    const edit = [{
+      kind: "component_command", entityKind: "node", target: { nodeId: component.id }, command: "edit_property",
+      payload: { propertyKey, changes: { name: "Title", defaultValue: "Updated title" } },
+    }];
+    const editPlan = await applyDocument({ action: "apply_entity_patch", patches: edit, dryRun: true, resultMode: "receipt" }) as any;
+    const edited = await applyDocument({ action: "apply_entity_patch", patches: editPlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: editPlan.plan.planHash, resultMode: "receipt" }) as any;
+    const editedKey = edited.changedEntities[0].componentPropertyKey;
+    expect(editedKey).toMatch(/^Title#/);
+    expect(edited.changedEntities[0].previousComponentPropertyKey).toBe(propertyKey);
+
+    const remove = [{
+      kind: "component_command", entityKind: "node", target: { nodeId: component.id }, command: "delete_property",
+      payload: { propertyKey: editedKey },
+    }];
+    const deletePlan = await applyDocument({ action: "apply_entity_patch", patches: remove, dryRun: true, resultMode: "receipt" }) as any;
+    const deleted = await applyDocument({ action: "apply_entity_patch", patches: deletePlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: deletePlan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(deleted.changedEntities[0]).toMatchObject({ componentPropertyKey: editedKey, deletedComponentProperty: true });
+    expect(component.componentPropertyDefinitions[editedKey]).toBeUndefined();
+
+    await expect(applyDocument({
+      action: "apply_entity_patch",
+      patches: [{ kind: "component_command", entityKind: "node", target: { nodeId: component.id }, command: "add_property", payload: { name: "Content", propertyType: "SLOT", defaultValue: "" } }],
+      dryRun: true,
+    })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.UNSUPPORTED_PROPERTY } });
+  });
+
+  it("creates a Slot as a transaction-local producer, exposes violations, and resets it natively", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+
+    const patches = [
+      { kind: "create", entityKind: "node", entityType: "COMPONENT", opRef: "card", controlId: "component-card", properties: { name: "Card" } },
+      { kind: "component_command", entityKind: "node", target: { opRef: "card" }, command: "create_slot", opRef: "content", payload: { name: "Content", description: "Flexible card body", slotSettings: { minChildren: 0, maxChildren: 2, stretchChildOnInsert: true } } },
+      { kind: "update", entityKind: "node", target: { opRef: "content" }, set: { name: "contentSlot", layoutMode: "VERTICAL" } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true, resultMode: "receipt" }) as any;
+    expect(plan.plan.executionOrder).toEqual([0, 1, 2]);
+    const committed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(committed.state).toBe("COMMITTED");
+    expect(committed.changedEntities.map((item: any) => item.opRef ?? null)).toEqual(["card", "content", null]);
+    expect(committed.changedEntities[1]).toMatchObject({ opRef: "content", type: "SLOT", componentPropertyKey: expect.stringMatching(/^Content#/) });
+
+    const slotId = committed.changedEntities[1].id;
+    const slot = await fixture.figma.getNodeByIdAsync(slotId);
+    slot.limitViolations = ["ABOVE_MAX"];
+    const graph = await queryDocument({ kind: "entity_graph", scope: "node", nodeId: slotId, projection: ["component"], limit: 10 }) as any;
+    expect(graph.facts.items[0]).toMatchObject({ id: slotId, type: "SLOT", limitViolations: ["ABOVE_MAX"] });
+
+    const integrity = await queryDocument({ kind: "component_integrity", scope: "page", limit: 20 }) as any;
+    expect(integrity.facts.components).toEqual(expect.arrayContaining([expect.objectContaining({ id: slotId, type: "SLOT", limitViolations: ["ABOVE_MAX"] })]));
+
+    const reset = [{ kind: "component_command", entityKind: "node", target: { nodeId: slotId }, command: "reset_slot", payload: {} }];
+    const resetPlan = await applyDocument({ action: "apply_entity_patch", patches: reset, dryRun: true, resultMode: "receipt" }) as any;
+    const resetResult = await applyDocument({ action: "apply_entity_patch", patches: resetPlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: resetPlan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(resetResult.changedEntities[0]).toMatchObject({ id: slotId, type: "SLOT", slotReset: true });
+    expect(slot.resetSlot).toHaveBeenCalledTimes(1);
+  });
+
+  it("combines persistent and transaction-local components into a typed component-set producer with bounded evidence", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const existingDefault = fixture.makeComponent("State=Default");
+    const existingHover = fixture.makeComponent("State=Hover");
+    fixture.page.appendChild(existingDefault);
+    fixture.page.appendChild(existingHover);
+
+    const persistent = [{
+      kind: "component_command",
+      entityKind: "node",
+      command: "combine_variants",
+      opRef: "existingSet",
+      members: [{ nodeId: existingDefault.id, expectedType: "COMPONENT" }, { nodeId: existingHover.id, expectedType: "COMPONENT" }],
+      payload: {},
+    }];
+    const persistentPlan = await applyDocument({ action: "apply_entity_patch", patches: persistent, dryRun: true, resultMode: "receipt" }) as any;
+    const persistentResult = await applyDocument({ action: "apply_entity_patch", patches: persistentPlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: persistentPlan.plan.planHash, resultMode: "receipt" }) as any;
+    const existingSetId = persistentResult.changedEntities[0].id;
+    expect(persistentResult.changedEntities[0]).toMatchObject({ opRef: "existingSet", id: existingSetId, type: "COMPONENT_SET", componentSetMemberCount: 2 });
+    expect(fixture.figma.combineAsVariants).toHaveBeenCalledWith([existingDefault, existingHover], fixture.page);
+
+    const graph = await queryDocument({ kind: "entity_graph", scope: "node", nodeId: existingSetId, projection: ["component"], limit: 10 }) as any;
+    expect(graph.facts.items[0]).toMatchObject({
+      id: existingSetId,
+      type: "COMPONENT_SET",
+      componentSetMemberCount: 2,
+      componentSetMemberIds: [existingDefault.id, existingHover.id],
+      componentSetMembersTruncated: false,
+    });
+
+    const local = [
+      { kind: "component_command", entityKind: "node", command: "combine_variants", opRef: "buttonSet", members: [{ opRef: "default", expectedType: "COMPONENT" }, { opRef: "pressed", expectedType: "COMPONENT" }], payload: {} },
+      { kind: "update", entityKind: "node", target: { opRef: "buttonSet", expectedType: "COMPONENT_SET" }, set: { name: "Controls/Button" } },
+      { kind: "create", entityKind: "node", entityType: "COMPONENT", opRef: "default", properties: { name: "State=Default" } },
+      { kind: "create", entityKind: "node", entityType: "COMPONENT", opRef: "pressed", properties: { name: "State=Pressed" } },
+    ];
+    const localPlan = await applyDocument({ action: "apply_entity_patch", patches: local, dryRun: true, resultMode: "receipt" }) as any;
+    expect(localPlan.plan.executionOrder).toEqual([2, 3, 0, 1]);
+    const localResult = await applyDocument({ action: "apply_entity_patch", patches: localPlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: localPlan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(localResult.changedEntities[0]).toMatchObject({ opRef: "buttonSet", type: "COMPONENT_SET", componentSetMemberCount: 2 });
+    expect(localResult.changedEntities[1]).toMatchObject({ type: "COMPONENT_SET", name: "Controls/Button" });
+
+    const rectangle = fixture.makeNode("RECTANGLE", { name: "Not a component" });
+    fixture.page.appendChild(rectangle);
+    await expect(applyDocument({
+      action: "apply_entity_patch",
+      patches: [{ kind: "component_command", entityKind: "node", command: "combine_variants", members: [{ nodeId: rectangle.id }], payload: {} }],
+      dryRun: true,
+    })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.UNSUPPORTED_PROPERTY } });
+  });
+
+  it("builds a variable graph with local collection refs, modes, aliases, code syntax, and opt-in detail evidence", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+
+    const patches = [
+      { kind: "create", entityKind: "variable_collection", opRef: "tokens", controlId: "tokens-theme", properties: { name: "Theme" } },
+      { kind: "variable_command", entityKind: "variable_collection", target: { opRef: "tokens" }, command: "rename_mode", payload: { defaultMode: true, name: "Light" } },
+      { kind: "variable_command", entityKind: "variable_collection", target: { opRef: "tokens" }, command: "add_mode", payload: { name: "Dark" } },
+      { kind: "create", entityKind: "variable", opRef: "primitive", collection: { opRef: "tokens" }, properties: { name: "color/blue/600", resolvedType: "COLOR", description: "Brand blue", scopes: ["ALL_FILLS"], hiddenFromPublishing: false } },
+      { kind: "variable_command", entityKind: "variable", target: { opRef: "primitive" }, command: "set_value", payload: { modeName: "Light", value: { r: 0.1, g: 0.2, b: 0.8, a: 1 } } },
+      { kind: "variable_command", entityKind: "variable", target: { opRef: "primitive" }, command: "set_value", payload: { modeName: "Dark", value: { r: 0.3, g: 0.5, b: 1, a: 1 } } },
+      { kind: "variable_command", entityKind: "variable", target: { opRef: "primitive" }, command: "set_code_syntax", payload: { platform: "WEB", value: "--color-blue-600" } },
+      { kind: "create", entityKind: "variable", opRef: "semantic", collection: { opRef: "tokens" }, properties: { name: "color/action/primary", resolvedType: "COLOR", scopes: ["ALL_FILLS"] } },
+      { kind: "variable_command", entityKind: "variable", target: { opRef: "semantic" }, alias: { opRef: "primitive" }, command: "set_value", payload: { defaultMode: true } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true, resultMode: "receipt" }) as any;
+    expect(plan.plan.executionOrder).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    const committed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(committed.state).toBe("COMMITTED");
+    expect(committed.changedEntities[0]).toMatchObject({ opRef: "tokens", entityKind: "variable_collection" });
+    expect(committed.changedEntities[3]).toMatchObject({ opRef: "primitive", entityKind: "variable", collectionId: committed.changedEntities[0].id });
+    expect(committed.changedEntities[8]).toMatchObject({ entityKind: "variable", aliasedVariableId: committed.changedEntities[3].id });
+
+    const compact = await queryDocument({ kind: "entity_graph", scope: "variables", entityKind: "variable", limit: 20 }) as any;
+    const compactPrimitive = compact.facts.items.find((item: any) => item.id === committed.changedEntities[3].id);
+    expect(compactPrimitive.valuesByMode).toBeUndefined();
+    expect(compactPrimitive.codeSyntax).toBeUndefined();
+
+    const detailed = await queryDocument({ kind: "entity_graph", scope: "variables", projection: ["variable_details"], limit: 20 }) as any;
+    const primitive = detailed.facts.items.find((item: any) => item.id === committed.changedEntities[3].id);
+    const semantic = detailed.facts.items.find((item: any) => item.id === committed.changedEntities[7].id);
+    expect(primitive).toMatchObject({ description: "Brand blue", scopes: ["ALL_FILLS"], codeSyntax: { WEB: "--color-blue-600" } });
+    expect(Object.keys(primitive.valuesByMode)).toHaveLength(2);
+    expect(Object.values(semantic.valuesByMode)).toEqual(expect.arrayContaining([expect.objectContaining({ type: "VARIABLE_ALIAS", id: committed.changedEntities[3].id })]));
+
+    await expect(applyDocument({ action: "apply_entity_patch", patches: [{ kind: "variable_command", entityKind: "variable", target: { variableId: committed.changedEntities[3].id }, command: "set_value", payload: { modeName: "Missing", value: 1 } }], dryRun: true })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.TARGET_NOT_FOUND } });
+  });
+
+  it("binds and unbinds direct fields and SolidPaint consumers through modeled variable refs", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const surface = fixture.makeNode("RECTANGLE", {
+      name: "Token surface",
+      fills: [{ type: "SOLID", color: { r: 1, g: 1, b: 1 }, opacity: 1 }],
+      strokes: [{ type: "SOLID", color: { r: 0, g: 0, b: 0 }, opacity: 1 }],
+    });
+    fixture.page.appendChild(surface);
+
+    const patches = [
+      { kind: "create", entityKind: "variable_collection", opRef: "tokens", properties: { name: "Theme" } },
+      { kind: "create", entityKind: "variable", opRef: "opacity", collection: { opRef: "tokens" }, properties: { name: "opacity/default", resolvedType: "FLOAT" } },
+      { kind: "create", entityKind: "variable", opRef: "color", collection: { opRef: "tokens" }, properties: { name: "color/surface", resolvedType: "COLOR" } },
+      { kind: "set_bindings", entityKind: "node", target: { nodeId: surface.id }, variable: { opRef: "opacity" }, payload: { binding: { kind: "node", field: "opacity" } } },
+      { kind: "set_bindings", entityKind: "node", target: { nodeId: surface.id }, variable: { opRef: "color" }, payload: { binding: { kind: "paint", property: "fills", index: 0, field: "color" } } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true, resultMode: "receipt" }) as any;
+    const committed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(committed.state).toBe("COMMITTED");
+    expect(surface.boundVariables.opacity.id).toBe(committed.changedEntities[1].id);
+    expect(surface.fills[0].boundVariables.color.id).toBe(committed.changedEntities[2].id);
+
+    const evidence = await queryDocument({ kind: "entity_graph", scope: "node", nodeId: surface.id, projection: ["bindings"], limit: 10 }) as any;
+    expect(evidence.facts.items[0].boundVariables.opacity.id).toBe(committed.changedEntities[1].id);
+    expect(evidence.facts.items[0].fills[0].boundVariables.color.id).toBe(committed.changedEntities[2].id);
+
+    const unbindPlan = await applyDocument({ action: "apply_entity_patch", patches: [
+      { kind: "set_bindings", entityKind: "node", target: { nodeId: surface.id }, payload: { binding: { kind: "node", field: "opacity", unbind: true } } },
+      { kind: "set_bindings", entityKind: "node", target: { nodeId: surface.id }, payload: { binding: { kind: "paint", property: "fills", index: 0, field: "color", unbind: true } } },
+    ], dryRun: true, resultMode: "receipt" }) as any;
+    await applyDocument({ action: "apply_entity_patch", patches: unbindPlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: unbindPlan.plan.planHash, resultMode: "receipt" });
+    expect(surface.boundVariables.opacity).toBeUndefined();
+    expect(surface.fills[0].boundVariables?.color).toBeUndefined();
+
+    const floatVariableId = committed.changedEntities[1].id;
+    await expect(applyDocument({ action: "apply_entity_patch", patches: [{ kind: "set_bindings", entityKind: "node", target: { nodeId: surface.id }, variable: { variableId: floatVariableId }, payload: { binding: { kind: "paint", property: "fills", index: 0, field: "color" } } }], dryRun: true })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.UNSUPPORTED_PROPERTY } });
+  });
+
+  it("configures a Grid and places a transaction-local child with bounded layout evidence", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const patches = [
+      { kind: "create", entityKind: "node", entityType: "FRAME", opRef: "grid", properties: { name: "Metrics" } },
+      { kind: "layout_command", entityKind: "node", target: { opRef: "grid" }, command: "configure_grid", payload: { rowCount: 2, columnCount: 3, rowGap: 12, columnGap: 16, gridAutoTracks: "ROWS", gridItemsPositioning: "MANUAL" } },
+      { kind: "create", entityKind: "node", entityType: "RECTANGLE", opRef: "card", parent: { opRef: "grid" }, properties: { name: "Metric" } },
+      { kind: "layout_command", entityKind: "node", target: { opRef: "card" }, command: "place_grid_child", payload: { rowIndex: 1, columnIndex: 1, rowSpan: 1, columnSpan: 2, horizontalAlign: "MAX", verticalAlign: "CENTER" } },
+    ];
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true, resultMode: "receipt" }) as any;
+    const committed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash, resultMode: "receipt" }) as any;
+    expect(committed.state).toBe("COMMITTED");
+    const gridId = committed.changedEntities[0].id;
+    const childId = committed.changedEntities[2].id;
+
+    const gridEvidence = await queryDocument({ kind: "entity_graph", scope: "node", nodeId: gridId, projection: ["layout"], limit: 10 }) as any;
+    expect(gridEvidence.facts.items[0]).toMatchObject({ layoutMode: "GRID", gridRowCount: 2, gridColumnCount: 3, gridRowGap: 12, gridColumnGap: 16, gridAutoTracks: "ROWS", gridItemsPositioning: "MANUAL" });
+    const childEvidence = await queryDocument({ kind: "entity_graph", scope: "node", nodeId: childId, projection: ["layout"], limit: 10 }) as any;
+    expect(childEvidence.facts.items[0]).toMatchObject({ gridRowAnchorIndex: 1, gridColumnAnchorIndex: 1, gridRowSpan: 1, gridColumnSpan: 2, gridChildHorizontalAlign: "MAX", gridChildVerticalAlign: "CENTER" });
+
+    const movePlan = await applyDocument({ action: "apply_entity_patch", patches: [{ kind: "layout_command", entityKind: "node", target: { nodeId: childId }, command: "place_grid_child", payload: { rowIndex: 0, columnIndex: 2, rowSpan: 1, columnSpan: 1 } }], dryRun: true, resultMode: "receipt" }) as any;
+    await applyDocument({ action: "apply_entity_patch", patches: movePlan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: movePlan.plan.planHash, resultMode: "receipt" });
+    expect((await queryDocument({ kind: "entity_graph", scope: "node", nodeId: childId, projection: ["layout"], limit: 10 }) as any).facts.items[0]).toMatchObject({ gridRowAnchorIndex: 0, gridColumnAnchorIndex: 2, gridColumnSpan: 1 });
+
+    const child = await fixture.figma.getNodeByIdAsync(childId);
+    const grid = await fixture.figma.getNodeByIdAsync(gridId);
+    grid.gridItemsPositioning = "ROW_AUTO_FLOW";
+    await expect(applyDocument({ action: "apply_entity_patch", patches: [{ kind: "layout_command", entityKind: "node", target: { nodeId: childId }, command: "place_grid_child", payload: { rowIndex: 0, columnIndex: 0 } }], dryRun: true })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.UNSUPPORTED_PROPERTY } });
+    grid.gridItemsPositioning = "MANUAL";
+    await expect(applyDocument({ action: "apply_entity_patch", patches: [{ kind: "layout_command", entityKind: "node", target: { nodeId: childId }, command: "place_grid_child", payload: { rowIndex: 9, columnIndex: 0 } }], dryRun: true })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.INVALID_PARAMS } });
+    child.setGridChildPosition = undefined;
+    await expect(applyDocument({ action: "apply_entity_patch", patches: [{ kind: "layout_command", entityKind: "node", target: { nodeId: childId }, command: "place_grid_child", payload: { rowIndex: 0, columnIndex: 0 } }], dryRun: true })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.FEATURE_GATED } });
+  });
+
+  it("applies typed manual motion tracks through the native mutation API and feature-gates unsupported nodes", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const animated = fixture.makeNode("FRAME", { name: "Animated" });
+    fixture.page.appendChild(animated);
+    const track = {
+      baseValue: { type: "FLOAT", value: 0 },
+      keyframes: [
+        { timelinePosition: 0, value: { type: "FLOAT", value: 0 } },
+        { timelinePosition: 0.3, value: { type: "FLOAT", value: 1 } },
+      ],
+    };
+    const patches = [{
+      kind: "motion_command",
+      entityKind: "node",
+      target: { nodeId: animated.id },
+      command: "set_tracks",
+      payload: { tracks: [{ field: { type: "PROPERTY", name: "OPACITY" }, track }] },
+    }];
+
+    const plan = await applyDocument({ action: "apply_entity_patch", patches, dryRun: true }) as any;
+    const committed = await applyDocument({ action: "apply_entity_patch", patches: plan.plan.patches, dryRun: false, confirm: true, expectedPlanHash: plan.plan.planHash }) as any;
+
+    expect(committed.state).toBe("COMMITTED");
+    expect(animated.applyManualKeyframeTrack).toHaveBeenCalledWith({ type: "PROPERTY", name: "OPACITY" }, track);
+    expect(animated.manualKeyframeTracks.OPACITY).toEqual(track);
+
+    const unsupported = fixture.makeNode("FRAME", { name: "Unsupported motion" });
+    unsupported.applyManualKeyframeTrack = undefined;
+    fixture.page.appendChild(unsupported);
+    await expect(applyDocument({
+      action: "apply_entity_patch",
+      patches: [{ ...patches[0], target: { nodeId: unsupported.id } }],
+      dryRun: true,
+    })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.FEATURE_GATED } });
   });
 });
 
@@ -238,7 +636,7 @@ function makeFixture() {
       height: source?.height ?? 100,
       visible: true,
       locked: false,
-      opacity: 1,
+      opacity: source?.opacity ?? 1,
       rotation: 0,
       clipsContent: false,
       layoutMode: "NONE",
@@ -251,8 +649,19 @@ function makeFixture() {
       paddingRight: 0,
       paddingBottom: 0,
       paddingLeft: 0,
-      fills: [],
-      strokes: [],
+      gridRowGap: source?.gridRowGap ?? 0,
+      gridColumnGap: source?.gridColumnGap ?? 0,
+      gridItemsPositioning: source?.gridItemsPositioning ?? "MANUAL",
+      gridRowSizes: source?.gridRowSizes ?? [{ type: "FLEX" }],
+      gridColumnSizes: source?.gridColumnSizes ?? [{ type: "FLEX" }],
+      gridRowAnchorIndex: source?.gridRowAnchorIndex ?? 0,
+      gridColumnAnchorIndex: source?.gridColumnAnchorIndex ?? 0,
+      gridRowSpan: source?.gridRowSpan ?? 1,
+      gridColumnSpan: source?.gridColumnSpan ?? 1,
+      gridChildHorizontalAlign: source?.gridChildHorizontalAlign ?? "AUTO",
+      gridChildVerticalAlign: source?.gridChildVerticalAlign ?? "AUTO",
+      fills: source?.fills ?? [],
+      strokes: source?.strokes ?? [],
       reactions: source?.reactions ?? [],
       animations: source?.animations ?? [],
       animationStyles: source?.animationStyles ?? [],
@@ -269,9 +678,93 @@ function makeFixture() {
       resize(width: number, height: number) { this.width = width; this.height = height; },
       remove() { if (this.parent?.children) this.parent.children.splice(this.parent.children.indexOf(this), 1); this.parent = null; },
       clone() { const copy = makeNode(this.type, this); copy.children = []; this.parent?.appendChild(copy); return copy; },
+      boundVariables: source?.boundVariables ? { ...source.boundVariables } : {},
+      setBoundVariable: vi.fn((field: string, variable: any | null) => { if (variable) node.boundVariables[field] = { type: "VARIABLE_ALIAS", id: variable.id }; else delete node.boundVariables[field]; }),
       setReactionsAsync: vi.fn(async (value: any[]) => { node.reactions = value; }),
+      applyManualKeyframeTrack: vi.fn((field: any, track: any) => {
+        if (field?.type === "PROPERTY" && typeof field.name === "string") node.manualKeyframeTracks[field.name] = track;
+      }),
+      setGridChildPosition: vi.fn((rowIndex: number, columnIndex: number) => {
+        const parent = node.parent;
+        if (!parent || parent.layoutMode !== "GRID") throw new Error("Parent is not GRID");
+        if (parent.gridItemsPositioning === "ROW_AUTO_FLOW") throw new Error("ROW_AUTO_FLOW manages child positions");
+        if (rowIndex < 0 || columnIndex < 0 || rowIndex >= parent.gridRowCount || columnIndex >= parent.gridColumnCount) throw new Error("Grid position out of bounds");
+        node.gridRowAnchorIndex = rowIndex;
+        node.gridColumnAnchorIndex = columnIndex;
+      }),
     };
+    let gridAutoTracks = source?.gridAutoTracks ?? "NONE";
+    let gridRowCount = source?.gridRowCount ?? 1;
+    let gridColumnCount = source?.gridColumnCount ?? 1;
+    Object.defineProperty(node, "gridAutoTracks", { enumerable: true, configurable: true, get: () => gridAutoTracks, set: (value) => { gridAutoTracks = value; } });
+    Object.defineProperty(node, "gridRowCount", { enumerable: true, configurable: true, get: () => gridRowCount, set: (value) => { if (gridAutoTracks === "ROWS") throw new Error("gridRowCount is auto-managed"); gridRowCount = value; node.gridRowSizes = Array.from({ length: value }, (_, index) => node.gridRowSizes[index] ?? { type: "FLEX" }); } });
+    Object.defineProperty(node, "gridColumnCount", { enumerable: true, configurable: true, get: () => gridColumnCount, set: (value) => { gridColumnCount = value; node.gridColumnSizes = Array.from({ length: value }, (_, index) => node.gridColumnSizes[index] ?? { type: "FLEX" }); } });
     return node;
+  };
+  const makeComponent = (name = "Component"): any => {
+    const component = makeNode("COMPONENT", { name });
+    let propertyCounter = 1;
+    component.addComponentProperty = vi.fn((propertyName: string, propertyType: string, defaultValue: any, options: any = {}) => {
+      const key = propertyType === "VARIANT" ? propertyName : `${propertyName}#${propertyCounter++}:1`;
+      component.componentPropertyDefinitions[key] = { type: propertyType, defaultValue, ...options };
+      return key;
+    });
+    component.editComponentProperty = vi.fn((propertyKey: string, changes: any) => {
+      const current = component.componentPropertyDefinitions[propertyKey];
+      if (!current) throw new Error(`Unknown property ${propertyKey}`);
+      let nextKey = propertyKey;
+      if (typeof changes?.name === "string" && changes.name) {
+        const suffix = propertyKey.includes("#") ? propertyKey.slice(propertyKey.indexOf("#")) : "";
+        nextKey = `${changes.name}${suffix}`;
+      }
+      const next = { ...current, ...changes };
+      delete next.name;
+      delete component.componentPropertyDefinitions[propertyKey];
+      component.componentPropertyDefinitions[nextKey] = next;
+      return nextKey;
+    });
+    component.deleteComponentProperty = vi.fn((propertyKey: string) => { delete component.componentPropertyDefinitions[propertyKey]; });
+    component.createSlot = vi.fn(() => {
+      const slot = makeNode("SLOT", { name: "Slot" });
+      slot.limitViolations = [];
+      slot.resetSlot = vi.fn();
+      component.appendChild(slot);
+      const key = component.addComponentProperty("Slot", "SLOT", "", {});
+      slot.componentPropertyReferences = { children: key };
+      return slot;
+    });
+    return component;
+  };
+  let nextCollectionId = 1;
+  let nextVariableId = 1;
+  let nextModeId = 1;
+  const variableCollections: any[] = [];
+  const localVariables: any[] = [];
+  const makeVariableCollection = (name = "Collection"): any => {
+    const defaultModeId = `mode:${nextModeId++}`;
+    const collection: any = {
+      id: `collection:${nextCollectionId++}`, key: `collection-key-${nextCollectionId}`, name, remote: false, hiddenFromPublishing: false,
+      defaultModeId, modes: [{ modeId: defaultModeId, name: "Mode 1" }], variableIds: [],
+      addMode: vi.fn((modeName: string) => { const modeId = `mode:${nextModeId++}`; collection.modes.push({ modeId, name: modeName }); return modeId; }),
+      renameMode: vi.fn((modeId: string, modeName: string) => { const mode = collection.modes.find((item: any) => item.modeId === modeId); if (!mode) throw new Error(`Unknown mode ${modeId}`); mode.name = modeName; }),
+      removeMode: vi.fn((modeId: string) => { const index = collection.modes.findIndex((item: any) => item.modeId === modeId); if (index < 0) throw new Error(`Unknown mode ${modeId}`); collection.modes.splice(index, 1); }),
+      remove: vi.fn(() => { const index = variableCollections.indexOf(collection); if (index >= 0) variableCollections.splice(index, 1); }),
+    };
+    variableCollections.push(collection);
+    return collection;
+  };
+  const makeVariable = (name: string, collection: any, resolvedType: string): any => {
+    const variable: any = {
+      id: `VariableID:${nextVariableId++}`, key: `variable-key-${nextVariableId}`, name, resolvedType, variableCollectionId: collection.id,
+      remote: false, description: "", hiddenFromPublishing: false, scopes: [], codeSyntax: {}, valuesByMode: {},
+      setValueForMode: vi.fn((modeId: string, value: any) => { variable.valuesByMode[modeId] = value; }),
+      setVariableCodeSyntax: vi.fn((platform: string, value: string) => { variable.codeSyntax[platform] = value; }),
+      removeVariableCodeSyntax: vi.fn((platform: string) => { delete variable.codeSyntax[platform]; }),
+      remove: vi.fn(() => { const index = localVariables.indexOf(variable); if (index >= 0) localVariables.splice(index, 1); const member = collection.variableIds.indexOf(variable.id); if (member >= 0) collection.variableIds.splice(member, 1); }),
+    };
+    localVariables.push(variable);
+    collection.variableIds.push(variable.id);
+    return variable;
   };
   const root: any = {
     name: "Typed CRUD Test File",
@@ -296,15 +789,28 @@ function makeFixture() {
     createPolygon() { return makeNode("POLYGON"); },
     createStar() { return makeNode("STAR"); },
     createText() { return makeNode("TEXT"); },
+    createComponent() { return makeComponent(); },
+    combineAsVariants: vi.fn((components: any[], parent: any, index?: number) => {
+      if (!Array.isArray(components) || components.length === 0 || components.some((node) => node.type !== "COMPONENT")) throw new Error("combineAsVariants requires COMPONENT members");
+      const set = makeNode("COMPONENT_SET", { name: "Component set" });
+      set.componentPropertyDefinitions = { State: { type: "VARIANT", defaultValue: "Default", variantOptions: components.map((node) => node.name.split("=").pop() ?? node.name) } };
+      parent.appendChild(set);
+      if (typeof index === "number" && index < parent.children.length) parent.insertChild(index, set);
+      for (const component of components) {
+        if (component.parent?.children) component.parent.children.splice(component.parent.children.indexOf(component), 1);
+        set.appendChild(component);
+      }
+      return set;
+    }),
     getLocalPaintStylesAsync: async () => [],
     getLocalTextStylesAsync: async () => [],
     getLocalEffectStylesAsync: async () => [],
     getLocalGridStylesAsync: async () => [],
-    variables: { getLocalVariableCollectionsAsync: async () => [], getLocalVariablesAsync: async () => [] },
+    variables: { getLocalVariableCollectionsAsync: async () => [...variableCollections], getLocalVariablesAsync: async () => [...localVariables], getVariableByIdAsync: async (id: string) => localVariables.find((item) => item.id === id) ?? null, getVariableCollectionByIdAsync: async (id: string) => variableCollections.find((item) => item.id === id) ?? null, createVariableCollection: (name: string) => makeVariableCollection(name), createVariable: (name: string, collection: any, resolvedType: string) => makeVariable(name, collection, resolvedType), createVariableAlias: (variable: any) => ({ type: "VARIABLE_ALIAS", id: variable.id }), setBoundVariableForPaint: (paint: any, field: string, variable: any | null) => { const next = { ...paint, boundVariables: { ...(paint.boundVariables ?? {}) } }; if (variable) next.boundVariables[field] = { type: "VARIABLE_ALIAS", id: variable.id }; else delete next.boundVariables[field]; return next; } },
     commitUndo: vi.fn(),
     triggerUndo: vi.fn(),
   };
-  return { figma, page, makeNode };
+  return { figma, page, makeNode, makeComponent };
 }
 
 function flatten(nodes: any[]): any[] {

@@ -13,6 +13,7 @@ import { buildUi } from "./build-ui.mjs";
 
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const watch = process.argv.includes("--watch");
+const sourcemap = process.argv.includes("--sourcemap");
 rmSync(new URL("../dist/", import.meta.url), { recursive: true, force: true });
 buildUi();
 
@@ -50,7 +51,7 @@ const common = {
   },
   logLevel: "info",
   minify: true,
-  sourcemap: true,
+  sourcemap,
 };
 
 const serverConfig = {
@@ -120,5 +121,5 @@ if (watch) {
 } else {
   const [serverResult] = await Promise.all([build(serverConfig), build(pluginConfig)]);
   const bundledPackages = validateBundledRuntimeNotices(serverResult.metafile);
-  console.log(`bundle revision ${bundleRevision}; third-party notices ${bundledPackages.length}/${bundledPackages.length}`);
+  console.log(`bundle revision ${bundleRevision}; sourcemap ${sourcemap ? "enabled" : "disabled"}; third-party notices ${bundledPackages.length}/${bundledPackages.length}`);
 }

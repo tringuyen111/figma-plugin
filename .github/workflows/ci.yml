@@ -31,11 +31,17 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Verify clean source checkout
+        run: npm run clean:check
+
       - name: Run source, test, bundle, and standalone-runtime gates
         run: npm run build
 
       - name: Verify accountable MCP contract without live Figma
         run: node scripts/smoke-mcp-operation.mjs --status-only
 
-      - name: Inspect package contents and metadata
-        run: npm pack --dry-run --ignore-scripts --json
+      - name: Verify package contents and metadata
+        run: npm run check:package
+
+      - name: Restore and verify source-clean state
+        run: npm run clean && npm run clean:check

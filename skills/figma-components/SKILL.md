@@ -13,7 +13,18 @@ Given current product/design-system truth and representative consumers, produce 
 
 ## Decision advantage
 
-This Skill earns its place by designing a **designer-facing semantic API**, not mirroring the current layer tree. Infer invariant anatomy from consumer jobs, move independent content/visibility/swap/flexible dimensions into the right property types, and use override/detach patterns as evidence that the contract may be wrong. Variant count is a symptom; semantic independence and propagation are the decision variables.
+This Skill earns its place by designing a **designer-facing semantic API**, not mirroring the current layer tree. Infer invariant anatomy from consumer jobs, move independent content/visibility/swap/flexible dimensions into the right Configuration API mechanisms, and use override/detach patterns as evidence that the contract may be wrong. Variant count is a symptom; semantic independence and propagation are the decision variables.
+
+## Working vocabulary
+
+Use these terms literally when reasoning about a reusable contract.
+
+- **SEMANTIC JOB** — the stable responsibility the component serves for its consumers. If two candidate variants serve materially different jobs, reopen the component boundary before adding API surface.
+- **INVARIANT ANATOMY** — the semantic regions/relations that must remain present for the Semantic Job to stay true across allowed variation.
+- **CONFIGURATION API** — the intentional choices exposed to consumers through properties, variants, swaps, Slots, or supported overrides. It is not a mirror of the internal layer tree.
+- **CONSUMER PRESSURE** — a representative valid use that can falsify the contract: long/short content, density, theme, state, optional regions, or neighboring context.
+- **PROPAGATION** — how a source-component change reaches existing instances/consumers while preserving valid consumer intent.
+- **DETACH PRESSURE** — repeated need to detach or make compensating local overrides for valid consumers. Treat it as evidence that anatomy, configuration, layout, or semantic boundary may be wrong.
 
 ## Skill I/O contract
 
@@ -47,13 +58,42 @@ Build in this order:
 ```text
 semantic job
   -> invariant anatomy
-  -> slots
-  -> controlled properties / variants / states
+  -> region ownership + content pressure
+  -> required token / type / visual bindings
+  -> controlled properties / slots / variants / states
   -> instances
-  -> authorized contextual overrides
+  -> pressure + propagation proof
+  -> authorized contextual overrides only when still necessary
 ```
 
 Read `references/component-contract.md` when deciding component boundaries, property type, variant strategy, or migration. Read `references/golden-teaching-cases.md` when interactive-component composition, Slot constraints, or API migration is material; those cases show rejected alternatives, exact Figma construction, proof, and re-entry rather than only rules.
+
+### Coordinate the inside before exposing the API
+
+The component contract owns the **coordination** of its internal construction even when deeper layout, token, typography, interaction, or visual mechanisms fall outside this Skill's accountable job. Do not jump from a plausible layer tree directly to component properties.
+
+For every invariant semantic region, determine together:
+
+| Decision | Ask | Failure signal |
+|---|---|---|
+| Region job | What meaning must remain stable across consumers? | Generic `header/body/footer` survives even though consumers need different jobs. |
+| Content freedom | Fixed, optional, swappable, repeating, or freeform? | Variant/property API exposes arbitrary freedom or forces detach. |
+| Layout owner | Which ancestor owns flow, sizing, alignment, wrapping, and overflow? | Children contain compensating offsets/absolute placement to survive normal content. |
+| Pressure behavior | What happens with long text, missing content, extra actions, density, or resize? | The normal specimen looks correct but one representative pressure case breaks anatomy. |
+| System bindings | Which existing token, type role, visual role, or nested component must be consumed? | Local hard-coded styling becomes part of a supposedly reusable contract. |
+| Public API | Which differences should become Text/Boolean/Instance Swap/Slot/Variant? | Internal implementation details leak into the designer-facing API. |
+
+Only expose the public component API after these relationships are coherent. The Skill does not need to reproduce every specialist algorithm locally, but it must keep the resulting invariants visible enough to coordinate them.
+
+Keep cross-domain dependencies as **unresolved concerns**, not Skill routes:
+
+- **GEOMETRIC VIABILITY** — when sizing, wrapping, Grid/Auto Layout responsibility, or Slot Pressure can change whether the contract survives a representative consumer, require the Layout Owner, sizing/adaptation Invariant, affected identities, and one pressure-case result before finalizing the Configuration API.
+- **SYSTEM-VALUE VIABILITY** — when the component would introduce or reshape semantic values, aliases, modes, or bindings, require the semantic role/binding decision plus affected value/consumer identities before local hard-codes enter the contract.
+- **TEXT-METRIC VIABILITY** — when text-role choice or font metrics can change hierarchy or Consumer Pressure, require the chosen text role/style and the metric consequence that the component must absorb.
+
+These concerns describe missing decision depth. They do not prescribe which sibling Skill must be selected; Agent capability discovery remains outside this workflow.
+
+**Near-miss:** a `Card` with a well-named `Content` Slot and clean properties is still a weak component when the title, actions, and Slot rely on hand offsets, local fills, or one happy-path width. A stronger construction first gives each semantic region an owner and pressure behavior, consumes existing system bindings, then exposes the Slot/property API and proves long-title plus maximum-actions consumers without detach.
 
 ## Anatomy and slots
 
@@ -91,17 +131,17 @@ Do not encode multiple dimensions into one opaque value such as `PrimaryLargeHov
 A reusable component may own a **state vocabulary** without owning the executable transition graph. Keep these responsibilities explicit:
 
 ```text
-figma-components
-  semantic job -> anatomy -> configuration API -> state vocabulary
+COMPONENT CONTRACT
+  Semantic Job -> Invariant Anatomy -> Configuration API -> state vocabulary
 
-figma-prototype
-  trigger -> actions / conditions -> Change-to / navigation -> resulting state
+INTERACTION PATH
+  trigger -> actions / conditions -> state change / navigation -> resulting state
 
-figma-motion
-  timeline / keyframes / timing / easing / temporal choreography
+TEMPORAL CHOREOGRAPHY
+  timeline / keyframes / timing / easing -> perceived transition
 ```
 
-For interactive components, model state variants such as `Off | On`, `Collapsed | Expanded`, or `Default | Hover | Pressed` here, then compose `figma-prototype` to wire approved transitions between them. Instances inherit variant interactions; a regular interaction added directly to an instance with the **same trigger** can override the variant interaction, while different triggers can coexist. Treat unexpected instance behavior as a possible precedence problem before rewriting the component.
+For interactive components, model state variants such as `Off | On`, `Collapsed | Expanded`, or `Default | Hover | Pressed` here. Keep approved interaction-path behavior and temporal choreography as separate decision concerns rather than encoding them into variant names. Instances inherit variant interactions; a regular interaction added directly to an instance with the **same trigger** can override the variant interaction, while different triggers can coexist. Treat unexpected instance behavior as a possible precedence problem before rewriting the component.
 
 Do not use variant names as hidden business logic. State vocabulary should describe the reusable UI state contract; product-specific navigation/business behavior stays outside the component unless the approved reusable contract genuinely owns it.
 
@@ -148,6 +188,7 @@ When reuse identity must survive another operation, context/session, file, or li
 
 ## Native execution discipline
 
+- Prefer guarded typed component mutation for modeled property lifecycle, Slot creation/reset, variant-set construction, and instance-property changes. When a newly produced component entity is immediately consumed by later mutations in the same causal transaction, use the runtime's modeled transaction-local identity mechanism instead of splitting the work only to discover provider IDs. Use the narrow native escape hatch only for component APIs not yet modeled, followed by bounded component readback. Exact operation names and identity-edge syntax belong to the native execution contract.
 - Inspect `componentPropertyDefinitions` on the main component/component set, not only one variant.
 - For TEXT/BOOLEAN/INSTANCE_SWAP properties, keep the full property key returned by Figma, including the unique `#...` suffix. Do not reconstruct API keys from visible labels.
 - For SLOT properties, inspect `slotSettings` and representative `SlotNode.limitViolations`; a successful edit does not prove slot constraints are satisfied. `InstanceNode.setProperties()` does not set SLOT content.
@@ -174,18 +215,10 @@ Before changing shared component structure, inspect densest consumer, long/short
 - **Variant explosion:** move independent content/visibility/swap/flexible dimensions to their proper property types or variables.
 - **Slot used as anything-goes subtree:** restore semantic slot constraints or split component.
 - **Instance Swap used for arbitrary freeform content:** use Slot if the region truly needs flexible composition.
-- **Many detach operations:** inspect whether missing properties/slots/layout rules are forcing escape from the contract.
+- **Detach Pressure:** repeated detach operations mean valid consumers are escaping the contract; inspect missing Configuration API, Invariant Anatomy, layout, or semantic-boundary rules before accepting detach as normal.
 - **Many local overrides:** determine whether component contract is defective or consumers actually represent another job.
 - **Global change from one odd instance:** prove propagation scope before touching the shared component.
 
-## Boundaries
+## Capability boundary
 
-- `figma-layout` owns layout mechanics inside/around the component.
-- `figma-tokens` owns variable/token architecture consumed by components.
-- `figma-typography` owns text roles/styles used by component slots.
-- `figma-visual-system` owns visual role composition.
-- `figma-prototype` owns reactions/interactive state paths carried by reusable components.
-- `figma-motion` owns Motion choreography/animated-component temporal behavior.
-- `figma-verification` owns a fixed-component audit when assessment is the terminal job.
-- `figma-code-connect` owns deterministic component-to-code mapping.
-- `figma-design-system` owns cross-component library/system governance.
+This Skill owns the reusable component contract: Semantic Job, Invariant Anatomy, Configuration API, state vocabulary, consumer reuse, and Propagation. It does not own general layout mechanics, token architecture, typography recipes, visual composition, executable interaction paths, temporal choreography, fixed-artifact verdicts, code mapping, or whole-system publication governance. When one of those concerns becomes decision-material, preserve the unresolved concern and required return; normal Agent capability discovery decides whether additional Skill context is useful.

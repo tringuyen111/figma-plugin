@@ -26,6 +26,20 @@ This Skill earns its place by deciding **what relationship the target should hav
 
 **Return** a source→target identity map, strategy per asset (`REUSE_REMOTE | WRAP | FORK | MIGRATE | SYNC`), created/imported/reused identities, migrated consumers, preserved/lost update relationships, unresolved authority gates, and structure/system/interaction proof. Do not return a pile of copied node IDs as if that proved reuse.
 
+## Operational vocabulary
+
+**SOURCE IDENTITY** — the exact reusable design identity and semantic job being transferred, including its local/published/remote relationship and key when relevant. Equal pixels are not Source Identity.
+
+**TARGET INTENT** — the future relationship the target is supposed to have with the source: follow, extend, replace, reconcile, or deliberately diverge. Strategy follows Target Intent.
+
+**UPSTREAM RELATION** — whether and how future source changes should propagate to the target after transfer. `FOLLOW`, wrapped-follow, none, or reconciled are materially different outcomes.
+
+**MIGRATION COMPATIBILITY** — which source/target contract dimensions are direct, transformed, dropped, newly required, or conflicting. A successful import/swap call does not prove compatibility.
+
+**TRANSFER LEDGER** — durable state for source/target binding, strategy, writes, postconditions, pending proof, and resume/idempotency. The ledger records workflow truth; it does not become design authority.
+
+**PROPAGATION PROOF** — evidence that the intended Upstream Relation and consumer behavior actually survive the transfer. Visual similarity alone is insufficient.
+
 ## Governing model: identity before pixels
 
 For every transferable asset, record:
@@ -77,7 +91,7 @@ Choose when the published source asset already owns the correct semantic job and
 - Preserve the remote identity in the result record.
 - Verify representative consumers, overrides, bindings, and inherited interactions.
 
-Current native Figma mechanics include `importComponentByKeyAsync`, `importComponentSetByKeyAsync`, `importStyleByKeyAsync`, and `variables.importVariableByKeyAsync`. Provider `get_libraries` / `search_design_system` may offer stronger library discovery when available. Revalidate live provider/API surfaces before execution.
+Use current supported library-discovery/import mechanics for published identities and revalidate live provider/API surfaces before execution. Exact provider/native mechanics live in `references/library-lifecycle.md` so this workflow can reason from identity and update intent first.
 
 ### WRAP — preserve upstream core, add local responsibility
 
@@ -151,33 +165,27 @@ Important authority boundary:
 - Libraries must be enabled by the user/Figma UI; do not claim the Plugin API can enable them.
 - Publication is a release side effect. Inspect `getPublishStatusAsync()` where supported, but do not claim ControlMux published a library without actual accountable evidence.
 
-## Components × Prototype preservation
+## Reusable component + interaction preservation
 
-A reusable Figma component can carry both configuration and behavior. When transferring/reusing components, inspect whether the contract includes:
+A reusable Figma component can carry configuration and behavior. When transferring/reusing components, inspect whether the contract includes:
 
 ```text
 semantic job
 anatomy / slots
 component properties / variants
 state vocabulary
-prototype reactions / Change-to behavior
+prototype reactions / state progression
 variables / conditions
-motion/timing when part of the reusable interaction
+temporal choreography when part of reusable behavior
 ```
 
-- `figma-components` owns component anatomy, property API, variants, and state vocabulary.
-- `figma-prototype` owns triggers/actions/conditions/state progression.
-- `figma-motion` owns temporal choreography.
-- This Skill owns whether those contracts survive across the source→target identity relationship.
+Component anatomy/API, interaction-state progression, and temporal choreography remain distinct semantic contracts. This workflow owns only whether the required contracts survive across the source→target identity relationship.
 
 Do not migrate a component as “successful” if its reusable interaction contract was silently lost.
 
 ## Asset transfer boundary
 
-Components/styles/variables should preserve reusable Figma identity where possible. Images and SVG source media have different mechanics:
-
-- When hosted provider asset surfaces are available, use `download_assets` for the original/raw source and `upload_assets` into the target rather than screenshotting/re-encoding the asset.
-- Local `figma_export` is an egress primitive, not by itself an ingress path into another Figma file. If no provider/upload primitive exists, report binary cross-file import as `BLOCKED` instead of embedding huge bytes into `figma_exec` code.
+Components/styles/variables should preserve reusable Figma identity where possible. Images and SVG source media have different transport mechanics. Prefer an authorized raw-source transfer path over screenshot/re-encoding; if the available execution surface can only export but cannot import into the target, report binary cross-file import as `BLOCKED` rather than embedding large bytes into an execution request. Exact transport mechanics live in `references/library-lifecycle.md`.
 
 ## Worked transfer cases
 
@@ -190,7 +198,7 @@ Read `references/golden-teaching-cases.md` when choosing among reuse/wrap/fork/m
 - **Library key imported but wrong semantic job:** re-evaluate meaning/consumer contract; key validity is not semantic equivalence.
 - **Migration loses overrides:** compare API/state compatibility first; repair only incompatible dimensions and re-check consumers.
 - **Fork still named like upstream:** establish new ownership/identity so future sync does not treat it as the original.
-- **Prototype behavior disappears after migration:** inspect inherited/main-component reactions and state variants; compose with `figma-prototype` for repair.
+- **Reusable interaction disappears after migration:** inspect inherited/main-component reactions, state variants, and interaction-state contract; return the causal interaction gap for repair without changing the transfer strategy blindly.
 - **User expected automatic publishing/enabling:** preserve the authority gate and report the exact manual/Figma action still required.
 
 ## Proof
@@ -207,12 +215,8 @@ Completion requires the **intended future relationship** to be proven, not only 
 
 ## Boundaries
 
-- `figma-design-system` owns creation/governance/publication readiness of the system itself.
-- `figma-components`, `figma-tokens`, `figma-typography`, and `figma-prototype` own deep asset contracts.
-- `figma-code-to-design` translates production code semantics into Figma.
-- `figma-design-to-code` translates Figma semantics into production code.
-- `figma-code-connect` owns deterministic Figma↔code component mappings.
-- `figma_export` is a runtime egress primitive, not a sibling Skill and not a design-to-design substitute.
+- Creation/governance/publication readiness of the source system, deep asset-contract redesign, production-code translation, and deterministic design↔code mappings remain separate concerns.
+- This workflow owns cross-design identity, Target Intent, strategy, migration compatibility, Upstream Relation, consumer migration, and Propagation Proof.
 
 ## Provenance
 

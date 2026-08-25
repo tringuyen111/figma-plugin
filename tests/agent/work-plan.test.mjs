@@ -1,18 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { renderWorkPlanSvg, selectRepresentation, validateWorkPlan } from "../../skills/figma-design-authoring/scripts/work-plan.mjs";
+import { renderWorkPlanSvg, validateWorkPlan } from "../../skills/figma-design-authoring/scripts/work-plan.mjs";
 
 const readJson = (relativePath) => JSON.parse(readFileSync(new URL(relativePath, import.meta.url), "utf8"));
 const plan = readJson("../../skills/figma-design-authoring/templates/work-plan.json");
 const schema = readJson("../../skills/figma-design-authoring/schemas/work-plan.schema.json");
-const legacyPlan = readJson("../../work/agent-capability-upgrade/plan.json");
+const blockedPlan = readJson("../../evals/fixtures/work-plan.blocked.json");
 
-describe("progressive Figma work plan", () => {
-  it("validates the v2 obligation ledger and constrains deep context", () => {
+describe("semantic Figma work plan", () => {
+  it("validates v3 obligation state without routing or cognition policy", () => {
     expect(validateWorkPlan(plan)).toEqual([]);
-    expect(schema.$id).toContain("figma-work-plan-v2");
-    expect(plan.schemaVersion).toBe(2);
-    expect(plan.contextPolicy.maxActiveDeepResources).toBeLessThanOrEqual(2);
+    expect(schema.$id).toContain("figma-work-plan-v3");
+    expect(plan.schemaVersion).toBe(3);
+    expect(JSON.stringify(plan)).not.toContain("maxActiveDeepResources");
+    expect(JSON.stringify(plan)).not.toContain("representationPolicy");
+    expect(JSON.stringify(plan)).not.toContain('"specialists"');
+    expect(JSON.stringify(plan)).not.toContain('"owner"');
     expect(plan.obligations[0]).toMatchObject({
       id: "req-first-packet",
       required: true,
@@ -23,32 +26,28 @@ describe("progressive Figma work plan", () => {
     expect(plan.frontier).toEqual(["first-packet"]);
   });
 
-  it("keeps the historical v1 canonical plan readable during migration", () => {
-    expect(validateWorkPlan(legacyPlan)).toEqual([]);
-    expect(legacyPlan.state).toBe("BLOCKED");
-    expect(legacyPlan.frontier).toEqual([]);
+  it("migrates a plan without an obligation ledger without inventing historical evidence", () => {
+    expect(blockedPlan.schemaVersion).toBe(3);
+    expect(blockedPlan.obligations).toBeUndefined();
+    expect(validateWorkPlan(blockedPlan)).toEqual([]);
+    expect(blockedPlan.state).toBe("BLOCKED");
+    expect(blockedPlan.frontier).toEqual([]);
   });
 
-  it("selects a faithful visual representation from reasoning shape", () => {
-    expect(selectRepresentation(plan, "sequence")).toBe("flow");
-    expect(selectRepresentation(plan, "ownership")).toBe("typed-graph");
-    expect(selectRepresentation(plan, "progress")).toBe("bar");
-    expect(selectRepresentation(plan, "local-fact")).toBe("text");
-    expect(selectRepresentation(plan, "unknown-shape")).toBe("text");
-  });
-
-  it("rejects context overload, dependency cycles, and a false ready frontier", () => {
-    const invalid = structuredClone(legacyPlan);
+  it("rejects machine routing fields, dependency cycles, and a false ready frontier", () => {
+    const invalid = structuredClone(blockedPlan);
     invalid.state = "ACTIVE";
-    invalid.contextPolicy.maxActiveDeepResources = 10;
-    const foundation = invalid.nodes.find((node) => node.id === "execution-contract");
-    foundation.status = "PENDING";
-    foundation.dependsOn = ["runtime-sdk"];
-    invalid.frontier = ["runtime-sdk"];
+    invalid.maxActiveDeepResources = 2;
+    const foundation = invalid.nodes.find((node) => node.id === "foundation");
+    const frontier = invalid.nodes.find((node) => node.id === "blocked-frontier");
+    foundation.owner = "figma-design-authoring";
+    foundation.dependsOn = ["blocked-frontier"];
+    frontier.status = "ACTIVE";
+    invalid.frontier = ["blocked-frontier"];
     expect(validateWorkPlan(invalid)).toEqual(expect.arrayContaining([
-      "maxActiveDeepResources must be 1-2",
+      "plan contains unsupported field maxActiveDeepResources",
+      "node foundation contains unsupported field owner",
       "dependency graph contains a cycle",
-      "frontier node runtime-sdk has incomplete dependency execution-contract",
     ]));
   });
 
@@ -68,16 +67,6 @@ describe("progressive Figma work plan", () => {
     invalid.nodes[0].status = "PASS";
     invalid.nodes[0].evidenceRefs = ["evidence/node-proof.json"];
     expect(validateWorkPlan(invalid)).toContain("PASS plan has unresolved required obligation req-first-packet");
-  });
-
-  it("rejects non-canonical obligation and node owners", () => {
-    const invalid = structuredClone(plan);
-    invalid.obligations[0].owner = "generic-agent";
-    invalid.nodes[0].owner = "generic-agent";
-    expect(validateWorkPlan(invalid)).toEqual(expect.arrayContaining([
-      "obligation req-first-packet owner is not canonical",
-      "node first-packet owner is not canonical",
-    ]));
   });
 
   it("rejects multiple ACTIVE nodes", () => {
@@ -101,7 +90,7 @@ describe("progressive Figma work plan", () => {
     expect(validateWorkPlan(invalid)).toContain("blocked obligation req-first-packet requires blocker");
   });
 
-  it("rejects PASS claims without evidence references", () => {
+  it("rejects PASS claims without evidence references when the obligation ledger is active", () => {
     const invalid = structuredClone(plan);
     invalid.state = "PASS";
     invalid.frontier = [];
@@ -127,11 +116,13 @@ describe("progressive Figma work plan", () => {
     ]));
   });
 
-  it("renders an inspectable typed work graph instead of another prose plan", () => {
-    const svg = renderWorkPlanSvg(legacyPlan);
+  it("renders an inspectable work graph without Skill owner or numeric context policy", () => {
+    const svg = renderWorkPlanSvg(blockedPlan);
     expect(svg).toContain("<svg");
     expect(svg).toContain("BLOCKS_TRUTH");
-    expect(svg).toContain("Progressive execution contract");
+    expect(svg).toContain("Established foundation");
     expect(svg).toContain("Current frontier: none (BLOCKED)");
+    expect(svg).toContain("semantic work state / evidence graph");
+    expect(svg).not.toContain("max 2 deep resources");
   });
 });

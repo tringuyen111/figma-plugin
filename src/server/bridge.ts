@@ -17,7 +17,7 @@ import {
 import { ErrorCode, OpError, toBridgeError } from "./errors.js";
 import { encodeRpcResult } from "./rpc-wire.js";
 import { BUNDLE_REVISION, RUNTIME_SERVICE, VERSION } from "./version.js";
-import { decodeBinaryFrame, helloToInfo, isAddrInUse, isClientWireMessage, MAX_WS_PAYLOAD_BYTES, readBody, validId, type PluginInfo } from "./bridge-protocol.js";
+import { decodeBinaryFrame, helloToInfo, isClientWireMessage, MAX_WS_PAYLOAD_BYTES, readBody, validId, type PluginInfo } from "./bridge-protocol.js";
 import { PluginConnection, type ConnectionChangeKind } from "./plugin-connection.js";
 import { TelemetryChannel } from "./telemetry-delta.js";
 import { assertTypedCapability } from "./capability-guard.js";

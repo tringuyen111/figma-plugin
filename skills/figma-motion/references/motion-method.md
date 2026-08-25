@@ -9,7 +9,7 @@
 | shared temporal values | Timing/Easing variables |
 | coordinated multi-node lifecycle | timeline cohort / shared lifecycle |
 | only source/final state matters | keep static state specification |
-| reaction/navigation/condition logic | hand to `figma-prototype` |
+| reaction/navigation/condition logic | return unresolved interaction-state contract; authored time is not the owner |
 
 ## Phase model
 

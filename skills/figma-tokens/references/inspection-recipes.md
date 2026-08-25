@@ -1,6 +1,6 @@
 # Token inspection recipes
 
-Use `figma_query(kind=binding_inventory)` first and typed variable/collection patches when the property is stable. Use these only when native `figma_exec` evidence is the best available source. Prefer structured provider variable/library tools when they already return the semantic evidence required by the task, and always fingerprint/rescan after raw execution.
+Start with typed `figma_query(kind=entity_graph, scope=variables)` for collection/name/type identity. Add `projection:["variable_details"]` only when mode values, aliases, scopes, code syntax, description, or publishing visibility are material. Use `figma_query(kind=binding_inventory)` for bounded consumer evidence. The raw `figma_exec` recipes below are fallback evidence only when the typed query does not expose the needed relationship; always fingerprint/rescan after raw execution.
 
 ## Filtered local variable inventory
 

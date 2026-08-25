@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { validateReuseRegistry } from "../../skills/figma-components/scripts/validate-reuse-registry.mjs";
 
-const registry = JSON.parse(readFileSync(new URL("../../output/figma-evidence/reuse-registry.json", import.meta.url), "utf8"));
+const registry = JSON.parse(readFileSync(new URL("../../evals/fixtures/reuse-registry.valid.json", import.meta.url), "utf8"));
 
 describe("Figma reuse registry", () => {
   it("preserves local proof and explicit cross-file NOT_RUN", () => {

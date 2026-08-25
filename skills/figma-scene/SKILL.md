@@ -15,6 +15,18 @@ Given product/design truth plus current Figma evidence, produce or repair a scen
 
 This Skill earns its place by separating **semantic nesting, construction ownership, and 2.5D plane relations**. The visible symptom is rarely the owner: clipping may belong to an ancestor Frame, silhouette to one surface, and overlay/input priority to another plane. Diagnose the earliest relation that explains the defect before adding another wrapper, radius, shadow, or z-order exception.
 
+## Operational vocabulary
+
+**STRUCTURAL OWNER** — the node whose bounds, containment, clipping, or coordinate context actually enforce the structural relation. If several children need the same structural patch, question the shared structural owner before editing them independently.
+
+**PLANE RELATION** — an explicit depth/input relation such as `OVERLAYS`, `CLIPS`, `PERSISTS_OVER`, `OCCLUDES`, or `BLOCKS_INPUT_TO`. Tree nesting alone does not establish a Plane Relation.
+
+**SURFACE OWNER** — the first boundary that visually communicates an object, region, or plane. A structural container may be transparent and therefore not own a visible surface.
+
+**INPUT PRIORITY** — which plane receives or blocks interaction first where the Figma representation exposes that relation. Visual z-order is evidence, not automatic proof of input priority.
+
+**CUE ECONOMY** — the minimum visible cues needed to communicate the real relation. Add depth cues only until the intended hierarchy is perceptible; extra shadow/radius/surface layers create false structure.
+
 ## Skill I/O contract
 
 **Minimum input**
@@ -87,14 +99,12 @@ When an overlay, inspector, shell, nested surface, or clipping repair has severa
 
 ## Native execution discipline
 
-When operating through ControlMux Figma:
-
-- Resolve target with `figma_status` when window/page truth is ambiguous.
-- Use `figma_exec` with plain Plugin API JavaScript, top-level `await`, and compact `return` values.
+- Bind the exact target/window/page before mutation when session targeting is ambiguous.
 - Inspect parent/type/absolute bounds/clipping/effects/opacity before mutation.
-- Prefer async node lookup on dynamic-page files.
-- Return every created or materially changed node id.
-- After a write, read back structural properties and export/screenshot the smallest scene that proves the visible relation when needed.
+- Prefer the guarded typed operation when it models the intended relation; use the narrow native escape path only for an uncovered provider operation.
+- Prefer asynchronous node lookup on dynamic-page files when current provider semantics require it.
+- Return every created or materially changed node identity.
+- After a write, read back structural properties and render/export the smallest scene that proves the visible relation when needed.
 
 ## Naming and reuse
 
@@ -122,10 +132,7 @@ Avoid `Frame 12`, `Rounded Box`, `Shadow Card`, or names that encode raw coordin
 
 ## Boundaries
 
-- `figma-verification` owns a fixed-artifact audit/verdict; this Skill owns authoring/repair decisions in its domain.
-
-- `figma-layout` owns flow/grid/sizing/responsive child geometry.
-- `figma-visual-system` owns color/material composition language and reusable visual styles.
-- `figma-components` owns reusable component anatomy/properties/instances.
-- `figma-design-authoring` owns the higher Product-Design-to-Figma composition decision.
-- `figma-native` owns setup and low-level execution correctness.
+- Fixed-artifact assessment/verdict is outside this authoring/repair workflow.
+- Child flow/grid/sizing/responsive geometry is outside scene-structure ownership.
+- Color/material composition, reusable component APIs, typography roles, and higher whole-product composition remain separate semantic concerns.
+- Low-level targeting/execution correctness is execution infrastructure, not scene methodology.

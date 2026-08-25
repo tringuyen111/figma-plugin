@@ -3,10 +3,10 @@
   "status": "MECHANISM_TESTED_BEHAVIORAL_COMPARISON_NOT_RUN",
   "candidate": "progressive-work-plan-runtime-sdk-plan-telemetry-reuse-registry-v1",
   "claims": {
-    "planningMechanism": "IMPLEMENTED_TESTED",
-    "obligationLedgerMechanism": "IMPLEMENTED_TESTED_V2",
-    "progressiveContextMechanism": "IMPLEMENTED_TESTED",
-    "representationSelectionMechanism": "IMPLEMENTED_TESTED",
+    "planningMechanism": "IMPLEMENTED_TESTED_V3",
+    "obligationLedgerMechanism": "IMPLEMENTED_TESTED_V3",
+    "progressiveContextMechanism": "PROMPT_METHOD_DEFINED_BEHAVIORAL_NOT_RUN",
+    "representationSelectionMechanism": "AGENT_JUDGMENT_BEHAVIORAL_NOT_RUN",
     "runtimeSdkMechanism": "IMPLEMENTED_TESTED_LOCAL_V2",
     "typedRuntimePlatform": "LIVE_PASS_WITH_PROVIDER_LIMIT",
     "planTelemetryMechanism": "IMPLEMENTED_TESTED_LOCAL",
@@ -20,17 +20,20 @@
     "crossFileLibraryReuse": "NOT_RUN",
     "designToCodeParity": "NOT_RUN",
     "behavioralSkillComparison": "NOT_RUN",
-    "independentQualification": "NOT_RUN"
+    "independentQualification": "NOT_RUN",
+    "observableTrajectoryEvidence": "IMPLEMENTED_TESTED_LOCAL"
   },
   "invariants": {
-    "maxActiveDeepResources": 2,
     "noteAfterEachLoad": true,
     "distillBeforeNextLoad": true,
     "smallDirectWorkNeedsPlan": false,
     "requiredObligationsMayDisappear": false,
     "mutationMayOmitOperationContext": false,
     "telemetryOwnsCanonicalPlan": false,
-    "declaredPostconditionsAutoPass": false
+    "declaredPostconditionsAutoPass": false,
+    "skillSelectionMayBeInjectedByHarness": false,
+    "contextDepthMayBeNumericallyCappedByPlan": false,
+    "representationMayBeChosenByPlanScript": false
   },
   "cases": [
     {
@@ -38,12 +41,20 @@
       "trigger": "Create a system-aware dashboard with reusable components, real content, responsive layout, and rendered proof.",
       "expected": {
         "planning": "work-graph",
-        "primaryOwner": "figma-design-authoring",
-        "activateJustInTime": ["figma-layout", "figma-components", "figma-typography", "figma-visual-system"],
         "representation": "rendered-composition",
-        "context": "one active packet plus at most two deep resources"
+        "context": "one active packet plus only decision-changing context",
+        "outcomeInvariants": [
+          "The dashboard preserves coherent layout, component, type, color/depth, and system-reuse relations under representative content.",
+          "Each material design concern reaches an evidence-backed state without requiring a predeclared Skill route.",
+          "The resulting artifact remains editable through native reusable structure rather than one giant mutation."
+        ]
       },
-      "failureSignals": ["preloads every specialist", "no proof per packet", "one giant mutation", "paragraph-only design explanation"],
+      "failureSignals": [
+        "preloads every specialist",
+        "no proof per packet",
+        "one giant mutation",
+        "paragraph-only design explanation"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -51,12 +62,18 @@
       "trigger": "Rename one known layer on one resolved page.",
       "expected": {
         "planning": "direct",
-        "primaryOwner": "figma-native",
-        "activateJustInTime": [],
         "representation": "text",
-        "context": "no work-plan ceremony"
+        "context": "no work-plan ceremony",
+        "outcomeInvariants": [
+          "The resolved layer is renamed without creating unrelated planning artifacts.",
+          "The edit preserves target identity and returns bounded evidence for the changed layer."
+        ]
       },
-      "failureSignals": ["creates a multi-node plan", "loads design-system Skills", "renders a decorative diagram"],
+      "failureSignals": [
+        "creates a multi-node plan",
+        "loads design-system Skills",
+        "renders a decorative diagram"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -64,12 +81,18 @@
       "trigger": "A task appears relevant to eight Figma Skills but only the component API is currently unresolved.",
       "expected": {
         "planning": "active-packet",
-        "primaryOwner": "figma-design-authoring",
-        "activateJustInTime": ["figma-components"],
         "representation": "component-specimen",
-        "context": "note component decision immediately, then release deep context"
+        "context": "keep the active component question; load only context that can change it, then shed it",
+        "outcomeInvariants": [
+          "The active component-API question remains explicit while unrelated context is not preloaded.",
+          "The result records the decision mechanism and releases branch detail once the decision is durable."
+        ]
       },
-      "failureSignals": ["reads all eight Skills before acting", "summarizes prose instead of decision mechanism", "loses the active component question"],
+      "failureSignals": [
+        "reads all eight Skills before acting",
+        "summarizes prose instead of decision mechanism",
+        "loses the active component question"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -77,12 +100,18 @@
       "trigger": "Explain an inspect-create-verify-recover workflow with two failure branches.",
       "expected": {
         "planning": "direct",
-        "primaryOwner": "figma-design-authoring",
-        "activateJustInTime": [],
         "representation": "flow",
-        "context": "short node labels plus branch conditions"
+        "context": "short node labels plus branch conditions",
+        "outcomeInvariants": [
+          "The two failure branches are perceptible as branches rather than buried in narrative prose.",
+          "The representation preserves inspect-create-verify-recover ordering and recovery conditions."
+        ]
       },
-      "failureSignals": ["long Markdown narrative", "untyped decorative arrows", "branch semantics hidden in prose"],
+      "failureSignals": [
+        "long Markdown narrative",
+        "untyped decorative arrows",
+        "branch semantics hidden in prose"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -90,12 +119,18 @@
       "trigger": "Show completion and failure rates across four execution lanes.",
       "expected": {
         "planning": "direct",
-        "primaryOwner": "figma-design-authoring",
-        "activateJustInTime": [],
         "representation": "bar",
-        "context": "values, units, labels, and evidence caveat"
+        "context": "values, units, labels, and evidence caveat",
+        "outcomeInvariants": [
+          "Completion and failure rates remain quantitatively comparable across all four lanes.",
+          "Values, units, evidence caveats, and unequal state salience remain visible."
+        ]
       },
-      "failureSignals": ["four prose paragraphs", "unmeasured confidence percentage", "all states use equal visual salience"],
+      "failureSignals": [
+        "four prose paragraphs",
+        "unmeasured confidence percentage",
+        "all states use equal visual salience"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -103,12 +138,18 @@
       "trigger": "Bind text and fill styles under a dynamic-page manifest.",
       "expected": {
         "planning": "direct",
-        "primaryOwner": "figma-native",
-        "activateJustInTime": [],
         "representation": "text",
-        "context": "runtimeSdk v2 async page, style, and variable helpers"
+        "context": "runtimeSdk v2 async page, style, and variable helpers",
+        "outcomeInvariants": [
+          "Async page/style/variable mechanics are used correctly under the dynamic-page manifest.",
+          "A failing native operation is diagnosed rather than blindly retried."
+        ]
       },
-      "failureSignals": ["assigns textStyleId synchronously", "retries the same failing code", "loads unrelated design methodology"],
+      "failureSignals": [
+        "assigns textStyleId synchronously",
+        "retries the same failing code",
+        "loads unrelated design methodology"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -116,12 +157,18 @@
       "trigger": "A dispatched Figma mutation times out before the caller receives a result.",
       "expected": {
         "planning": "recovery-packet",
-        "primaryOwner": "figma-native",
-        "activateJustInTime": [],
         "representation": "state-diagram",
-        "context": "inspect queue and target before any retry"
+        "context": "inspect queue and target before any retry",
+        "outcomeInvariants": [
+          "Ambiguous timeout state is inspected before any retry can duplicate a mutation.",
+          "Recovery preserves queue/target truth and does not restart unrelated work."
+        ]
       },
-      "failureSignals": ["immediate duplicate mutation", "false failure-to-no-side-effect assumption", "restarts unrelated plan nodes"],
+      "failureSignals": [
+        "immediate duplicate mutation",
+        "false failure-to-no-side-effect assumption",
+        "restarts unrelated plan nodes"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -129,12 +176,18 @@
       "trigger": "Reuse a component from a published library in another Figma file.",
       "expected": {
         "planning": "work-graph",
-        "primaryOwner": "figma-components",
-        "activateJustInTime": ["figma-design-to-design"],
         "representation": "component-specimen",
-        "context": "registry identity plus source and consumer proof"
+        "context": "registry/source/consumer evidence needed for the reuse claim; Skill selection is observed after execution",
+        "outcomeInvariants": [
+          "Reuse is proven by source/consumer identity and native linkage rather than visual similarity.",
+          "Detached copies or LOCAL_VERIFIED evidence are not promoted to cross-file reuse proof."
+        ]
       },
-      "failureSignals": ["visual similarity counted as reuse", "LOCAL_VERIFIED called cross-file proof", "detached copy accepted"],
+      "failureSignals": [
+        "visual similarity counted as reuse",
+        "LOCAL_VERIFIED called cross-file proof",
+        "detached copy accepted"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -142,12 +195,18 @@
       "trigger": "Complete a five-clause Figma request whose visual, system, interaction, export, and verification obligations all remain required.",
       "expected": {
         "planning": "work-graph-v2",
-        "primaryOwner": "figma-design-authoring",
-        "activateJustInTime": ["figma-components", "figma-prototype", "figma-verification"],
         "representation": "table",
-        "context": "every source clause has an obligation id and terminal evidence state"
+        "context": "every source clause has an obligation id and terminal evidence state; Skill selection is not injected",
+        "outcomeInvariants": [
+          "Every required source clause remains traceable to an obligation and terminal evidence state.",
+          "Overall PASS is impossible while a required obligation is unresolved or evidence-free."
+        ]
       },
-      "failureSignals": ["a required clause disappears from output", "overall PASS with an unresolved obligation", "declared postcondition counted as evidence"],
+      "failureSignals": [
+        "a required clause disappears from output",
+        "overall PASS with an unresolved obligation",
+        "declared postcondition counted as evidence"
+      ],
       "status": "FROZEN_NOT_RUN"
     },
     {
@@ -155,12 +214,39 @@
       "trigger": "Attempt a raw or typed Figma mutation without traceId, operation intent, or postconditions.",
       "expected": {
         "planning": "direct-rejection",
-        "primaryOwner": "figma-native",
-        "activateJustInTime": [],
         "representation": "text",
-        "context": "MCP rejects before dispatch and returns structured INVALID_PARAMS"
+        "context": "MCP rejects before dispatch and returns structured INVALID_PARAMS",
+        "outcomeInvariants": [
+          "A mutation lacking required trace/operation/postcondition context is rejected before dispatch.",
+          "The server does not infer missing intent from JavaScript or upgrade declarations into evidence."
+        ]
       },
-      "failureSignals": ["untracked mutation reaches Figma", "server guesses intent from JavaScript", "missing postconditions are treated as verified"],
+      "failureSignals": [
+        "untracked mutation reaches Figma",
+        "server guesses intent from JavaScript",
+        "missing postconditions are treated as verified"
+      ],
+      "status": "FROZEN_NOT_RUN"
+    },
+    {
+      "id": "iterative-grid-dashboard-edit",
+      "trigger": "Build a tokenized reusable dashboard metric grid, then move one card, span another across two columns, and verify the layout still preserves comparison structure under a narrower container.",
+      "expected": {
+        "planning": "work-graph",
+        "representation": "rendered-composition",
+        "context": "semantic component/token decisions plus bounded grid owner/child evidence; edits preserve existing identities",
+        "outcomeInvariants": [
+          "The metric grid preserves reusable component/token semantics and comparison structure under the narrower container.",
+          "Move/span edits operate on existing identities without detaching or rebuilding the grid subtree.",
+          "Verification uses bounded grid owner/child evidence rather than a full-document dump."
+        ]
+      },
+      "failureSignals": [
+        "uses manual x/y coordinates for repeated comparison cards",
+        "rebuilds or detaches the grid to perform the edit",
+        "loads the full document tree instead of the grid owner and representative consumers",
+        "reports layout PASS without row/column/span/pressure evidence"
+      ],
       "status": "FROZEN_NOT_RUN"
     }
   ],
@@ -171,6 +257,10 @@
     "tests/server/runtime-telemetry.test.ts",
     "tests/server/surface.test.ts",
     "scripts/smoke-mcp-operation.mjs",
-    "tests/plugin/ui.test.ts"
-  ]
+    "tests/plugin/ui.test.ts",
+    "tests/agent/trajectory-evidence.node.test.mjs",
+    "scripts/check-trajectory-evidence.mjs",
+    "tests/agent/skill-architecture.node.test.mjs"
+  ],
+  "selectionPolicy": "AGENT_SELECTED_OBSERVED_NOT_INJECTED"
 }

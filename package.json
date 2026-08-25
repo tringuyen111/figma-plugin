@@ -7,8 +7,10 @@
     "figma-plugin": "dist/server/index.js"
   },
   "files": [
-    "dist",
-    "plugin",
+    "dist/server/index.js",
+    "plugin/manifest.json",
+    "plugin/code.js",
+    "plugin/ui.html",
     "README.md",
     "docs",
     "design",
@@ -21,10 +23,14 @@
     "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
-    "build": "npm run check:capabilities && npm run typecheck && npm run test && npm run build:bundle && npm run test:bundle",
+    "clean": "node scripts/clean-generated.mjs",
+    "clean:check": "node scripts/clean-generated.mjs --check",
+    "build": "npm run clean && npm run check:docs && npm run check:capabilities && npm run typecheck && npm run test && npm run build:bundle && npm run test:bundle",
     "build:watch": "node scripts/build.mjs --watch",
+    "build:debug": "node scripts/build.mjs --sourcemap",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.plugin.json --noEmit",
-    "test": "vitest run",
+    "test": "node scripts/build-ui.mjs && npm run test:node && vitest run --exclude **/*.node.test.mjs",
+    "test:node": "node --test tests/agent/skill-architecture.node.test.mjs tests/agent/skill-remaining-semantic.node.test.mjs tests/agent/skill-semantic-language.node.test.mjs tests/agent/trajectory-evidence.node.test.mjs",
     "start": "node dist/server/index.js",
     "build:bundle": "node scripts/build.mjs",
     "prepack": "npm run build",
@@ -44,7 +50,10 @@
     "repair:luma-realistic-live": "node scripts/repair-luma-realistic-live.mjs",
     "build:ui": "node scripts/build-ui.mjs",
     "preview:ui-fixture": "node scripts/visual-operation-fixture.mjs",
-    "check:capabilities": "node scripts/check-capabilities.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:capabilities": "node scripts/check-trajectory-evidence.mjs && node scripts/check-capabilities.mjs",
+    "check:trajectory-evidence": "node scripts/check-trajectory-evidence.mjs",
+    "check:package": "node scripts/check-package.mjs"
   },
   "engines": {
     "node": ">=18"

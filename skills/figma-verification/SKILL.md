@@ -19,6 +19,20 @@ When the input is a checklist or audit profile rather than an executed report, r
 
 This Skill earns its place by preventing **false PASS**. It binds the exact artifact and expected truth, chooses evidence capable of proving each requested claim, keeps dimensions independent, and never redesigns during acceptance. The result is a bounded verdict, not a style critique or a repair session.
 
+## Operational vocabulary
+
+**EXPECTED TRUTH** — the authoritative obligation the fixed artifact is supposed to satisfy. Preference or plausibility is not Expected Truth.
+
+**CLAIM** — one bounded assertion to evaluate against Expected Truth. Split claims when different evidence dimensions are required.
+
+**EVIDENCE VECTOR** — the minimum set of evidence dimensions capable of proving or falsifying the Claim. More evidence types are not automatically stronger.
+
+**FINDING** — `observed -> expected -> evidence -> consequence` for one material discrepancy or confirmation. A finding is not yet an overall verdict.
+
+**VERDICT** — the claim-scoped state supported by the admitted evidence. Never let uninspected dimensions inherit PASS from neighboring facts.
+
+**PROOF GAP** — the specific missing/blocked/inconclusive evidence preventing a stronger Verdict. Name the gap instead of redesigning around it.
+
 ## Skill I/O contract
 
 **Minimum input**
@@ -87,7 +101,7 @@ Use the provider's structured evidence surface when it is stronger than re-deriv
 4. Render/execute only where visible/interactive/temporal/runtime claims require it.
 5. Record each finding as `observed -> expected -> evidence -> consequence`.
 6. Assign per-dimension state.
-7. Return smallest actionable verdict and route repair to the owning authoring capability if requested.
+7. Return the smallest actionable verdict. If repair is separately requested, return the causal semantic dimension, correction prerequisite, affected identity, and proof gap; normal Agent capability discovery decides the repair workflow.
 
 ## Artifact-class gate
 
@@ -118,17 +132,19 @@ Report unsupported runtime obligations as `NOT_RUN`, `MISSING`, or `BLOCKED`; do
 
 ## No redesign inside acceptance
 
-Verification may identify the failing owner and a bounded correction direction, but it must not silently redesign the artifact. If the user asks to fix findings, route by cause:
+Verification may identify the failing semantic dimension and a bounded correction prerequisite, but it must not silently redesign the artifact. If the user separately requests repair, classify the cause without selecting a named repair capability:
 
-- scene/depth -> `figma-scene`;
-- layout -> `figma-layout`;
-- tokens/type/visual/components -> corresponding system Skill;
-- interaction -> `figma-prototype`;
-- Motion -> `figma-motion`;
-- whole composition -> `figma-design-authoring`;
-- design/code mapping -> translation Skills.
+```text
+scene / depth relation
+layout relation
+system value / typography / visual / component contract
+interaction state path
+temporal choreography
+whole composition
+design <-> code correspondence
+```
 
-After repair, verification may be run again against the changed exact bytes/artifact.
+Return the earliest causal dimension, affected identity, Expected Truth, and evidence that must be re-proven after repair. Once the job changes from assessment to mutation, normal Agent capability discovery chooses the appropriate repair workflow. Re-run verification against the changed exact artifact rather than carrying the old Verdict forward.
 
 ## Output contract
 
@@ -147,7 +163,6 @@ A clean screenshot is not a system PASS. A valid component tree is not a visual 
 
 ## Boundaries
 
-- Domain authoring Skills own creation/repair decisions.
-- `figma-native` owns raw targeting/execution mechanics.
-- This Skill can compose provider read/proof surfaces, but provider tool names do not define its capability boundary.
-- Production-code accessibility/runtime acceptance remains with the appropriate engineering/QA owner when Figma evidence cannot prove it.
+- Domain authoring/repair decisions, low-level targeting/execution mechanics, and production-only runtime/accessibility acceptance are outside this fixed-artifact assessment workflow.
+- Provider proof surfaces may supply Evidence, but provider tool names do not define the verification capability boundary.
+- This workflow owns Expected Truth binding, evidence selection/admission, Findings, Verdicts, Proof Gaps, and truthful limitations.

@@ -32,7 +32,12 @@ describe("native MCP surface", () => {
     expect(applyProps).toHaveProperty("key");
     expect(applyProps).toHaveProperty("propertyValues");
     expect(applyProps).toHaveProperty("patches");
+    const patchSchema = (applyProps.patches as { items?: { properties?: Record<string, unknown> } }).items;
+    expect(patchSchema?.properties).toHaveProperty("opRef");
+    const refSchema = patchSchema?.properties?.target as { properties?: Record<string, unknown> };
+    expect(refSchema.properties).toHaveProperty("opRef");
     expect(applyProps).toHaveProperty("expectedPlanHash");
+    expect((applyProps.resultMode as { enum?: string[] }).enum).toEqual(["full", "receipt"]);
     expect((apply?.inputSchema as { required?: string[] }).required).toEqual(["action", "traceId", "operation"]);
     expect((((applyProps.operation as { properties?: Record<string, unknown> }).properties?.kind) as { enum?: string[] }).enum).toEqual(["write"]);
     expect(apply?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true, openWorldHint: false });

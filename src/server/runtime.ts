@@ -242,6 +242,8 @@ function validateApplyParams(params: Record<string, unknown>): void {
   }
   if (params["allowDelete"] !== undefined && typeof params["allowDelete"] !== "boolean") throw new OpError(ErrorCode.INVALID_PARAMS, "allowDelete must be boolean.");
   if (params["maxOperations"] !== undefined && (typeof params["maxOperations"] !== "number" || !Number.isInteger(params["maxOperations"]) || params["maxOperations"] < 1 || params["maxOperations"] > 100)) throw new OpError(ErrorCode.INVALID_PARAMS, "maxOperations must be an integer from 1 to 100.");
+  if (params["resultMode"] !== undefined && params["resultMode"] !== "full" && params["resultMode"] !== "receipt") throw new OpError(ErrorCode.INVALID_PARAMS, 'resultMode must be "full" or "receipt".');
+  if (params["resultMode"] !== undefined && action !== "apply_entity_patch") throw new OpError(ErrorCode.INVALID_PARAMS, "resultMode is only supported by apply_entity_patch.");
   if (params["removeLocalAssets"] !== undefined && typeof params["removeLocalAssets"] !== "boolean") throw new OpError(ErrorCode.INVALID_PARAMS, "removeLocalAssets must be boolean.");
   const pageIds = params["pageIds"];
   if (pageIds !== undefined && (!Array.isArray(pageIds) || pageIds.length > 100 || !pageIds.every((id) => typeof id === "string" && id.length > 0 && id.length <= 256))) {

@@ -25,8 +25,8 @@
       "description": "ControlMux Figma Skill with the same tool/provider availability; isolates ControlMux decision-method value."
     },
     {
-      "id": "CONTROLMUX_HYBRID",
-      "description": "ControlMux Figma Skill with live structured Figma provider delegation plus local ControlMux execution where appropriate; target production posture."
+      "id": "CONTROLMUX_LOCAL_CORE",
+      "description": "ControlMux Figma Skills over the custom local execution stack; target production posture. Official/remote Figma providers are optional comparison or benchmark inputs, not required runtime dependencies."
     }
   ],
   "capabilityMetrics": [
