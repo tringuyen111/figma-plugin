@@ -133,6 +133,19 @@ describe("typed entity graph and CRUD", () => {
     expect(mutableChange.plan.planHash).not.toBe(first.plan.planHash);
   });
 
+  it("maps shared wire validation failures to INVALID_PARAMS", async () => {
+    const fixture = makeFixture();
+    (globalThis as Record<string, unknown>).figma = fixture.figma;
+    const frame = fixture.makeNode("FRAME", { name: "Validation target" });
+    fixture.page.appendChild(frame);
+
+    await expect(applyDocument({
+      action: "apply_entity_patch",
+      patches: [{ kind: "motion_command", entityKind: "node", target: { nodeId: frame.id }, command: "mystery", payload: {} }],
+      dryRun: true,
+    })).rejects.toMatchObject({ bridgeError: { code: ErrorCode.INVALID_PARAMS } });
+  });
+
   it("keeps compact rollback failure evidence without restoring full entity payloads", async () => {
     const fixture = makeFixture();
     (globalThis as Record<string, unknown>).figma = fixture.figma;

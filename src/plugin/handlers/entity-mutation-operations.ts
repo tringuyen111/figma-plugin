@@ -55,9 +55,7 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
   const input = params as unknown as EntityPatchRequestWire & { traceId?: unknown };
   const maxOperations = input.maxOperations === undefined ? 100 : input.maxOperations;
   if (typeof maxOperations !== "number" || !Number.isInteger(maxOperations) || maxOperations < 1 || maxOperations > 100) throw failure(ErrorCode.INVALID_PARAMS, "maxOperations must be an integer from 1 to 100.");
-  const patches = validateEntityPatches(input.patches, maxOperations).map((patch) => input.allowDelete === true && patch.kind === "delete" ? { ...patch, allowDelete: true } : patch);
-  const executionPlan = planEntityPatchExecution(patches);
-  const conflictPolicy = validateConflictPolicy(input.conflictPolicy);
+  const { patches, executionPlan, conflictPolicy } = validatedPatchRequest(input, maxOperations);
   const traceId = typeof input.traceId === "string" ? input.traceId : undefined;
   const resultMode = input.resultMode === undefined ? "full" : input.resultMode;
   if (resultMode !== "full" && resultMode !== "receipt") throw failure(ErrorCode.INVALID_PARAMS, 'resultMode must be "full" or "receipt".');
@@ -214,6 +212,23 @@ export async function applyEntityPatch(params: Record<string, unknown>): Promise
         limitations: [{ code: ErrorCode.ROLLBACK_FAILED, message: "The provider did not allow rollback verification; the document may contain a partial commit.", unlock: "Inspect artifact_manifest and change_feed before retrying." }],
       };
     }
+  }
+}
+
+function validatedPatchRequest(input: EntityPatchRequestWire, maxOperations: number): {
+  patches: EntityPatchWire[];
+  executionPlan: ReturnType<typeof planEntityPatchExecution>;
+  conflictPolicy: ReturnType<typeof validateConflictPolicy>;
+} {
+  try {
+    const patches = validateEntityPatches(input.patches, maxOperations).map((patch) => input.allowDelete === true && patch.kind === "delete" ? { ...patch, allowDelete: true } : patch);
+    return {
+      patches,
+      executionPlan: planEntityPatchExecution(patches),
+      conflictPolicy: validateConflictPolicy(input.conflictPolicy),
+    };
+  } catch (error) {
+    throw failure(ErrorCode.INVALID_PARAMS, error instanceof Error ? error.message : String(error));
   }
 }
 
