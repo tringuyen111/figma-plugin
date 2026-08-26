@@ -282,10 +282,11 @@ describe("Bridge native instance routing", () => {
     await waitUntil(() => bridge.instanceCount === 1);
 
     const first = bridge.dispatch("execute_js", { code: "return 'slow'" }, { timeoutMs: 120 });
+    const firstFailure = first.then(() => null, (error: unknown) => error);
     await waitUntil(() => plugin.requests.length === 1);
     const second = bridge.dispatch("execute_js", { code: "return 'queued'" }, { timeoutMs: 30 });
     await expect(second).rejects.toMatchObject({ code: ErrorCode.PLUGIN_TIMEOUT });
-    await expect(first).rejects.toMatchObject({ code: ErrorCode.PLUGIN_TIMEOUT });
+    await expect(firstFailure).resolves.toMatchObject({ code: ErrorCode.PLUGIN_TIMEOUT });
     expect(bridge.queueLength).toBe(0);
     expect(bridge.pendingCount).toBe(0);
   });
