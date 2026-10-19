@@ -16,6 +16,12 @@ This directory contains current contracts, not a release diary. Git history owns
 | `EXPORT.md` | Durable artifact egress contract |
 | `PLUGIN-0.7.0-TYPED-CRUD.md` | Typed entity graph, patch planning, and mutation receipts |
 
+## Future proposals (not implemented)
+
+| Document | Purpose |
+|---|---|
+| [Grounded Figma-to-code roadmap](proposals/AGENT-GROUNDING-ROADMAP.md) | Proposed design-context normalization, codebase component/token/icon mapping, semantic diff, `figma_exec` policy, distribution UX, and benchmark plan. **No implementation authorized or claimed.** |
+
 ## Maintainer contracts
 
 | Document | Purpose |
